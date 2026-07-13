@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Options Strategy Atlas · 期权策略图谱</title>
+  <meta name="description" content="An interactive reference for 65 options strategies — Greeks, structure, legs, and payoff diagrams.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grain"></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand">
+        <div class="brand-mark">◇</div>
+        <div class="brand-text">
+          <h1>Options Strategy Atlas</h1>
+          <p class="sub">期权策略图谱 — a reference for <span id="totalCount">65</span> structured plays</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Showing</span>
+          <span class="stat-value" id="visibleCount">65</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Filtered</span>
+          <span class="stat-value" id="filteredCount">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="filters" id="filterPanel">
+      <div class="filter-head">
+        <h2>Filters</h2>
+        <button class="reset-btn" id="resetBtn" title="Clear all filters">Reset</button>
+      </div>
+
+      <div class="filter-search">
+        <input type="text" id="searchInput" placeholder="Search by name or nickname…" autocomplete="off">
+      </div>
+
+      <div class="filter-groups" id="filterGroups">
+        <!-- Filter groups injected by JS -->
+      </div>
+    </aside>
+
+    <section class="results">
+      <div class="results-head">
+        <h2>Strategies</h2>
+        <div class="sort-controls">
+          <label for="sortSelect">Sort</label>
+          <select id="sortSelect">
+            <option value="default">Default order</option>
+            <option value="name">Name A→Z</option>
+            <option value="skill">Skill (Novice→Expert)</option>
+            <option value="legs">Number of legs</option>
+            <option value="structure">Structure</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid" id="grid">
+        <!-- Cards injected by JS -->
+      </div>
+      <div class="empty" id="empty" hidden>
+        <p>No strategies match these filters.</p>
+        <button class="reset-btn" onclick="resetFilters()">Clear filters</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detail Modal -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+      <div class="modal-content" id="modalContent">
+        <!-- Detail content injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Source: <code>期权策略.xlsx</code> · 65 strategies, 163 legs · Built for browsing & study.</p>
+    <p class="caveat">Educational reference only — payoff diagrams are stylized canonical shapes, not live quotes. Strike offsets are inferred from moneyness labels.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

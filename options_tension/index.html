@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期权张力系统 · Options Tension Dynamics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Noto+Serif+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0c0a;
+    --surface: #14130f;
+    --surface-2: #1c1a16;
+    --border: #2a2620;
+    --border-strong: #403a30;
+    --text: #e8e1d4;
+    --text-dim: #a8a094;
+    --text-faint: #6a655c;
+    --gold: #d4a04c;
+    --gold-dim: #8a6a32;
+    --crimson: #c95850;
+    --crimson-dim: #823932;
+    --teal: #5fa89c;
+    --teal-dim: #3d6e66;
+    --grid: #221f1a;
+
+    --display: 'Fraunces', 'Noto Serif SC', serif;
+    --body: 'Noto Serif SC', 'Fraunces', serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(at 15% 8%, rgba(212, 160, 76, 0.05) 0%, transparent 45%),
+      radial-gradient(at 85% 92%, rgba(95, 168, 156, 0.04) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 56px 36px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HEADER ───────────────────────────────────────── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+  }
+  .header-text { flex: 1; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .eyebrow .dot {
+    display: inline-block;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold);
+    margin: 0 12px 2px 0;
+    vertical-align: middle;
+  }
+
+  .title {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 58px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .title em {
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 300;
+  }
+
+  .subtitle {
+    font-family: var(--display);
+    font-size: 17px;
+    font-style: italic;
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
+  .header-aside {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    line-height: 2;
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+  }
+  .header-aside strong { color: var(--text-dim); font-weight: 500; }
+
+  /* ── CONTROLS ─────────────────────────────────────── */
+  .controls {
+    background: linear-gradient(180deg, var(--surface) 0%, rgba(20,19,15,0.7) 100%);
+    border: 1px solid var(--border);
+    padding: 26px 32px 28px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .controls::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+    opacity: 0.4;
+  }
+
+  .controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .controls-title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+  }
+  .controls-title small {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    margin-left: 12px;
+    font-weight: 400;
+  }
+
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 32px;
+    align-items: end;
+  }
+  .control { display: flex; flex-direction: column; gap: 9px; }
+
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .control-label .symbol {
+    font-family: var(--display);
+    font-size: 19px;
+    font-style: italic;
+    color: var(--gold);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-right: 6px;
+    font-weight: 400;
+  }
+  .control-value {
+    font-family: var(--mono);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border-strong);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--gold);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(212,160,76,0.3);
+    transition: transform 0.12s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--gold);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+
+  .type-toggle-row {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .type-buttons {
+    display: flex;
+    border: 1px solid var(--border-strong);
+  }
+  .type-btn {
+    padding: 8px 22px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.18s;
+  }
+  .type-btn.active {
+    background: var(--gold);
+    color: var(--bg);
+    font-weight: 500;
+  }
+
+  .scenarios {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .scenarios-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+  .scenario-btn {
+    padding: 6px 13px;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.02em;
+  }
+  .scenario-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .scenario-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212, 160, 76, 0.08);
+  }
+
+  /* ── PANELS ───────────────────────────────────────── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1.32fr 1fr;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 28px 26px;
+    position: relative;
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .panel-title {
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 500;
+    flex: 1;
+  }
+  .panel-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+  .panel-tag em {
+    color: var(--gold);
+    font-style: normal;
+  }
+  .panel-note {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    line-height: 1.55;
+  }
+
+  /* ── PRICE DISPLAY ────────────────────────────────── */
+  .price-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+  .price-box .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .price-box .value {
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .price-box .value .currency {
+    font-size: 17px;
+    color: var(--text-dim);
+    margin-right: 4px;
+    font-style: italic;
+    font-weight: 300;
+  }
+  .price-box.total .value { color: var(--gold); }
+  .price-box.intrinsic .value { color: var(--teal); }
+  .price-box.time .value { color: var(--crimson); }
+
+  .stack-bar {
+    height: 32px;
+    display: flex;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    overflow: hidden;
+    position: relative;
+  }
+  .stack-segment {
+    position: relative;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  .stack-segment.intrinsic {
+    background: linear-gradient(135deg, var(--teal-dim) 0%, var(--teal) 100%);
+  }
+  .stack-segment.time {
+    background: linear-gradient(135deg, var(--crimson-dim) 0%, var(--crimson) 100%);
+  }
+  .stack-label {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--bg);
+    white-space: nowrap;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── GREEKS ───────────────────────────────────────── */
+  .greeks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .greek-row {
+    display: grid;
+    grid-template-columns: 46px 1fr 96px;
+    gap: 14px;
+    align-items: center;
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .greek-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .greek-symbol {
+    font-family: var(--display);
+    font-size: 30px;
+    font-style: italic;
+    color: var(--gold);
+    text-align: center;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .greek-info { min-width: 0; }
+  .greek-name {
+    font-family: var(--display);
+    font-size: 14.5px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .greek-desc {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    margin-bottom: 7px;
+    letter-spacing: 0.02em;
+  }
+  .greek-bar {
+    height: 2px;
+    background: var(--border-strong);
+    position: relative;
+  }
+  .greek-bar-zero {
+    position: absolute;
+    left: 50%; top: -3px;
+    width: 1px; height: 8px;
+    background: var(--text-faint);
+  }
+  .greek-bar-fill {
+    position: absolute;
+    height: 100%;
+    transition: all 0.35s ease;
+  }
+  .greek-value {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .greek-value.positive { color: var(--teal); }
+  .greek-value.negative { color: var(--crimson); }
+
+  /* ── CHARTS ───────────────────────────────────────── */
+  .chart {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .chart text {
+    font-family: var(--mono);
+  }
+  .chart .axis {
+    stroke: var(--border-strong);
+    stroke-width: 1;
+  }
+  .chart .grid-line {
+    stroke: var(--grid);
+    stroke-width: 0.5;
+  }
+  .chart .axis-label {
+    fill: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+  .chart .axis-title {
+    fill: var(--text-dim);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .chart .data-line {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.6;
+  }
+  .chart .data-line-secondary {
+    fill: none;
+    stroke: var(--teal);
+    stroke-width: 1.4;
+    stroke-dasharray: 4 3;
+  }
+  .chart .data-line-tertiary {
+    fill: none;
+    stroke: var(--crimson);
+    stroke-width: 1.2;
+    stroke-dasharray: 2 2;
+  }
+  .chart .data-fill {
+    fill: var(--gold);
+    fill-opacity: 0.06;
+  }
+  .chart .marker {
+    fill: var(--gold);
+    stroke: var(--bg);
+    stroke-width: 2;
+  }
+  .chart .marker-label {
+    fill: var(--gold);
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .chart .ref-line {
+    stroke: var(--text-faint);
+    stroke-width: 0.6;
+    stroke-dasharray: 1 3;
+    opacity: 0.7;
+  }
+  .chart .legend-text {
+    fill: var(--text-dim);
+    font-size: 10px;
+  }
+
+  /* ── SECONDARY GRID ───────────────────────────────── */
+  .secondary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+
+  /* ── NETWORK ──────────────────────────────────────── */
+  .network-panel { margin-bottom: 32px; }
+
+  /* ── FOOTNOTE ─────────────────────────────────────── */
+  .footnote {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 15px;
+    text-align: center;
+    line-height: 1.85;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .footnote em { color: var(--gold); font-weight: 400; }
+  .footnote-attr {
+    font-family: var(--mono);
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-top: 14px;
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────── */
+  @media (max-width: 1100px) {
+    .control-grid { grid-template-columns: repeat(3, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+    .secondary-grid { grid-template-columns: 1fr; }
+    .price-display { grid-template-columns: 1fr; gap: 14px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header-aside { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 16px; text-align: left; }
+    .title { font-size: 44px; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 36px 18px 60px; }
+    .control-grid { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+    .panel { padding: 20px 18px; }
+    .controls { padding: 22px 18px; }
+    .title { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ── HEADER ─────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-text">
+    <div class="eyebrow"><span class="dot"></span>Options Tension Dynamics · 张力系统分析器</div>
+    <h1 class="title">期权张力<em>系统</em></h1>
+    <p class="subtitle">从二元悖论的视角追踪期权价格因素的相互塑造——确定性的数学框架，与不确定性的本质之间。</p>
+  </div>
+  <div class="header-aside">
+    <div><strong>MODEL</strong> Black–Scholes (1973)</div>
+    <div><strong>SOLVER</strong> Closed-form / Greeks</div>
+    <div><strong>FRAME</strong> 11 Tensions</div>
+  </div>
+</header>
+
+<!-- ── CONTROLS ───────────────────────────────────────── -->
+<section class="controls">
+  <div class="controls-header">
+    <div class="controls-title">参数控制台<small>PARAMETER CONTROL · BS INPUTS</small></div>
+    <div style="font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.16em; text-transform: uppercase;">五维不确定性输入空间</div>
+  </div>
+
+  <div class="control-grid">
+    <div class="control">
+      <div class="control-label">
+        <span><span class="symbol">S</span>标的价格</span>
+        <span class="control-value" id="val-S">100.0</span>
+      </div>
+      <input type="range" id="ctrl-S" min="50" max="200" value="100" step="0.5">
+    </div>
+
+    <div class="control">
+      <div class="control-label">
+        <span><span class="symbol">K</span>行权价</span>
+        <span class="control-value" id="val-K">100.0</span>
+      </div>
+      <input type="range" id="ctrl-K" min="50" max="200" value="100" step="0.5">
+    </div>
+
+    <div class="control">
+      <div class="control-label">
+        <span><span class="symbol">T</span>到期(年)</span>
+        <span class="control-value" id="val-T">0.500</span>
+      </div>
+      <input type="range" id="ctrl-T" min="0.02" max="2" value="0.5" step="0.01">
+    </div>
+
+    <div class="control">
+      <div class="control-label">
+        <span><span class="symbol">σ</span>波动率</span>
+        <span class="control-value" id="val-sigma">25.0%</span>
+      </div>
+      <input type="range" id="ctrl-sigma" min="5" max="100" value="25" step="0.5">
+    </div>
+
+    <div class="control">
+      <div class="control-label">
+        <span><span class="symbol">r</span>无风险利率</span>
+        <span class="control-value" id="val-r">5.0%</span>
+      </div>
+      <input type="range" id="ctrl-r" min="0" max="10" value="5" step="0.1">
+    </div>
+  </div>
+
+  <div class="type-toggle-row">
+    <div class="scenarios">
+      <span class="scenarios-label">SCENARIO ›</span>
+      <button class="scenario-btn" data-scenario="atm">平值</button>
+      <button class="scenario-btn" data-scenario="otm">深度虚值 / 张力一</button>
+      <button class="scenario-btn" data-scenario="itm">深度实值 / 张力五</button>
+      <button class="scenario-btn" data-scenario="near-expiry">临近到期 / 张力五</button>
+      <button class="scenario-btn" data-scenario="long-dated">长期期权</button>
+      <button class="scenario-btn" data-scenario="high-vol">波动率爆炸 / 张力二</button>
+      <button class="scenario-btn" data-scenario="low-vol">低波动率 / 张力七</button>
+    </div>
+    <div class="type-buttons">
+      <button class="type-btn active" data-type="call">CALL · 看涨</button>
+      <button class="type-btn" data-type="put">PUT · 看跌</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICE + GREEKS ─────────────────────────────────── -->
+<div class="main-grid">
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">价格分解 · 内在价值与时间价值</div>
+      <div class="panel-tag"><em>张力 V</em><br>时间确定性 ↔ 价值不确定性</div>
+    </div>
+
+    <div class="price-display">
+      <div class="price-box total">
+        <div class="label">期权价格 PREMIUM</div>
+        <div class="value"><span class="currency">$</span><span id="px-total">0.00</span></div>
+      </div>
+      <div class="price-box intrinsic">
+        <div class="label">内在价值 INTRINSIC</div>
+        <div class="value"><span class="currency">$</span><span id="px-intrinsic">0.00</span></div>
+      </div>
+      <div class="price-box time">
+        <div class="label">时间价值 EXTRINSIC</div>
+        <div class="value"><span class="currency">$</span><span id="px-time">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="stack-bar">
+      <div class="stack-segment intrinsic" id="seg-intrinsic"></div>
+      <div class="stack-segment time" id="seg-time"></div>
+    </div>
+
+    <p class="panel-note">
+      内在价值是 <em style="color:var(--teal)">"已知的"</em>——取决于当前 S 与 K，是确定的。<br>
+      时间价值是 <em style="color:var(--crimson)">"不确定性的价格"</em>——它反映市场对未来变动的定价。
+    </p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">希腊字母 · 风险敏感度</div>
+      <div class="panel-tag"><em>张力 IX</em><br>局部精确 ↔ 系统复杂</div>
+    </div>
+    <div class="greeks-list" id="greeks-container"></div>
+  </section>
+</div>
+
+<!-- ── CONVEXITY CURVE ────────────────────────────────── -->
+<section class="panel" style="margin-bottom: 22px;">
+  <div class="panel-header">
+    <div class="panel-title">价格凸性曲线 · 期权价格 vs 标的价格</div>
+    <div class="panel-tag"><em>张力 I</em><br>权利非对称 ↔ 义务对称风险</div>
+  </div>
+  <svg class="chart" id="chart-convexity" viewBox="0 0 1100 360" preserveAspectRatio="xMidYMid meet"></svg>
+  <p class="panel-note">
+    实线 = 当前期权价格 (持有曲线)；虚线 = 到期日内在价值 (盈亏曲线)；两线之间的距离即时间价值。<br>
+    买方支付有限权利金，获得无限上行可能——此结构性 <em>凸性 (Convexity)</em> 是塔勒布所谓"反脆弱性"的金融基础。
+  </p>
+</section>
+
+<!-- ── SECONDARY CHARTS ───────────────────────────────── -->
+<div class="secondary-grid">
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">波动率微笑</div>
+      <div class="panel-tag"><em>张力 IV</em></div>
+    </div>
+    <svg class="chart" id="chart-smile" viewBox="0 0 360 280" preserveAspectRatio="xMidYMid meet"></svg>
+    <p class="panel-note">
+      BS 假设单一 σ；现实中各行权价对应不同 IV——<em>市场用模型差异弥补模型错误</em>。
+    </p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">时间价值衰减</div>
+      <div class="panel-tag"><em>张力 V</em></div>
+    </div>
+    <svg class="chart" id="chart-theta" viewBox="0 0 360 280" preserveAspectRatio="xMidYMid meet"></svg>
+    <p class="panel-note">
+      临近到期时 Theta 加速——确定的时间损耗 vs 不确定的 Gamma 收益。
+    </p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Γ – Θ 权衡</div>
+      <div class="panel-tag"><em>张力 IX</em></div>
+    </div>
+    <svg class="chart" id="chart-gt" viewBox="0 0 360 280" preserveAspectRatio="xMidYMid meet"></svg>
+    <p class="panel-note">
+      Gamma 收益与 Theta 损失沿 S 镜像分布——希腊字母从不可独立管理。
+    </p>
+  </section>
+</div>
+
+<!-- ── NETWORK ────────────────────────────────────────── -->
+<section class="panel network-panel">
+  <div class="panel-header">
+    <div class="panel-title">因素影响关系网络</div>
+    <div class="panel-tag">FACTOR INFLUENCE GRAPH<br>边宽度 ∝ 当前敏感度</div>
+  </div>
+  <svg class="chart" id="chart-network" viewBox="0 0 1100 380" preserveAspectRatio="xMidYMid meet"></svg>
+  <p class="panel-note" style="text-align: center; max-width: 720px; margin-left: auto; margin-right: auto; margin-top: 18px;">
+    五个输入变量通过希腊字母这些"敏感度通道"汇入期权价格。<br>
+    Gamma 是反身性的种子——它使 Δ 自身随 S 而变，让 Delta 对冲在大波动中失效。
+  </p>
+</section>
+
+<!-- ── FOOTNOTE ───────────────────────────────────────── -->
+<p class="footnote">
+  "我们用确定性的数学框架来定价本质上不确定的东西——<br>
+  这个框架的精密性不消除不确定性，<br>
+  只是将不确定性<em>转移</em>到了框架的假设中。"
+  <div class="footnote-attr">— 母悖论 · Mother Paradox of Option Pricing</div>
+</p>
+
+</div>
+
+<script>
+// ============================================================
+// I.  数学基础 (Math)
+// ============================================================
+function normCDF(x) {
+  // Abramowitz & Stegun 7.1.26 — accurate to ~7.5e-8
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741,
+        a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x) / Math.sqrt(2);
+  const t  = 1.0 / (1.0 + p*ax);
+  const y  = 1.0 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-ax*ax);
+  return 0.5 * (1.0 + sign*y);
+}
+function normPDF(x){ return Math.exp(-x*x/2) / Math.sqrt(2*Math.PI); }
+
+// Black–Scholes: returns {price, intrinsic, timeValue, delta, gamma, theta, vega, rho}
+function bs(S, K, T, r, sigma, type) {
+  if (T <= 1e-9 || sigma <= 1e-9) {
+    const intrinsic = type === 'call' ? Math.max(S-K,0) : Math.max(K-S,0);
+    return { price: intrinsic, intrinsic, timeValue: 0,
+             delta: type==='call' ? (S>K?1:(S<K?0:0.5)) : (S<K?-1:(S>K?0:-0.5)),
+             gamma: 0, theta: 0, vega: 0, rho: 0 };
+  }
+  const sqrtT = Math.sqrt(T);
+  const d1 = (Math.log(S/K) + (r + sigma*sigma/2)*T) / (sigma*sqrtT);
+  const d2 = d1 - sigma*sqrtT;
+  const Nd1 = normCDF(d1), Nd2 = normCDF(d2);
+  const nd1 = normPDF(d1);
+  const eRT = Math.exp(-r*T);
+
+  let price, delta, theta, rho;
+  if (type === 'call') {
+    price = S*Nd1 - K*eRT*Nd2;
+    delta = Nd1;
+    theta = -S*nd1*sigma/(2*sqrtT) - r*K*eRT*Nd2;
+    rho   = K*T*eRT*Nd2;
+  } else {
+    price = K*eRT*normCDF(-d2) - S*normCDF(-d1);
+    delta = Nd1 - 1;
+    theta = -S*nd1*sigma/(2*sqrtT) + r*K*eRT*normCDF(-d2);
+    rho   = -K*T*eRT*normCDF(-d2);
+  }
+  const gamma = nd1 / (S*sigma*sqrtT);
+  const vega  = S*nd1*sqrtT;
+
+  const intrinsic = type==='call' ? Math.max(S-K,0) : Math.max(K-S,0);
+  const timeValue = Math.max(0, price - intrinsic);
+
+  return {
+    price, intrinsic, timeValue,
+    delta, gamma,
+    theta: theta/365,   // per calendar day
+    vega:  vega/100,    // per 1 vol point (1%)
+    rho:   rho/100      // per 1 rate point (1%)
+  };
+}
+
+// ============================================================
+// II.  状态 (State) & 场景 (Scenarios)
+// ============================================================
+const state = { S:100, K:100, T:0.5, sigma:0.25, r:0.05, type:'call' };
+
+const greeksDef = [
+  { key:'delta', symbol:'Δ', name:'Delta', desc:'∂P/∂S · 方向性',     scale:1.0  },
+  { key:'gamma', symbol:'Γ', name:'Gamma', desc:'∂Δ/∂S · 凸性',       scale:0.05 },
+  { key:'theta', symbol:'Θ', name:'Theta', desc:'∂P/∂t · 时间衰减/日', scale:0.05 },
+  { key:'vega',  symbol:'ν', name:'Vega',  desc:'∂P/∂σ · 波动率/1%',   scale:0.4  },
+  { key:'rho',   symbol:'ρ', name:'Rho',   desc:'∂P/∂r · 利率/1%',     scale:0.4  }
+];
+
+const scenarios = {
+  'atm':         { S:100, K:100, T:0.5,  sigma:0.25, r:0.05, type:'call' },
+  'otm':         { S:100, K:130, T:0.25, sigma:0.25, r:0.05, type:'call' },
+  'itm':         { S:120, K:100, T:0.5,  sigma:0.25, r:0.05, type:'call' },
+  'near-expiry': { S:100, K:100, T:0.04, sigma:0.30, r:0.05, type:'call' },
+  'long-dated':  { S:100, K:100, T:1.8,  sigma:0.25, r:0.05, type:'call' },
+  'high-vol':    { S:100, K:100, T:0.5,  sigma:0.80, r:0.05, type:'call' },
+  'low-vol':     { S:100, K:100, T:0.5,  sigma:0.08, r:0.05, type:'call' }
+};
+
+// ============================================================
+// III.  渲染主调度 (Main Render)
+// ============================================================
+function renderAll() {
+  const r = bs(state.S, state.K, state.T, state.r, state.sigma, state.type);
+
+  // 数值显示
+  document.getElementById('val-S').textContent = state.S.toFixed(1);
+  document.getElementById('val-K').textContent = state.K.toFixed(1);
+  document.getElementById('val-T').textContent = state.T.toFixed(3);
+  document.getElementById('val-sigma').textContent = (state.sigma*100).toFixed(1) + '%';
+  document.getElementById('val-r').textContent = (state.r*100).toFixed(1) + '%';
+
+  // 价格盒子
+  document.getElementById('px-total').textContent     = r.price.toFixed(2);
+  document.getElementById('px-intrinsic').textContent = r.intrinsic.toFixed(2);
+  document.getElementById('px-time').textContent      = r.timeValue.toFixed(2);
+
+  // 堆叠条
+  const total = Math.max(r.price, 0.001);
+  const iPct = (r.intrinsic/total)*100;
+  const tPct = (r.timeValue/total)*100;
+  const segI = document.getElementById('seg-intrinsic');
+  const segT = document.getElementById('seg-time');
+  segI.style.width = iPct + '%';
+  segT.style.width = tPct + '%';
+  segI.innerHTML = iPct >= 14 ? `<span class="stack-label">INTRINSIC ${iPct.toFixed(0)}%</span>` : '';
+  segT.innerHTML = tPct >= 14 ? `<span class="stack-label">TIME ${tPct.toFixed(0)}%</span>` : '';
+
+  // 希腊字母
+  renderGreeks(r);
+
+  // 图表
+  renderConvexity(r);
+  renderSmile();
+  renderThetaCurve();
+  renderGammaThetaCurve();
+  renderNetwork(r);
+}
+
+// ============================================================
+// IV.  希腊字母列表
+// ============================================================
+function renderGreeks(r) {
+  const c = document.getElementById('greeks-container');
+  c.innerHTML = '';
+  greeksDef.forEach(g => {
+    const v = r[g.key];
+    const positive = v >= 0;
+    const fillPct = Math.min(100, Math.abs(v) / g.scale * 100);
+    let displayVal;
+    if (g.key === 'gamma' || g.key === 'theta') displayVal = v.toFixed(4);
+    else displayVal = v.toFixed(3);
+    const sign = positive ? '+' : '';
+    const colorClass = positive ? 'positive' : 'negative';
+    const fillStyle = positive
+      ? `left:50%; width:${fillPct/2}%; background:var(--teal);`
+      : `right:50%; width:${fillPct/2}%; background:var(--crimson);`;
+
+    const row = document.createElement('div');
+    row.className = 'greek-row';
+    row.innerHTML = `
+      <div class="greek-symbol">${g.symbol}</div>
+      <div class="greek-info">
+        <div class="greek-name">${g.name}</div>
+        <div class="greek-desc">${g.desc}</div>
+        <div class="greek-bar">
+          <div class="greek-bar-zero"></div>
+          <div class="greek-bar-fill" style="${fillStyle}"></div>
+        </div>
+      </div>
+      <div class="greek-value ${colorClass}">${sign}${displayVal}</div>
+    `;
+    c.appendChild(row);
+  });
+}
+
+// ============================================================
+// V.  凸性曲线
+// ============================================================
+function renderConvexity(curr) {
+  const svg = document.getElementById('chart-convexity');
+  svg.innerHTML = '';
+  const W=1100, H=360, padL=64, padR=40, padT=28, padB=42;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  const sMin = state.K * 0.4, sMax = state.K * 1.8;
+  const samples = 220;
+  const optionPts = [], payoffPts = [];
+  let yMax = 0;
+  for (let i=0; i<=samples; i++) {
+    const s = sMin + (sMax-sMin) * i/samples;
+    const px = bs(s, state.K, state.T, state.r, state.sigma, state.type).price;
+    const payoff = state.type==='call' ? Math.max(s-state.K,0) : Math.max(state.K-s,0);
+    optionPts.push([s, px]);
+    payoffPts.push([s, payoff]);
+    yMax = Math.max(yMax, px, payoff);
+  }
+  yMax = yMax * 1.10;
+
+  const xScale = s => padL + (s-sMin)/(sMax-sMin) * plotW;
+  const yScale = y => padT + plotH - y/yMax * plotH;
+
+  // grid
+  const ns = `http://www.w3.org/2000/svg`;
+  for (let i=0; i<=5; i++) {
+    const y = padT + plotH * i/5;
+    const yVal = yMax * (1 - i/5);
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W-padR);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+    const lbl = document.createElementNS(ns,'text');
+    lbl.setAttribute('x', padL-8); lbl.setAttribute('y', y+3);
+    lbl.setAttribute('text-anchor','end');
+    lbl.setAttribute('class','axis-label');
+    lbl.textContent = '$' + yVal.toFixed(0);
+    svg.appendChild(lbl);
+  }
+  for (let i=0; i<=8; i++) {
+    const x = padL + plotW * i/8;
+    const xVal = sMin + (sMax-sMin) * i/8;
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1', x); line.setAttribute('x2', x);
+    line.setAttribute('y1', padT); line.setAttribute('y2', padT+plotH);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+    const lbl = document.createElementNS(ns,'text');
+    lbl.setAttribute('x', x); lbl.setAttribute('y', H-padB+18);
+    lbl.setAttribute('text-anchor','middle');
+    lbl.setAttribute('class','axis-label');
+    lbl.textContent = '$' + xVal.toFixed(0);
+    svg.appendChild(lbl);
+  }
+
+  // axis lines
+  const ax = document.createElementNS(ns,'line');
+  ax.setAttribute('x1', padL); ax.setAttribute('x2', W-padR);
+  ax.setAttribute('y1', padT+plotH); ax.setAttribute('y2', padT+plotH);
+  ax.setAttribute('class','axis');
+  svg.appendChild(ax);
+  const ay = document.createElementNS(ns,'line');
+  ay.setAttribute('x1', padL); ay.setAttribute('x2', padL);
+  ay.setAttribute('y1', padT); ay.setAttribute('y2', padT+plotH);
+  ay.setAttribute('class','axis');
+  svg.appendChild(ay);
+
+  // K reference line
+  const kx = xScale(state.K);
+  const refK = document.createElementNS(ns,'line');
+  refK.setAttribute('x1', kx); refK.setAttribute('x2', kx);
+  refK.setAttribute('y1', padT); refK.setAttribute('y2', padT+plotH);
+  refK.setAttribute('class','ref-line');
+  svg.appendChild(refK);
+  const kLbl = document.createElementNS(ns,'text');
+  kLbl.setAttribute('x', kx); kLbl.setAttribute('y', padT-8);
+  kLbl.setAttribute('text-anchor','middle');
+  kLbl.setAttribute('class','axis-label');
+  kLbl.setAttribute('fill','var(--text-dim)');
+  kLbl.textContent = `K = $${state.K.toFixed(0)}`;
+  svg.appendChild(kLbl);
+
+  // payoff at expiry (dashed teal)
+  const payoffPath = payoffPts.map((p,i)=> (i===0?'M':'L')+xScale(p[0])+','+yScale(p[1])).join(' ');
+  const payP = document.createElementNS(ns,'path');
+  payP.setAttribute('d', payoffPath);
+  payP.setAttribute('class','data-line-secondary');
+  svg.appendChild(payP);
+
+  // current option price curve (gold) — fill below
+  const optPath = optionPts.map((p,i)=> (i===0?'M':'L')+xScale(p[0])+','+yScale(p[1])).join(' ');
+  const fillPath = optPath + ` L ${xScale(sMax)},${padT+plotH} L ${xScale(sMin)},${padT+plotH} Z`;
+  const fill = document.createElementNS(ns,'path');
+  fill.setAttribute('d', fillPath);
+  fill.setAttribute('class','data-fill');
+  svg.appendChild(fill);
+  const optP = document.createElementNS(ns,'path');
+  optP.setAttribute('d', optPath);
+  optP.setAttribute('class','data-line');
+  svg.appendChild(optP);
+
+  // current S marker
+  const cx = xScale(state.S), cy = yScale(curr.price);
+  const m = document.createElementNS(ns,'circle');
+  m.setAttribute('cx', cx); m.setAttribute('cy', cy);
+  m.setAttribute('r', 5);
+  m.setAttribute('class','marker');
+  svg.appendChild(m);
+  const ml = document.createElementNS(ns,'text');
+  ml.setAttribute('x', cx+10); ml.setAttribute('y', cy-8);
+  ml.setAttribute('class','marker-label');
+  ml.textContent = `S=$${state.S.toFixed(1)} → $${curr.price.toFixed(2)}`;
+  svg.appendChild(ml);
+
+  // legend
+  const lg = document.createElementNS(ns,'g');
+  lg.setAttribute('transform', `translate(${W-padR-220},${padT+8})`);
+  lg.innerHTML = `
+    <line x1="0" y1="6" x2="22" y2="6" stroke="var(--gold)" stroke-width="1.6"/>
+    <text x="28" y="9" class="legend-text">当前价格 (BS)</text>
+    <line x1="100" y1="6" x2="122" y2="6" stroke="var(--teal)" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="128" y="9" class="legend-text">到期内在</text>
+  `;
+  svg.appendChild(lg);
+
+  // axis titles
+  const xt = document.createElementNS(ns,'text');
+  xt.setAttribute('x', padL+plotW/2); xt.setAttribute('y', H-6);
+  xt.setAttribute('text-anchor','middle');
+  xt.setAttribute('class','axis-title');
+  xt.textContent = 'S · 标的资产价格';
+  svg.appendChild(xt);
+  const yt = document.createElementNS(ns,'text');
+  yt.setAttribute('x', 16); yt.setAttribute('y', padT+plotH/2);
+  yt.setAttribute('text-anchor','middle');
+  yt.setAttribute('class','axis-title');
+  yt.setAttribute('transform', `rotate(-90 16 ${padT+plotH/2})`);
+  yt.textContent = '期权价格';
+  svg.appendChild(yt);
+}
+
+// ============================================================
+// VI.  波动率微笑
+// ============================================================
+function renderSmile() {
+  const svg = document.getElementById('chart-smile');
+  svg.innerHTML = '';
+  const W=360, H=280, padL=44, padR=18, padT=22, padB=42;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const ns = `http://www.w3.org/2000/svg`;
+
+  // simulate equity-style skew: IV(K) = sigma_atm * (1 + skew*ln(K/S) + 0.6*ln(K/S)^2)
+  // 让市场对左尾的恐惧反映出来：负斜率 + 凸度
+  const baseSigma = state.sigma;
+  const skewParam = -0.55;       // 偏斜 (负=put 端更高)
+  const smileParam = 0.85;       // 凸度
+
+  const kMin = state.S * 0.65, kMax = state.S * 1.35;
+  const samples = 60;
+  const pts = [];
+  let ivMin = Infinity, ivMax = -Infinity;
+  for (let i=0; i<=samples; i++) {
+    const k = kMin + (kMax-kMin) * i/samples;
+    const m = Math.log(k/state.S);
+    const iv = baseSigma * (1 + skewParam*m + smileParam*m*m);
+    pts.push([k, iv]);
+    ivMin = Math.min(ivMin, iv);
+    ivMax = Math.max(ivMax, iv);
+  }
+  // include current K with baseSigma for reference
+  const yPad = (ivMax-ivMin)*0.15 + 0.001;
+  const yLo = Math.max(0, ivMin-yPad), yHi = ivMax+yPad;
+
+  const xS = k => padL + (k-kMin)/(kMax-kMin)*plotW;
+  const yS = v => padT + plotH - (v-yLo)/(yHi-yLo)*plotH;
+
+  // grid
+  for (let i=0; i<=4; i++) {
+    const y = padT + plotH*i/4;
+    const v = yHi - (yHi-yLo)*i/4;
+    const ln = document.createElementNS(ns,'line');
+    ln.setAttribute('x1', padL); ln.setAttribute('x2', W-padR);
+    ln.setAttribute('y1', y); ln.setAttribute('y2', y);
+    ln.setAttribute('class','grid-line');
+    svg.appendChild(ln);
+    const tx = document.createElementNS(ns,'text');
+    tx.setAttribute('x', padL-6); tx.setAttribute('y', y+3);
+    tx.setAttribute('text-anchor','end');
+    tx.setAttribute('class','axis-label');
+    tx.textContent = (v*100).toFixed(0)+'%';
+    svg.appendChild(tx);
+  }
+
+  // axis
+  const ax = document.createElementNS(ns,'line');
+  ax.setAttribute('x1', padL); ax.setAttribute('x2', W-padR);
+  ax.setAttribute('y1', padT+plotH); ax.setAttribute('y2', padT+plotH);
+  ax.setAttribute('class','axis');
+  svg.appendChild(ax);
+  const ay = document.createElementNS(ns,'line');
+  ay.setAttribute('x1', padL); ay.setAttribute('x2', padL);
+  ay.setAttribute('y1', padT); ay.setAttribute('y2', padT+plotH);
+  ay.setAttribute('class','axis');
+  svg.appendChild(ay);
+
+  // x labels
+  for (let i=0; i<=4; i++) {
+    const x = padL + plotW*i/4;
+    const k = kMin + (kMax-kMin)*i/4;
+    const tx = document.createElementNS(ns,'text');
+    tx.setAttribute('x', x); tx.setAttribute('y', H-padB+16);
+    tx.setAttribute('text-anchor','middle');
+    tx.setAttribute('class','axis-label');
+    tx.textContent = '$'+k.toFixed(0);
+    svg.appendChild(tx);
+  }
+
+  // BS flat reference (assumed sigma_atm)
+  const flatY = yS(baseSigma);
+  const flatLn = document.createElementNS(ns,'line');
+  flatLn.setAttribute('x1', padL); flatLn.setAttribute('x2', W-padR);
+  flatLn.setAttribute('y1', flatY); flatLn.setAttribute('y2', flatY);
+  flatLn.setAttribute('class','data-line-tertiary');
+  svg.appendChild(flatLn);
+
+  // smile curve
+  const path = pts.map((p,i)=>(i===0?'M':'L')+xS(p[0])+','+yS(p[1])).join(' ');
+  const pp = document.createElementNS(ns,'path');
+  pp.setAttribute('d', path);
+  pp.setAttribute('class','data-line');
+  svg.appendChild(pp);
+
+  // S reference vertical
+  const sx = xS(state.S);
+  const refS = document.createElementNS(ns,'line');
+  refS.setAttribute('x1', sx); refS.setAttribute('x2', sx);
+  refS.setAttribute('y1', padT); refS.setAttribute('y2', padT+plotH);
+  refS.setAttribute('class','ref-line');
+  svg.appendChild(refS);
+  const sLbl = document.createElementNS(ns,'text');
+  sLbl.setAttribute('x', sx); sLbl.setAttribute('y', padT-6);
+  sLbl.setAttribute('text-anchor','middle');
+  sLbl.setAttribute('class','axis-label');
+  sLbl.setAttribute('fill','var(--text-dim)');
+  sLbl.textContent = 'S';
+  svg.appendChild(sLbl);
+
+  // legend
+  const lg = document.createElementNS(ns,'g');
+  lg.setAttribute('transform', `translate(${padL+8},${padT+6})`);
+  lg.innerHTML = `
+    <line x1="0" y1="6" x2="18" y2="6" stroke="var(--gold)" stroke-width="1.6"/>
+    <text x="22" y="9" class="legend-text" font-size="9">市场 IV(K)</text>
+    <line x1="0" y1="20" x2="18" y2="20" stroke="var(--crimson)" stroke-width="1.2" stroke-dasharray="2 2"/>
+    <text x="22" y="23" class="legend-text" font-size="9">BS 假设 σ</text>
+  `;
+  svg.appendChild(lg);
+
+  // axis titles
+  const xt = document.createElementNS(ns,'text');
+  xt.setAttribute('x', padL+plotW/2); xt.setAttribute('y', H-6);
+  xt.setAttribute('text-anchor','middle');
+  xt.setAttribute('class','axis-title');
+  xt.setAttribute('font-size','9');
+  xt.textContent = '行权价 K';
+  svg.appendChild(xt);
+  const yt = document.createElementNS(ns,'text');
+  yt.setAttribute('x', 12); yt.setAttribute('y', padT+plotH/2);
+  yt.setAttribute('text-anchor','middle');
+  yt.setAttribute('class','axis-title');
+  yt.setAttribute('font-size','9');
+  yt.setAttribute('transform', `rotate(-90 12 ${padT+plotH/2})`);
+  yt.textContent = '隐含波动率 IV';
+  svg.appendChild(yt);
+}
+
+// ============================================================
+// VII.  时间衰减曲线
+// ============================================================
+function renderThetaCurve() {
+  const svg = document.getElementById('chart-theta');
+  svg.innerHTML = '';
+  const W=360, H=280, padL=44, padR=18, padT=22, padB=42;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const ns = `http://www.w3.org/2000/svg`;
+
+  const tMin = 0.001, tMax = 1.0;
+  const samples = 100;
+  const pts = [];
+  let yMax = 0;
+  for (let i=0; i<=samples; i++) {
+    const t = tMin + (tMax-tMin)*i/samples;
+    const px = bs(state.S, state.K, t, state.r, state.sigma, state.type).price;
+    pts.push([t, px]);
+    yMax = Math.max(yMax, px);
+  }
+  yMax = yMax*1.1 + 0.5;
+
+  // x: T from tMax (left) to 0 (right) — time runs left→right toward expiry
+  const xS = t => padL + (1 - (t-tMin)/(tMax-tMin)) * plotW;
+  const yS = y => padT + plotH - y/yMax*plotH;
+
+  // grid
+  for (let i=0; i<=4; i++) {
+    const y = padT + plotH*i/4;
+    const v = yMax * (1-i/4);
+    const ln = document.createElementNS(ns,'line');
+    ln.setAttribute('x1', padL); ln.setAttribute('x2', W-padR);
+    ln.setAttribute('y1', y); ln.setAttribute('y2', y);
+    ln.setAttribute('class','grid-line');
+    svg.appendChild(ln);
+    const tx = document.createElementNS(ns,'text');
+    tx.setAttribute('x', padL-6); tx.setAttribute('y', y+3);
+    tx.setAttribute('text-anchor','end');
+    tx.setAttribute('class','axis-label');
+    tx.textContent = '$'+v.toFixed(1);
+    svg.appendChild(tx);
+  }
+
+  // axis
+  const ax = document.createElementNS(ns,'line');
+  ax.setAttribute('x1', padL); ax.setAttribute('x2', W-padR);
+  ax.setAttribute('y1', padT+plotH); ax.setAttribute('y2', padT+plotH);
+  ax.setAttribute('class','axis');
+  svg.appendChild(ax);
+  const ay = document.createElementNS(ns,'line');
+  ay.setAttribute('x1', padL); ay.setAttribute('x2', padL);
+  ay.setAttribute('y1', padT); ay.setAttribute('y2', padT+plotH);
+  ay.setAttribute('class','axis');
+  svg.appendChild(ay);
+
+  // x labels (T values)
+  const xVals = [1, 0.75, 0.5, 0.25, 0];
+  xVals.forEach(t => {
+    const x = xS(Math.max(t, tMin));
+    const tx = document.createElementNS(ns,'text');
+    tx.setAttribute('x', x); tx.setAttribute('y', H-padB+16);
+    tx.setAttribute('text-anchor','middle');
+    tx.setAttribute('class','axis-label');
+    tx.textContent = t === 0 ? '到期' : t.toFixed(2)+'y';
+    svg.appendChild(tx);
+  });
+
+  // intrinsic value as horizontal reference
+  const intrinsic = state.type==='call' ? Math.max(state.S-state.K,0) : Math.max(state.K-state.S,0);
+  if (intrinsic > 0) {
+    const iy = yS(intrinsic);
+    const il = document.createElementNS(ns,'line');
+    il.setAttribute('x1', padL); il.setAttribute('x2', W-padR);
+    il.setAttribute('y1', iy); il.setAttribute('y2', iy);
+    il.setAttribute('class','data-line-tertiary');
+    svg.appendChild(il);
+  }
+
+  // curve
+  const path = pts.map((p,i)=>(i===0?'M':'L')+xS(p[0])+','+yS(p[1])).join(' ');
+  const pp = document.createElementNS(ns,'path');
+  pp.setAttribute('d', path);
+  pp.setAttribute('class','data-line');
+  svg.appendChild(pp);
+
+  // current T marker
+  const cx = xS(state.T);
+  const cyP = bs(state.S, state.K, state.T, state.r, state.sigma, state.type).price;
+  const cy = yS(cyP);
+  const m = document.createElementNS(ns,'circle');
+  m.setAttribute('cx', cx); m.setAttribute('cy', cy);
+  m.setAttribute('r', 4);
+  m.setAttribute('class','marker');
+  svg.appendChild(m);
+
+  const xt = document.createElementNS(ns,'text');
+  xt.setAttribute('x', padL+plotW/2); xt.setAttribute('y', H-6);
+  xt.setAttribute('text-anchor','middle');
+  xt.setAttribute('class','axis-title');
+  xt.setAttribute('font-size','9');
+  xt.textContent = '剩余到期时间 (左 → 右)';
+  svg.appendChild(xt);
+  const yt = document.createElementNS(ns,'text');
+  yt.setAttribute('x', 12); yt.setAttribute('y', padT+plotH/2);
+  yt.setAttribute('text-anchor','middle');
+  yt.setAttribute('class','axis-title');
+  yt.setAttribute('font-size','9');
+  yt.setAttribute('transform', `rotate(-90 12 ${padT+plotH/2})`);
+  yt.textContent = '期权价格';
+  svg.appendChild(yt);
+}
+
+// ============================================================
+// VIII.  Γ – Θ 权衡 (镜像分布)
+// ============================================================
+function renderGammaThetaCurve() {
+  const svg = document.getElementById('chart-gt');
+  svg.innerHTML = '';
+  const W=360, H=280, padL=44, padR=44, padT=22, padB=42;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+  const ns = `http://www.w3.org/2000/svg`;
+
+  // Vary S, plot Gamma (left axis, gold) and -Theta (right axis, crimson)
+  const sMin = state.K*0.6, sMax = state.K*1.4;
+  const samples = 100;
+  const gammaPts = [], thetaPts = [];
+  let gMax = 0, tMax = 0;
+  for (let i=0; i<=samples; i++) {
+    const s = sMin + (sMax-sMin)*i/samples;
+    const r = bs(s, state.K, state.T, state.r, state.sigma, state.type);
+    gammaPts.push([s, r.gamma]);
+    thetaPts.push([s, -r.theta]);   // 取正显示
+    gMax = Math.max(gMax, r.gamma);
+    tMax = Math.max(tMax, -r.theta);
+  }
+  gMax *= 1.15;
+  tMax = Math.max(tMax*1.15, 0.001);
+
+  const xS = s => padL + (s-sMin)/(sMax-sMin)*plotW;
+  const yG = g => padT + plotH - g/gMax*plotH;
+  const yT = t => padT + plotH - t/tMax*plotH;
+
+  // grid
+  for (let i=0; i<=4; i++) {
+    const y = padT + plotH*i/4;
+    const ln = document.createElementNS(ns,'line');
+    ln.setAttribute('x1', padL); ln.setAttribute('x2', W-padR);
+    ln.setAttribute('y1', y); ln.setAttribute('y2', y);
+    ln.setAttribute('class','grid-line');
+    svg.appendChild(ln);
+  }
+
+  // axis
+  const ax = document.createElementNS(ns,'line');
+  ax.setAttribute('x1', padL); ax.setAttribute('x2', W-padR);
+  ax.setAttribute('y1', padT+plotH); ax.setAttribute('y2', padT+plotH);
+  ax.setAttribute('class','axis');
+  svg.appendChild(ax);
+
+  // K reference
+  const kx = xS(state.K);
+  const refK = document.createElementNS(ns,'line');
+  refK.setAttribute('x1', kx); refK.setAttribute('x2', kx);
+  refK.setAttribute('y1', padT); refK.setAttribute('y2', padT+plotH);
+  refK.setAttribute('class','ref-line');
+  svg.appendChild(refK);
+  const kLbl = document.createElementNS(ns,'text');
+  kLbl.setAttribute('x', kx); kLbl.setAttribute('y', padT-6);
+  kLbl.setAttribute('text-anchor','middle');
+  kLbl.setAttribute('class','axis-label');
+  kLbl.setAttribute('fill','var(--text-dim)');
+  kLbl.textContent = 'K';
+  svg.appendChild(kLbl);
+
+  // x labels
+  for (let i=0; i<=4; i++) {
+    const x = padL + plotW*i/4;
+    const v = sMin + (sMax-sMin)*i/4;
+    const tx = document.createElementNS(ns,'text');
+    tx.setAttribute('x', x); tx.setAttribute('y', H-padB+16);
+    tx.setAttribute('text-anchor','middle');
+    tx.setAttribute('class','axis-label');
+    tx.textContent = '$'+v.toFixed(0);
+    svg.appendChild(tx);
+  }
+
+  // gamma path
+  const gPath = gammaPts.map((p,i)=>(i===0?'M':'L')+xS(p[0])+','+yG(p[1])).join(' ');
+  const gp = document.createElementNS(ns,'path');
+  gp.setAttribute('d', gPath);
+  gp.setAttribute('class','data-line');
+  svg.appendChild(gp);
+
+  // -theta path (mirror, crimson dashed)
+  const tPath = thetaPts.map((p,i)=>(i===0?'M':'L')+xS(p[0])+','+yT(p[1])).join(' ');
+  const tp = document.createElementNS(ns,'path');
+  tp.setAttribute('d', tPath);
+  tp.setAttribute('stroke','var(--crimson)');
+  tp.setAttribute('fill','none');
+  tp.setAttribute('stroke-width','1.4');
+  tp.setAttribute('stroke-dasharray','3 3');
+  svg.appendChild(tp);
+
+  // current S
+  const idx = Math.round((state.S-sMin)/(sMax-sMin)*samples);
+  if (idx>=0 && idx<=samples) {
+    const cx = xS(gammaPts[idx][0]);
+    const cy = yG(gammaPts[idx][1]);
+    const m = document.createElementNS(ns,'circle');
+    m.setAttribute('cx', cx); m.setAttribute('cy', cy);
+    m.setAttribute('r', 4);
+    m.setAttribute('class','marker');
+    svg.appendChild(m);
+  }
+
+  // y-axis labels - left (gamma)
+  const gLbl = document.createElementNS(ns,'text');
+  gLbl.setAttribute('x', padL-6); gLbl.setAttribute('y', padT+12);
+  gLbl.setAttribute('text-anchor','end');
+  gLbl.setAttribute('class','axis-label');
+  gLbl.setAttribute('fill','var(--gold)');
+  gLbl.textContent = 'Γ '+gMax.toFixed(3);
+  svg.appendChild(gLbl);
+  const gLbl2 = document.createElementNS(ns,'text');
+  gLbl2.setAttribute('x', padL-6); gLbl2.setAttribute('y', padT+plotH+3);
+  gLbl2.setAttribute('text-anchor','end');
+  gLbl2.setAttribute('class','axis-label');
+  gLbl2.setAttribute('fill','var(--gold)');
+  gLbl2.textContent = '0';
+  svg.appendChild(gLbl2);
+  // right (-theta)
+  const tLbl = document.createElementNS(ns,'text');
+  tLbl.setAttribute('x', W-padR+6); tLbl.setAttribute('y', padT+12);
+  tLbl.setAttribute('class','axis-label');
+  tLbl.setAttribute('fill','var(--crimson)');
+  tLbl.textContent = '|Θ| '+tMax.toFixed(3);
+  svg.appendChild(tLbl);
+  const tLbl2 = document.createElementNS(ns,'text');
+  tLbl2.setAttribute('x', W-padR+6); tLbl2.setAttribute('y', padT+plotH+3);
+  tLbl2.setAttribute('class','axis-label');
+  tLbl2.setAttribute('fill','var(--crimson)');
+  tLbl2.textContent = '0';
+  svg.appendChild(tLbl2);
+
+  // legend
+  const lg = document.createElementNS(ns,'g');
+  lg.setAttribute('transform', `translate(${padL+10},${padT+10})`);
+  lg.innerHTML = `
+    <line x1="0" y1="6" x2="16" y2="6" stroke="var(--gold)" stroke-width="1.6"/>
+    <text x="20" y="9" class="legend-text" font-size="9">Γ Gamma</text>
+    <line x1="0" y1="20" x2="16" y2="20" stroke="var(--crimson)" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <text x="20" y="23" class="legend-text" font-size="9">|Θ| 时间损耗</text>
+  `;
+  svg.appendChild(lg);
+
+  const xt = document.createElementNS(ns,'text');
+  xt.setAttribute('x', padL+plotW/2); xt.setAttribute('y', H-6);
+  xt.setAttribute('text-anchor','middle');
+  xt.setAttribute('class','axis-title');
+  xt.setAttribute('font-size','9');
+  xt.textContent = '标的价格 S';
+  svg.appendChild(xt);
+}
+
+// ============================================================
+// IX.  因素影响关系网络
+// ============================================================
+function renderNetwork(r) {
+  const svg = document.getElementById('chart-network');
+  svg.innerHTML = '';
+  const W=1100, H=380;
+  const ns = `http://www.w3.org/2000/svg`;
+
+  // 节点位置：左列 = 输入；中列 = 希腊字母；右 = 价格
+  const inputs = [
+    { id:'S', label:'S',  desc:'标的价格',     y: 60 },
+    { id:'K', label:'K',  desc:'行权价',       y:130 },
+    { id:'T', label:'T',  desc:'到期时间',     y:200 },
+    { id:'sigma', label:'σ', desc:'波动率',    y:270 },
+    { id:'r', label:'r',  desc:'无风险利率',   y:340 }
+  ];
+  const greekNodes = [
+    { id:'delta', label:'Δ', desc:'方向',     y: 60, val:r.delta, scale:1.0 },
+    { id:'gamma', label:'Γ', desc:'凸性',     y:130, val:r.gamma, scale:0.05 },
+    { id:'vega',  label:'ν', desc:'波动率',   y:200, val:r.vega,  scale:0.4  },
+    { id:'theta', label:'Θ', desc:'时间',     y:270, val:r.theta, scale:0.05 },
+    { id:'rho',   label:'ρ', desc:'利率',     y:340, val:r.rho,   scale:0.4  }
+  ];
+  const inputX = 110;
+  const greekX = 540;
+  const priceX = 970;
+  const priceY = 200;
+
+  // 边定义：(input, greek)
+  const edges = [
+    { from:'S',     to:'delta', strength: Math.abs(r.delta)/1.0  },
+    { from:'S',     to:'gamma', strength: Math.abs(r.gamma)/0.05 }, // S → gamma feedback
+    { from:'K',     to:'delta', strength: 0.4 },     // K 影响 moneyness
+    { from:'T',     to:'theta', strength: Math.min(1, Math.abs(r.theta)/0.05) },
+    { from:'sigma', to:'vega',  strength: Math.min(1, Math.abs(r.vega)/0.4)  },
+    { from:'sigma', to:'gamma', strength: Math.min(1, Math.abs(r.gamma)/0.05)*0.6 },
+    { from:'r',     to:'rho',   strength: Math.min(1, Math.abs(r.rho)/0.4)   }
+  ];
+  // greek → price
+  const greekToPrice = greekNodes.map(g => ({
+    from: g.id,
+    strength: Math.min(1, Math.abs(g.val)/g.scale)
+  }));
+
+  // helper: position lookup
+  const getInput = id => inputs.find(n=>n.id===id);
+  const getGreek = id => greekNodes.find(n=>n.id===id);
+
+  // ── draw edges first (background) ──
+  edges.forEach(e => {
+    const a = getInput(e.from), b = getGreek(e.to);
+    const x1 = inputX+22, y1 = a.y;
+    const x2 = greekX-22, y2 = b.y;
+    // bezier
+    const cx = (x1+x2)/2;
+    const path = document.createElementNS(ns,'path');
+    path.setAttribute('d', `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+    path.setAttribute('fill','none');
+    const sw = 0.5 + e.strength*4;
+    const op = 0.25 + e.strength*0.55;
+    path.setAttribute('stroke','var(--gold)');
+    path.setAttribute('stroke-width', sw.toFixed(2));
+    path.setAttribute('opacity', op.toFixed(2));
+    svg.appendChild(path);
+  });
+
+  greekToPrice.forEach(e => {
+    const a = getGreek(e.from);
+    const x1 = greekX+22, y1 = a.y;
+    const x2 = priceX-30, y2 = priceY;
+    const cx = (x1+x2)/2;
+    const path = document.createElementNS(ns,'path');
+    path.setAttribute('d', `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+    path.setAttribute('fill','none');
+    const sw = 0.5 + e.strength*3.5;
+    const op = 0.20 + e.strength*0.6;
+    const colorVar = a.val >= 0 ? 'var(--teal)' : 'var(--crimson)';
+    path.setAttribute('stroke', colorVar);
+    path.setAttribute('stroke-width', sw.toFixed(2));
+    path.setAttribute('opacity', op.toFixed(2));
+    svg.appendChild(path);
+  });
+
+  // ── input nodes ──
+  inputs.forEach(n => {
+    const g = document.createElementNS(ns,'g');
+    g.setAttribute('transform', `translate(${inputX},${n.y})`);
+    g.innerHTML = `
+      <circle cx="0" cy="0" r="22" fill="var(--surface-2)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="0" y="6" text-anchor="middle" font-family="Fraunces,serif" font-style="italic" font-size="22" font-weight="400" fill="var(--gold)">${n.label}</text>
+      <text x="-32" y="4" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--text-dim)">${n.desc}</text>
+    `;
+    svg.appendChild(g);
+  });
+
+  // ── greek nodes ──
+  greekNodes.forEach(n => {
+    const g = document.createElementNS(ns,'g');
+    g.setAttribute('transform', `translate(${greekX},${n.y})`);
+    const valStr = (n.val >= 0 ? '+' : '') + (Math.abs(n.val)<0.01 ? n.val.toFixed(4) : n.val.toFixed(3));
+    const colorVar = n.val >= 0 ? 'var(--teal)' : 'var(--crimson)';
+    g.innerHTML = `
+      <circle cx="0" cy="0" r="22" fill="var(--surface-2)" stroke="${colorVar}" stroke-width="1.2" opacity="0.9"/>
+      <text x="0" y="7" text-anchor="middle" font-family="Fraunces,serif" font-style="italic" font-size="22" fill="${colorVar}">${n.label}</text>
+      <text x="32" y="-3" font-family="Fraunces,serif" font-size="13" fill="var(--text)">${n.desc}</text>
+      <text x="32" y="13" font-family="JetBrains Mono,monospace" font-size="11" fill="${colorVar}">${valStr}</text>
+    `;
+    svg.appendChild(g);
+  });
+
+  // ── price node (right) ──
+  const priceG = document.createElementNS(ns,'g');
+  priceG.setAttribute('transform', `translate(${priceX},${priceY})`);
+  priceG.innerHTML = `
+    <circle cx="0" cy="0" r="42" fill="var(--surface-2)" stroke="var(--gold)" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="36" fill="none" stroke="var(--gold)" stroke-width="0.5" opacity="0.4"/>
+    <text x="0" y="-8" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" letter-spacing="2" fill="var(--text-dim)">PREMIUM</text>
+    <text x="0" y="14" text-anchor="middle" font-family="Fraunces,serif" font-size="22" fill="var(--gold)">$${r.price.toFixed(2)}</text>
+  `;
+  svg.appendChild(priceG);
+
+  // ── headers ──
+  const ns2 = ns;
+  const h1 = document.createElementNS(ns2,'text');
+  h1.setAttribute('x', inputX); h1.setAttribute('y', 25);
+  h1.setAttribute('text-anchor','middle');
+  h1.setAttribute('font-family','JetBrains Mono,monospace');
+  h1.setAttribute('font-size','10');
+  h1.setAttribute('letter-spacing','2');
+  h1.setAttribute('fill','var(--text-faint)');
+  h1.textContent = 'INPUTS · 输入变量';
+  svg.appendChild(h1);
+
+  const h2 = document.createElementNS(ns2,'text');
+  h2.setAttribute('x', greekX); h2.setAttribute('y', 25);
+  h2.setAttribute('text-anchor','middle');
+  h2.setAttribute('font-family','JetBrains Mono,monospace');
+  h2.setAttribute('font-size','10');
+  h2.setAttribute('letter-spacing','2');
+  h2.setAttribute('fill','var(--text-faint)');
+  h2.textContent = 'CHANNELS · 希腊字母';
+  svg.appendChild(h2);
+
+  const h3 = document.createElementNS(ns2,'text');
+  h3.setAttribute('x', priceX); h3.setAttribute('y', 25);
+  h3.setAttribute('text-anchor','middle');
+  h3.setAttribute('font-family','JetBrains Mono,monospace');
+  h3.setAttribute('font-size','10');
+  h3.setAttribute('letter-spacing','2');
+  h3.setAttribute('fill','var(--text-faint)');
+  h3.textContent = 'OUTPUT · 价格';
+  svg.appendChild(h3);
+}
+
+// ============================================================
+// X.  事件绑定
+// ============================================================
+function bindControls() {
+  const map = [
+    ['ctrl-S', v => state.S = parseFloat(v)],
+    ['ctrl-K', v => state.K = parseFloat(v)],
+    ['ctrl-T', v => state.T = parseFloat(v)],
+    ['ctrl-sigma', v => state.sigma = parseFloat(v)/100],
+    ['ctrl-r', v => state.r = parseFloat(v)/100]
+  ];
+  map.forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', e => { fn(e.target.value); renderAll(); });
+  });
+
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.type-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      state.type = b.dataset.type;
+      renderAll();
+    });
+  });
+
+  document.querySelectorAll('.scenario-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const s = scenarios[b.dataset.scenario];
+      if (!s) return;
+      state.S = s.S; state.K = s.K; state.T = s.T;
+      state.sigma = s.sigma; state.r = s.r; state.type = s.type;
+      // sync sliders
+      document.getElementById('ctrl-S').value = s.S;
+      document.getElementById('ctrl-K').value = s.K;
+      document.getElementById('ctrl-T').value = s.T;
+      document.getElementById('ctrl-sigma').value = s.sigma*100;
+      document.getElementById('ctrl-r').value = s.r*100;
+      // sync type button
+      document.querySelectorAll('.type-btn').forEach(x=>{
+        x.classList.toggle('active', x.dataset.type === s.type);
+      });
+      // visual feedback
+      document.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      renderAll();
+    });
+  });
+}
+
+// ============================================================
+// XI.  启动
+// ============================================================
+bindControls();
+renderAll();
+</script>
+</body>
+</html>

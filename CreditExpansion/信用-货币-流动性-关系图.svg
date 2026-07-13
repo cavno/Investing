@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 840 600" xmlns="http://www.w3.org/2000/svg" width="840" height="600" font-family="'Noto Serif SC',serif">
+        <defs>
+          <marker id="cah" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#2E2925"/></marker>
+          <marker id="cahg" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#5E8C61"/></marker>
+          <marker id="cahd" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#8C8170"/></marker>
+        </defs>
+        <rect x="1" y="1" width="838" height="598" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+        <text x="28" y="40" font-size="21" font-weight="700" fill="#2E2925">概念辨析：信用 ≠ 货币 ≠ 流动性</text>
+        <text x="28" y="64" font-size="13" fill="#8C8170">三者上行同涨、下行同缩，但拐点处会脱钩 —— 抵押品是它们之间的铰链</text>
+        <rect x="36" y="120" width="168" height="72" rx="11" fill="rgba(176,125,43,.13)" stroke="#B07D2B"/>
+        <text x="120" y="151" text-anchor="middle" font-size="16" font-weight="700" fill="#8a5d18">货币</text>
+        <text x="120" y="172" text-anchor="middle" font-size="11" fill="#7C7263">基础货币 / M2 · 量</text>
+        <rect x="300" y="120" width="180" height="72" rx="11" fill="rgba(188,75,51,.12)" stroke="#BC4B33"/>
+        <text x="390" y="151" text-anchor="middle" font-size="16" font-weight="700" fill="#9e3a25">信用</text>
+        <text x="390" y="172" text-anchor="middle" font-size="10.5" fill="#7C7263">债权债务存量 · 我的负债=你的资产</text>
+        <circle cx="576" cy="156" r="48" fill="#2E2925"/>
+        <text x="576" y="151" text-anchor="middle" font-size="15" font-weight="700" fill="#FBF7EC">抵押品</text>
+        <text x="576" y="172" text-anchor="middle" font-size="10.5" fill="#cdbfa6">铰链</text>
+        <rect x="686" y="104" width="152" height="58" rx="10" fill="rgba(63,126,107,.14)" stroke="#3F7E6B"/>
+        <text x="762" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#2f5e50">市场流动性</text>
+        <text x="762" y="147" text-anchor="middle" font-size="10" fill="#7C7263">卖得掉 · 不砸价</text>
+        <rect x="686" y="196" width="152" height="58" rx="10" fill="rgba(58,100,145,.12)" stroke="#3A6491"/>
+        <text x="762" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#2c4d70">融资流动性</text>
+        <text x="762" y="239" text-anchor="middle" font-size="10" fill="#7C7263">滚得动短债</text>
+        <line x1="204" y1="156" x2="298" y2="156" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)" marker-start="url(#cah)"/>
+        <text x="251" y="112" text-anchor="middle" font-size="11" fill="#5F5648">贷款创造存款 · 同涨</text>
+        <line x1="480" y1="156" x2="524" y2="156" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <path d="M614,138 C648,128 660,126 684,127" fill="none" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <path d="M614,176 C648,196 660,212 684,224" fill="none" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <text x="576" y="244" text-anchor="middle" font-size="11" fill="#5F5648">抵押品定价 → 能借多少、卖得掉否</text>
+        <rect x="36" y="300" width="98" height="30" rx="8" fill="#FBF7EC" stroke="#8C8170" stroke-dasharray="4 3"/>
+        <text x="85" y="320" text-anchor="middle" font-size="11.5" fill="#5F5648">央行 QE</text>
+        <line x1="85" y1="300" x2="85" y2="194" stroke="#8C8170" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cahd)"/>
+        <text x="146" y="308" font-size="11" fill="#5F5648">造货币 · 不造信用</text>
+        <text x="146" y="326" font-size="11" fill="#8C8170">准备金困在银行间 → 推绳子</text>
+        <rect x="300" y="300" width="104" height="30" rx="8" fill="#FBF7EC" stroke="#8C8170" stroke-dasharray="4 3"/>
+        <text x="352" y="320" text-anchor="middle" font-size="11.5" fill="#5F5648">社融 ＞ M2</text>
+        <line x1="352" y1="300" x2="352" y2="194" stroke="#8C8170" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cahd)"/>
+        <text x="416" y="308" font-size="11" fill="#5F5648">造信用 · 不造货币</text>
+        <text x="416" y="326" font-size="11" fill="#8C8170">用存量存款买债：债权增而 M2 不变</text>
+        <path d="M762,254 C762,432 470,432 470,198" fill="none" stroke="#5E8C61" stroke-width="2.6" marker-end="url(#cahg)"/>
+        <text x="566" y="452" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3f6b43">上行 · 反身性：抵押品涨 → 更易融资 → 信用再扩张（自我强化）</text>
+        <rect x="36" y="486" width="768" height="76" rx="12" fill="rgba(188,75,51,.07)" stroke="rgba(188,75,51,.32)"/>
+        <text x="52" y="513" font-size="12.5" fill="#9e3a25"><tspan font-weight="700">下行 · 拐点（流动性幻觉）：</tspan><tspan fill="#5F5648">抵押品跌 → 折扣升 · 被迫抛售 → 市场与融资流动性一夜蒸发，</tspan></text>
+        <text x="52" y="535" font-size="12.5" fill="#5F5648">而信用账面仍挂在表上 —— 这正是危机的定义。（追保→抛售→价跌→折扣升→再追保的流动性螺旋）</text>
+        <text x="52" y="554" font-size="11.5" fill="#8C8170">对应全景图：『反身性』轴越高越险；庞氏端 = 账面有信用、靠融资流动性续命。</text>
+        <text x="420" y="585" text-anchor="middle" font-size="12" fill="#2E2925">一句话：信用是存量的债权债务，流动性是变现的难易与速度。</text>
+      </svg>

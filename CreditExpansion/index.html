@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信用扩张场景全景图 · 明斯基脆弱度地形</title>
+<meta name="description" content="家庭·公司·银行·国家四层的三十个信用扩张场景，按抵押品／杠杆／反身性打分，定位其在对冲—投机—庞氏谱系上的坐标。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EAD3; --paper2:#ECE0C3; --card:#FBF7EC; --card2:#FFFDF8;
+  --ink:#2E2925; --ink2:#5F5648; --soft:#8C8170; --line:rgba(46,41,37,.13); --line2:rgba(46,41,37,.07);
+  --teal:#3F7E6B; --coral:#BC4B33; --amber:#B07D2B; --blue:#3A6491;
+  --hedge:#5E8C61; --spec:#C8923D; --ponzi:#BC4B33;
+  --hedge-t:rgba(94,140,97,.13); --spec-t:rgba(200,146,61,.13); --ponzi-t:rgba(188,75,51,.12);
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif SC","Songti SC",serif; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 22px 70px}
+
+/* masthead */
+.rule{width:62px;height:4px;background:var(--coral);border-radius:2px}
+h1{font-size:30px;font-weight:700;letter-spacing:1px;margin:18px 0 6px}
+.dek{font-size:15px;color:var(--ink2);max-width:62ch}
+.dek b{color:var(--ink);font-weight:600}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:flex-end;
+  margin:26px 0 18px;padding:18px 20px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px}
+.ctl{display:flex;flex-direction:column;gap:7px}
+.ctl .lab{font-size:11.5px;letter-spacing:1.2px;color:var(--soft);text-transform:uppercase;font-family:var(--mono)}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card2)}
+.seg button{appearance:none;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:13.5px;color:var(--ink2);padding:7px 13px;border-right:1px solid var(--line2)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--card2)}
+.layers{display:flex;gap:8px;flex-wrap:wrap}
+.chip{appearance:none;border:1px solid var(--line);background:var(--card2);cursor:pointer;
+  font-family:inherit;font-size:13px;color:var(--ink2);padding:6px 13px;border-radius:999px;display:flex;align-items:center;gap:7px}
+.chip .d{width:9px;height:9px;border-radius:3px}
+.chip.off{opacity:.4}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink2);cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--coral);width:16px;height:16px}
+
+/* view switch */
+.viewswitch{margin-left:auto}
+
+/* plot */
+.stage{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 8px 30px rgba(46,41,37,.06);padding:14px 8px 6px;position:relative}
+.plot-scroll{overflow-x:auto}
+svg.plot{display:block;width:100%;min-width:1040px;height:auto}
+.axis-t{font-family:var(--mono);font-size:11px;fill:var(--soft)}
+.band-l{font-weight:700;letter-spacing:1px}
+.col-l{font-size:15px;font-weight:700;fill:var(--ink)}
+.col-sub{font-family:var(--mono);font-size:10.5px;fill:var(--soft)}
+.node{cursor:pointer;transition:opacity .15s}
+.node circle{stroke:#2E2925;stroke-opacity:.55;stroke-width:1}
+.node text{font-size:11px;fill:var(--ink2);dominant-baseline:central}
+.node.sel circle{stroke:var(--ink);stroke-width:2.4;stroke-opacity:1}
+.node.dim{opacity:.18}
+.gridline{stroke:var(--line2);stroke-width:1}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+  font-size:12.5px;color:var(--ink2);padding:14px 14px 4px}
+.legend .it{display:flex;align-items:center;gap:8px}
+.legend .sw{width:13px;height:13px;border-radius:4px;border:1px solid rgba(46,41,37,.3)}
+.legend .ring{width:14px;height:14px;border-radius:50%;border:2px dashed var(--ink2)}
+.legend .count{font-family:var(--mono);color:var(--soft)}
+.size-key{display:flex;align-items:center;gap:6px}
+.size-key .c{border:1px solid var(--soft);border-radius:50%}
+
+/* detail */
+.detail{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:0;overflow:hidden;min-height:88px}
+.detail .empty{padding:26px 24px;color:var(--soft);font-size:14px}
+.dt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:20px 24px 14px;border-bottom:1px solid var(--line2)}
+.dt-name{font-size:21px;font-weight:700}
+.lchip{font-size:12px;font-family:var(--mono);padding:3px 10px;border-radius:999px;color:#fff}
+.kind{font-size:12px;color:var(--soft);font-family:var(--mono);margin-left:auto}
+.dt-body{display:grid;grid-template-columns:300px 1fr;gap:24px;padding:20px 24px 24px}
+@media(max-width:680px){.dt-body{grid-template-columns:1fr}}
+.scores .srow{display:flex;align-items:center;gap:12px;margin:0 0 13px}
+.scores .sl{width:78px;font-size:13px;color:var(--ink2)}
+.bar{flex:1;height:9px;background:var(--paper2);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.sv{font-family:var(--mono);font-size:13px;width:30px;text-align:right;color:var(--ink)}
+.frag-box{margin-top:6px;padding-top:14px;border-top:1px dashed var(--line)}
+.frag-row{display:flex;align-items:baseline;gap:10px}
+.frag-num{font-family:var(--mono);font-size:30px;font-weight:700}
+.frag-band{font-size:13px;font-weight:700;padding:3px 11px;border-radius:999px;color:#fff}
+.frag-cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin-top:6px}
+.note{font-size:15px;line-height:1.85;color:var(--ink)}
+.note .axes{font-family:var(--mono);font-size:12px;color:var(--soft);margin-top:14px}
+.note .case{margin-top:14px;padding:12px 14px;background:var(--paper2);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;font-size:14px;line-height:1.8;color:var(--ink)}
+.note .case .ck{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--blue);margin-right:8px;vertical-align:1px}
+
+/* table */
+.tblwrap{margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2)}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.6px;color:var(--soft);text-transform:uppercase;cursor:pointer;white-space:nowrap}
+th .ar{opacity:.5}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+tr.row{cursor:pointer}
+tr.row:hover{background:var(--card2)}
+.rank{font-family:var(--mono);color:var(--soft);width:34px}
+.bandtag{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle}
+.lname{color:var(--ink2);font-size:12.5px}
+
+.hidden{display:none}
+
+/* methodology */
+details.method{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 20px}
+details.method summary{cursor:pointer;font-weight:600;padding:14px 0;font-size:15px;list-style:none}
+details.method summary::-webkit-details-marker{display:none}
+details.method summary::before{content:"▸ ";color:var(--coral)}
+details.method[open] summary::before{content:"▾ "}
+.method .mbody{font-size:14px;line-height:1.85;color:var(--ink2);padding:0 0 18px}
+.method code{font-family:var(--mono);background:var(--paper2);padding:1px 6px;border-radius:5px;font-size:13px;color:var(--ink)}
+.foot{margin-top:30px;font-size:12.5px;color:var(--soft);line-height:1.7}
+.hinge-lead{font-size:14px;color:#5F5648;margin:22px 0 12px;line-height:1.75}
+.hinge-row{background:#FFFDF8;border:1px solid rgba(46,41,37,.1);border-left:4px solid #8C8170;border-radius:0 10px 10px 0;padding:11px 14px;margin-bottom:10px}
+.hinge-dom{font-weight:700;font-size:14.5px;margin-bottom:8px}
+.hinge-flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:13px;line-height:1.55;margin-bottom:9px}
+.hf-credit,.hf-liq{background:#EFE6D1;color:#4a4234;padding:4px 10px;border-radius:7px}
+.hf-coll{color:#FBF7EC;padding:4px 11px;border-radius:7px;font-weight:600}
+.hf-arrow{color:#8C8170;font-weight:700;font-size:14px}
+.hinge-fail{font-size:12.5px;color:#6f6555;line-height:1.65}
+.hinge-fail b{color:#9e3a25;font-weight:600}
+.hinge-close{font-size:13.5px;color:#2E2925;line-height:1.85;margin-top:14px;padding:13px 15px;background:#F3EAD3;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="rule"></div>
+  <h1>信用扩张场景全景图</h1>
+  <p class="dek">家庭 · 民间金融 · 公司 · 银行 · 金融市场 · 国家六个领域，五十二个典型场景（机制全球通用，案例兼及中国与世界）。每个场景在 <b>抵押品强度 / 杠杆 / 反身性</b> 三轴上打分，合成一个脆弱度坐标，定位它在 <b>对冲 → 投机 → 庞氏</b> 谱系上的位置——越往上、越红，越接近庞氏那一端。点任意节点看机制，及把该场景顶层设计推到极端的真实案例。控制栏可切换案例集：<b>当代 ↔《金瓶梅》↔《大明王朝 1566》↔ 恒大</b>——用同一套三轴与六列坐标，给西门庆帝国与嘉靖朝的信用线定位。</p>
+
+  <div class="controls">
+    <div class="ctl">
+      <span class="lab">纵轴</span>
+      <div class="seg" id="ydim">
+        <button data-v="frag" class="on">脆弱度</button>
+        <button data-v="lv">杠杆</button>
+        <button data-v="rf">反身性</button>
+        <button data-v="ci">抵押品薄弱</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="lab">节点大小</span>
+      <div class="seg" id="sdim">
+        <button data-v="lv" class="on">杠杆</button>
+        <button data-v="frag">脆弱度</button>
+        <button data-v="fix">一致</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="lab">层</span>
+      <div class="layers" id="layers"></div>
+    </div>
+    <div class="ctl">
+      <span class="lab">标签</span>
+      <label class="toggle"><input type="checkbox" id="lblToggle" checked> 显示名称</label>
+    </div>
+    <div class="ctl">
+      <span class="lab">案例集</span>
+      <div class="seg" id="dataset">
+        <button data-v="xd" class="on">当代</button>
+        <button data-v="jpm">金瓶梅</button>
+        <button data-v="mj">1566</button>
+        <button data-v="hd">恒大</button>
+      </div>
+    </div>
+    <div class="ctl viewswitch">
+      <span class="lab">视图</span>
+      <div class="seg" id="view">
+        <button data-v="plot" class="on">全景图</button>
+        <button data-v="table">排行榜</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="plotView">
+    <div class="plot-scroll">
+      <svg class="plot" id="svg" viewBox="0 0 1480 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="信用扩张场景脆弱度散点图"></svg>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="stage tblwrap hidden" id="tableView" style="padding:8px 14px 14px">
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="empty">点击图中任意节点（或榜单任意一行），查看该场景的三轴坐标、脆弱度与运作机制。</div>
+  </div>
+
+  <details class="method">
+    <summary>读图说明 &amp; 方法论边界</summary>
+    <div class="mbody">
+      <p><b>视角：全球，含民间金融。</b>三轴机制大体普适，但部分场景带中国烙印（高周转预售、影子银行的理财—通道—非标、LGFV、土地财政、专项债、转融通、社融 / M2 调控），另一些主要在境外（次级房贷、举债回购、私人信贷、CLO、货基挤兑、加密与稳定币、国债基差交易、主权违约）。「民间金融」一列收录以血缘、地缘、同乡信任替代抵押与征信的信用扩张（互保联保、标会 / 抬会、地下钱庄、民间集资、炒房团），温州帮、潮汕帮即属此列。每个节点都附一则「真实案例」，且刻意选取把该场景顶层设计推到极端一元的样本（如证券杠杆取 1929、LBO 取 RJR、TRS 取 Archegos、稳定币取 Terra、主权违约取希腊），并点明其被推向极致的结构设计——中国场景配中国案例，普适场景配最著名的全球案例。</p>
+      <p><b>三根轴（均为 1–5 的序数判断，非精确测量）：</b>抵押品强度——抵押物是否优质、稳定、可变现，越高越安全；杠杆——自有权益相对于资产的薄厚，越高越险；反身性——抵押品价格与借贷能力之间的正反馈强度，越高越险。</p>
+      <p><b>脆弱度坐标</b>取三轴合成：<code>脆弱度 = (杠杆 + 反身性 + (6 − 抵押品强度)) / 3</code>，范围 1–5。据此划带：<code>&gt; 3.5</code> 接近庞氏、<code>2.5–3.5</code> 投机、<code>&lt; 2.5</code> 对冲。</p>
+      <p><b>重要边界：</b>这三轴刻画的是<b>结构脆弱度</b>，是明斯基谱系的一个代理，而非其定义。明斯基的真正分野在于<b>经营/收入现金流能否覆盖本息</b>——对冲融资能同时覆盖本息，投机融资只够付息、本金靠续作，庞氏融资连利息都不够、只能靠借新或资产升值续命。因此某些场景（如信用卡循环、以贷养贷）的现金流自偿性比其三轴坐标显示的更接近庞氏；坐标只是入口，不是终判。</p>
+      <p><b>关于金融衍生品：</b>「金融市场」一列收录的是市场化／非银金融中真正<b>创造信用</b>的机制——即含融资腿或合成信用的工具：回购、证券借贷、收益互换、CDS 与合成 CDO、外汇掉期、担保品再抵押、券商收益凭证。它们把「我的负债＝你的资产」以合成或表外的方式复制出来，因而反身性与隐蔽杠杆往往最高（Archegos、AIG、2008 回购挤兑都在此列）。反之，<b>纯粹风险转移／价格杠杆型的衍生品并不构成信用扩张</b>，已刻意排除：场内期货与期权、普通利率互换等套保工具、以及雪球与场外期权——它们提供的是杠杆与风险再分配，而非新增的信用关系。把「杠杆」直接等同于「信用扩张」是一种层级混淆，这一列正是为厘清这条边界而设。</p>
+      <p><b>空心菱形节点</b>是「机制 · 政策」类（如派生存款、央行工具、总量调控），它们是信用机器的结构或调控阀门，<b>不是借款人的杠杆头寸</b>，其纵轴位置只表示该机制内含的顺周期/扩张属性，不应与借款人脆弱度直接比较。所有打分均为示意性判断，供结构比较与讨论，不构成任何投资或财务建议。</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>概念辨析：信用 ≠ 货币 ≠ 流动性（以抵押品为铰链）</summary>
+    <div class="mbody">
+      <svg viewBox="0 0 840 600" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto;margin:8px 0 20px" font-family="'Noto Serif SC',serif">
+        <defs>
+          <marker id="cah" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#2E2925"/></marker>
+          <marker id="cahg" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#5E8C61"/></marker>
+          <marker id="cahd" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 Z" fill="#8C8170"/></marker>
+        </defs>
+        <rect x="1" y="1" width="838" height="598" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+        <text x="28" y="40" font-size="21" font-weight="700" fill="#2E2925">概念辨析：信用 ≠ 货币 ≠ 流动性</text>
+        <text x="28" y="64" font-size="13" fill="#8C8170">三者上行同涨、下行同缩，但拐点处会脱钩 —— 抵押品是它们之间的铰链</text>
+        <rect x="36" y="120" width="168" height="72" rx="11" fill="rgba(176,125,43,.13)" stroke="#B07D2B"/>
+        <text x="120" y="151" text-anchor="middle" font-size="16" font-weight="700" fill="#8a5d18">货币</text>
+        <text x="120" y="172" text-anchor="middle" font-size="11" fill="#7C7263">基础货币 / M2 · 量</text>
+        <rect x="300" y="120" width="180" height="72" rx="11" fill="rgba(188,75,51,.12)" stroke="#BC4B33"/>
+        <text x="390" y="151" text-anchor="middle" font-size="16" font-weight="700" fill="#9e3a25">信用</text>
+        <text x="390" y="172" text-anchor="middle" font-size="10.5" fill="#7C7263">债权债务存量 · 我的负债=你的资产</text>
+        <circle cx="576" cy="156" r="48" fill="#2E2925"/>
+        <text x="576" y="151" text-anchor="middle" font-size="15" font-weight="700" fill="#FBF7EC">抵押品</text>
+        <text x="576" y="172" text-anchor="middle" font-size="10.5" fill="#cdbfa6">铰链</text>
+        <rect x="686" y="104" width="152" height="58" rx="10" fill="rgba(63,126,107,.14)" stroke="#3F7E6B"/>
+        <text x="762" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#2f5e50">市场流动性</text>
+        <text x="762" y="147" text-anchor="middle" font-size="10" fill="#7C7263">卖得掉 · 不砸价</text>
+        <rect x="686" y="196" width="152" height="58" rx="10" fill="rgba(58,100,145,.12)" stroke="#3A6491"/>
+        <text x="762" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#2c4d70">融资流动性</text>
+        <text x="762" y="239" text-anchor="middle" font-size="10" fill="#7C7263">滚得动短债</text>
+        <line x1="204" y1="156" x2="298" y2="156" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)" marker-start="url(#cah)"/>
+        <text x="251" y="112" text-anchor="middle" font-size="11" fill="#5F5648">贷款创造存款 · 同涨</text>
+        <line x1="480" y1="156" x2="524" y2="156" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <path d="M614,138 C648,128 660,126 684,127" fill="none" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <path d="M614,176 C648,196 660,212 684,224" fill="none" stroke="#2E2925" stroke-width="2" marker-end="url(#cah)"/>
+        <text x="576" y="244" text-anchor="middle" font-size="11" fill="#5F5648">抵押品定价 → 能借多少、卖得掉否</text>
+        <rect x="36" y="300" width="98" height="30" rx="8" fill="#FBF7EC" stroke="#8C8170" stroke-dasharray="4 3"/>
+        <text x="85" y="320" text-anchor="middle" font-size="11.5" fill="#5F5648">央行 QE</text>
+        <line x1="85" y1="300" x2="85" y2="194" stroke="#8C8170" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cahd)"/>
+        <text x="146" y="308" font-size="11" fill="#5F5648">造货币 · 不造信用</text>
+        <text x="146" y="326" font-size="11" fill="#8C8170">准备金困在银行间 → 推绳子</text>
+        <rect x="300" y="300" width="104" height="30" rx="8" fill="#FBF7EC" stroke="#8C8170" stroke-dasharray="4 3"/>
+        <text x="352" y="320" text-anchor="middle" font-size="11.5" fill="#5F5648">社融 ＞ M2</text>
+        <line x1="352" y1="300" x2="352" y2="194" stroke="#8C8170" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cahd)"/>
+        <text x="416" y="308" font-size="11" fill="#5F5648">造信用 · 不造货币</text>
+        <text x="416" y="326" font-size="11" fill="#8C8170">用存量存款买债：债权增而 M2 不变</text>
+        <path d="M762,254 C762,432 470,432 470,198" fill="none" stroke="#5E8C61" stroke-width="2.6" marker-end="url(#cahg)"/>
+        <text x="566" y="452" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3f6b43">上行 · 反身性：抵押品涨 → 更易融资 → 信用再扩张（自我强化）</text>
+        <rect x="36" y="486" width="768" height="76" rx="12" fill="rgba(188,75,51,.07)" stroke="rgba(188,75,51,.32)"/>
+        <text x="52" y="513" font-size="12.5" fill="#9e3a25"><tspan font-weight="700">下行 · 拐点（流动性幻觉）：</tspan><tspan fill="#5F5648">抵押品跌 → 折扣升 · 被迫抛售 → 市场与融资流动性一夜蒸发，</tspan></text>
+        <text x="52" y="535" font-size="12.5" fill="#5F5648">而信用账面仍挂在表上 —— 这正是危机的定义。（追保→抛售→价跌→折扣升→再追保的流动性螺旋）</text>
+        <text x="52" y="554" font-size="11.5" fill="#8C8170">对应全景图：『反身性』轴越高越险；庞氏端 = 账面有信用、靠融资流动性续命。</text>
+        <text x="420" y="585" text-anchor="middle" font-size="12" fill="#2E2925">一句话：信用是存量的债权债务，流动性是变现的难易与速度。</text>
+      </svg>
+      <p>信用、货币、流动性高度相关、互为因果，但不是一回事；把它们等同，与把「杠杆」等同于「信用扩张」一样，是一种层级混淆。</p>
+      <p><b>「流动性」至少有三义：</b>货币 / 资金流动性（量：基础货币、M2）、市场流动性（能否快速变现而不砸价）、融资流动性（能否滚续短债、到期拿得出钱）。信用对应哪一种，结论就不同。</p>
+      <p><b>信用 ↔ 货币，最紧但会漏：</b>在「贷款创造存款」处二者一起涨；但两头会漏——QE 拿储备金换走存量债券，做大基础货币却不创造信用（准备金困在银行间，即「推绳子」）；而用已有存款买债，债权增、M2 不变，于是社融能比 M2 涨得快，社融-M2 剪刀差正是货币之外的那块信用。</p>
+      <p><b>抵押品是铰链，反身性是引擎：</b>信用宽 → 买家与杠杆多 → 抵押品涨、价差收窄、市场变深 → 更易融资 → 再放更多信用（即全景图的「反身性」轴）。但拐点处会暴力脱钩——「流动性幻觉」：信用账面还在、资产还标着高价，可一旦所有人同时夺门而出，市场与融资流动性会一夜蒸发（追保→抛售→价跌→折扣升→再追保的流动性螺旋）。</p>
+      <p><b>落回本图：</b>庞氏那一端的本质，就是账面有信用、却要靠不断再融资（融资流动性）续命；明斯基对冲 / 投机 / 庞氏的现金流判据，翻译过来正是「融资流动性能否一直续上」。</p>
+      <p class="hinge-lead"><b>把铰链落到实处：</b>上图是抽象机制——下面把「抵押品」这个铰链，在全景图的六个领域里分别落到实处。同一个铰链，抵押品各不相同：</p>
+      <div class="hinge-row" style="border-left-color:#3F7E6B">
+        <div class="hinge-dom" style="color:#3F7E6B">家庭</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：按揭 / 经营贷</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#3F7E6B">抵押品：房产</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：卖房变现 · 续月供 / 再融资</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>房价跌 → 既卖不掉又难再融资 → 断供、法拍（信用账面还在，流动性先消失）。</div>
+      </div>
+      <div class="hinge-row" style="border-left-color:#6B4F3A">
+        <div class="hinge-dom" style="color:#6B4F3A">民间金融</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：互保联保 / 标会 / 民间借贷</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#6B4F3A">抵押品：社会资本 · 熟人信任（无硬抵押）</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：熟人网络续借 · 会能开下去</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>信任一断 → 担保圈连环、会崩 → 借不到新钱（最软的抵押品，蒸发最快）。</div>
+      </div>
+      <div class="hinge-row" style="border-left-color:#3A6491">
+        <div class="hinge-dom" style="color:#3A6491">企业</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：银行贷款 / 债券 / 股权质押</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#3A6491">抵押品：厂房设备 · 存货应收 · 股权（中国尤重房产）</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：变卖资产 · 滚续债务 / 股价不破平仓线</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>股价或资产价跌 → 质押爆仓、抽贷 → 被迫贱卖（信用还挂在表上，变现链已断）。</div>
+      </div>
+      <div class="hinge-row" style="border-left-color:#9A6A2F">
+        <div class="hinge-dom" style="color:#9A6A2F">银行</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：放贷 → 派生存款</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#9A6A2F">抵押品：贷款资产 · 合格抵押品（国债 / MBS）</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：同业、回购、央行流动性（凭合格抵押品融入）</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>抵押品质量存疑 → 同业冻结、挤兑 → 借短用长被击穿（硅谷银行）。</div>
+      </div>
+      <div class="hinge-row" style="border-left-color:#6E5A7D">
+        <div class="hinge-dom" style="color:#6E5A7D">金融市场</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：回购 / 证券借贷 / 再抵押 / 收益互换</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#6E5A7D">抵押品：证券本身（国债 · 股票 · ABS）</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：能 repo 出去 / 能卖掉（折扣率顺周期）</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>抵押品跌 → 折扣升 → 被迫抛售 → 再跌（2008 回购挤兑——铰链最纯粹，也最暴力）。</div>
+      </div>
+      <div class="hinge-row" style="border-left-color:#7A4A55">
+        <div class="hinge-dom" style="color:#7A4A55">国家</div>
+        <div class="hinge-flow"><span class="hf-credit">信用：国债 / 专项债 / 城投</span><span class="hf-arrow">→</span><span class="hf-coll" style="background:#7A4A55">抵押品：过去是土地（土地财政），现转向主权信用 / 国债本身</span><span class="hf-arrow">→</span><span class="hf-liq">流动性：国债是全市场终极抵押品、最易变现；主权以货币发行权兜底</span></div>
+        <div class="hinge-fail"><b>铰链失灵：</b>土地崩（2021 后）→ 倚赖主权信用；主权信用被疑 → 末日循环、再融资利率飙升（希腊），最后只能靠央行 / 货币。</div>
+      </div>
+      <div class="hinge-close">把六行叠起来看：抵押品从最硬、最易变现的「国债」，一路滑到最软、最易蒸发的「社会信任」——越往软端，铰链越脆、反身性越高、拐点处流动性消失得越快。这正是全景图纵轴「脆弱度」的来源，也是民间金融那一列几乎整列泛红的原因。</div>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>锚的迁移：土地 → 主权信用 + 一篮子替代物（按抵押品质量 × 反身性定位）</summary>
+    <div class="mbody">
+      <p>房子退场后，锚沿两条轴迁移：从「抵押品驱动的私人信用」转向「主权信用驱动」（土地 → 国债），并从一个全民蓄水池散成一篮子更弱的替代物。下图用与全景图同一套打分的两根轴——抵押品质量（横）与反身性（纵）——给候选定位：右下角（质量高、反身性低）才是理想的稳定锚，左上角（质量低、反身性高）最脆、最易踩踏。</p>
+      <svg viewBox="0 0 840 620" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto;margin:8px 0 16px" font-family="'Noto Serif SC',serif">
+        <defs>
+          <marker id="mah" markerWidth="11" markerHeight="11" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 Z" fill="#7A4A55"/></marker>
+          <marker id="maxis" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8C8170"/></marker>
+        </defs>
+        <rect x="1" y="1" width="838" height="618" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+        <text x="28" y="40" font-size="21" font-weight="700" fill="#2E2925">锚的迁移：土地 → 主权信用 + 一篮子替代物</text>
+        <text x="28" y="64" font-size="13" fill="#8C8170">按全景图的两根轴定位：抵押品质量（横）× 反身性（纵）。右下角是理想的稳定锚，左上角最脆、最易踩踏。</text>
+        <rect x="70" y="80" width="360" height="210" fill="rgba(188,75,51,.06)"/>
+        <rect x="430" y="290" width="360" height="210" fill="rgba(94,140,97,.08)"/>
+        <text x="150" y="104" font-size="12.5" fill="rgba(158,58,37,.55)">最脆区</text>
+        <text x="712" y="492" font-size="12.5" fill="rgba(63,107,67,.6)" text-anchor="middle">稳定锚区</text>
+        <line x1="70" y1="500" x2="806" y2="500" stroke="#8C8170" stroke-width="1.5" marker-end="url(#maxis)"/>
+        <line x1="70" y1="500" x2="70" y2="70" stroke="#8C8170" stroke-width="1.5" marker-end="url(#maxis)"/>
+        <line x1="430" y1="500" x2="430" y2="80" stroke="rgba(46,41,37,.07)" stroke-width="1"/>
+        <line x1="70" y1="290" x2="790" y2="290" stroke="rgba(46,41,37,.07)" stroke-width="1"/>
+        <text x="430" y="540" text-anchor="middle" font-size="13" fill="#5F5648">抵押品质量（低 → 高）</text>
+        <text transform="rotate(-90 26 290)" x="26" y="290" text-anchor="middle" font-size="13" fill="#5F5648">反身性（低 → 高）</text>
+        <path d="M560,94 C700,150 718,210 716,308" fill="none" stroke="#7A4A55" stroke-width="2.6" marker-end="url(#mah)"/>
+        <text x="648" y="186" font-size="12" font-weight="600" fill="#7A4A55">主线迁移</text>
+        <circle cx="556" cy="80" r="9" fill="#FBF7EC" stroke="#6f6555" stroke-width="2" stroke-dasharray="3 2.5"/>
+        <text x="543" y="84" text-anchor="end" font-size="12.5" font-weight="600" fill="#6f6555">土地 · 房产（旧锚）</text>
+        <circle cx="718" cy="322" r="14" fill="none" stroke="#7A4A55" stroke-width="1.5" opacity=".5"/>
+        <circle cx="718" cy="322" r="10" fill="#7A4A55"/>
+        <text x="700" y="315" text-anchor="end" font-size="13" font-weight="700" fill="#7A4A55">主权信用 · 国债</text>
+        <text x="700" y="333" text-anchor="end" font-size="11.5" fill="#9a7680">（新主锚）</text>
+        <circle cx="250" cy="311" r="8" fill="#8a7f6f"/>
+        <text x="250" y="335" text-anchor="middle" font-size="12.5" fill="#4a4234">先进制造 · 新质生产力</text>
+        <circle cx="358" cy="133" r="8" fill="#8a7f6f"/>
+        <text x="358" y="117" text-anchor="middle" font-size="12.5" fill="#4a4234">资本市场 · 股权</text>
+        <circle cx="178" cy="185" r="8" fill="#8a7f6f"/>
+        <text x="178" y="169" text-anchor="middle" font-size="12.5" fill="#4a4234">数据资产</text>
+        <circle cx="430" cy="343" r="8" fill="#8a7f6f"/>
+        <text x="445" y="347" font-size="12.5" fill="#4a4234">REITs · 存量盘活</text>
+        <circle cx="466" cy="395" r="8" fill="#8a7f6f"/>
+        <text x="466" y="419" text-anchor="middle" font-size="12.5" fill="#4a4234">保障房 · 房地产新模式</text>
+        <circle cx="646" cy="458" r="8" fill="#FBF7EC" stroke="#B08D2B" stroke-width="2.4"/>
+        <text x="646" y="481" text-anchor="middle" font-size="12.5" fill="#8a5d18">黄金（避险 · 反杠杆）</text>
+      </svg>
+      <p><b>三个要点：</b>其一，土地曾在右上——抵押品质量高，但反身性也拉满，所以强大却易泡沫；它正沿主线迁向右下的「主权信用 / 国债」。其二，真正落在「稳的锚」区（右下）又能扩张信用的，几乎只有国债——黄金虽也在右下，却是避险、反杠杆的，是逃离而非承载信用扩张。其三，一篮子替代物大多偏左（抵押品质量低）：数据资产最实验、估值最虚，股权反身性最高、最易踩踏，制造业则是低质量抵押品 + 产能过剩。结论不变：没有单一资产补得上土地的位置，载荷最终压向中央政府的资产负债表与央行——锚从「抵押品本位」走向「主权信用本位」。</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>文本案例层：《金瓶梅》——西门庆帝国的信用线（六列同坐标）</summary>
+    <div class="mbody">
+      <p><b>为什么这本书能上这张图：</b>《金瓶梅》成书于晚明白银货币化的高峰期——一条鞭法之后、海外白银经月港与马尼拉涌入的年代。全书通篇是价格、利率、契约与账目，兰陵笑笑生几乎在记账式写作；而西门庆一人身上，恰好把六个领域全部咬合成一条以政治权力为元抵押品的人身信用链。切换控制栏「案例集」至《金瓶梅》，即可在同一套三轴（抵押品强度 / 杠杆 / 反身性）与六列坐标下查看这二十一条信用线。</p>
+      <svg viewBox="0 0 880 870" style="display:block;width:100%;height:auto;margin:10px 0 16px" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Serif SC',serif">
+  <defs>
+    <marker id="nwT" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3F7E6B"/></marker>
+    <marker id="nwC" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+    <marker id="nwA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B07D2B"/></marker>
+    <marker id="nwAs" markerWidth="9" markerHeight="9" refX="1" refY="3" orient="auto"><path d="M7,0 L0,3 L7,6 Z" fill="#B07D2B"/></marker>
+    <marker id="nwG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8C8170"/></marker>
+    <marker id="nwR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+  </defs>
+  <rect x="1" y="1" width="878" height="868" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#2E2925">《金瓶梅》信用网络：一条以权力为元抵押品的人身信用链</text>
+  <text x="28" y="60" font-size="12" fill="#8C8170">节点＝人物 · 边＝债权 / 资产转移 / 寻租 / 担保 / 中介 · 深色节点＝铰链 · 红✕＝断点（回目从词话本）</text>
+
+  <!-- 皇权 -->
+  <rect x="350" y="83" width="180" height="44" rx="10" fill="rgba(122,74,85,.10)" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="440" y="110" text-anchor="middle" font-size="13.5" font-weight="700" fill="#7A4A55">皇权 · 朝廷（徽宗）</text>
+  <text x="545" y="98" font-size="11.5" font-weight="700" fill="#BC4B33">✕ 一百回 金兵南下</text>
+  <text x="545" y="115" font-size="10.5" fill="#BC4B33">元抵押品失灵 · 总清算</text>
+  <line x1="440" y1="127" x2="440" y2="167" stroke="#8C8170" stroke-width="1.4"/>
+  <text x="452" y="150" font-size="10.5" fill="#8C8170">圣眷</text>
+
+  <!-- 蔡京 -->
+  <circle cx="440" cy="195" r="26" fill="#7A4A55"/>
+  <text x="440" y="200" text-anchor="middle" font-size="13" font-weight="700" fill="#FBF7EC">蔡京</text>
+  <text x="440" y="236" text-anchor="middle" font-size="10.5" fill="#7A4A55">相府 · 元抵押品铰链</text>
+
+  <!-- 生辰担 up path via 翟谦 -->
+  <path d="M424,392 C352,338 352,262 424,212" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#nwA)"/>
+  <circle cx="352" cy="300" r="12" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="352" y="284" text-anchor="middle" font-size="11" fill="#7A4A55">翟谦 · 门路</text>
+  <text x="255" y="322" text-anchor="middle" font-size="11" fill="#8a5d18">生辰担 · 保护费（十八回）</text>
+
+  <!-- 官缺 down path -->
+  <path d="M456,212 C528,262 528,338 456,392" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#nwA)"/>
+  <text x="524" y="246" font-size="11" fill="#8a5d18">官缺 · 理刑千户（三十回）</text>
+
+  <!-- 蔡御史 -->
+  <circle cx="625" cy="195" r="16" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="625" y="172" text-anchor="middle" font-size="11.5" fill="#7A4A55">蔡御史</text>
+  <path d="M480,406 C548,330 582,252 613,208" fill="none" stroke="#B07D2B" stroke-width="1.6" marker-end="url(#nwA)" marker-start="url(#nwAs)"/>
+  <text x="585" y="288" text-anchor="middle" font-size="10.5" fill="#8a5d18">宴请 ⇄ 盐引早掣</text>
+  <text x="585" y="303" text-anchor="middle" font-size="10" fill="#8a5d18">（四十九回）</text>
+
+  <!-- 西门庆 central hinge -->
+  <circle cx="440" cy="430" r="42" fill="#2E2925"/>
+  <text x="440" y="428" text-anchor="middle" font-size="15" font-weight="700" fill="#FBF7EC">西门庆</text>
+  <text x="440" y="446" text-anchor="middle" font-size="9.5" fill="#cdbfa6">中心铰链</text>
+  <text x="440" y="494" text-anchor="middle" font-size="10.5" fill="#5F5648">身体铰链 · 胡僧药加杠杆（四十九回）</text>
+  <text x="440" y="510" text-anchor="middle" font-size="10.5" font-weight="600" fill="#9e3a25">七十九回爆仓＝明斯基时刻</text>
+
+  <!-- 左簇 家庭 -->
+  <circle cx="140" cy="280" r="17" fill="#FFFDF8" stroke="#3F7E6B" stroke-width="1.8"/>
+  <text x="140" y="258" text-anchor="middle" font-size="12" fill="#2f5e50">孟玉楼</text>
+  <path d="M156,286 L400,412" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#nwC)"/>
+  <text x="240" y="330" font-size="10.5" fill="#9e3a25">婚姻并购 · 杨家遗产（七回）</text>
+
+  <circle cx="140" cy="370" r="17" fill="#FFFDF8" stroke="#3F7E6B" stroke-width="1.8"/>
+  <text x="140" y="348" text-anchor="middle" font-size="12" fill="#2f5e50">李瓶儿</text>
+  <path d="M157,372 L398,424" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#nwC)"/>
+  <text x="245" y="384" font-size="10.5" fill="#9e3a25">妆奁 · 寄存并入（十四–十六回）</text>
+
+  <circle cx="140" cy="460" r="17" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="140" y="438" text-anchor="middle" font-size="12" fill="#6B4F3A">花子虚</text>
+  <path d="M140,443 L140,387" fill="none" stroke="#BC4B33" stroke-width="1.4" marker-end="url(#nwC)"/>
+  <text x="96" y="418" text-anchor="middle" font-size="10" fill="#9e3a25">花家资产</text>
+  <path d="M156,454 L400,440" fill="none" stroke="#6B4F3A" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="262" y="432" text-anchor="middle" font-size="10.5" fill="#6B4F3A">结拜 · 盟兄信任</text>
+  <text x="300" y="452" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="300" y="468" text-anchor="middle" font-size="10" fill="#BC4B33">十四回 因气丧身（信任首断）</text>
+
+  <circle cx="140" cy="545" r="17" fill="#FFFDF8" stroke="#3F7E6B" stroke-width="1.8"/>
+  <text x="140" y="523" text-anchor="middle" font-size="12" fill="#2f5e50">潘金莲</text>
+
+  <circle cx="268" cy="600" r="15" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="268" y="624" text-anchor="middle" font-size="12" fill="#6B4F3A">王婆</text>
+  <path d="M256,592 L155,551" fill="none" stroke="#3A6491" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <path d="M280,590 L409,459" fill="none" stroke="#3A6491" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <text x="322" y="568" text-anchor="middle" font-size="10.5" fill="#2c4d70">十件挨光计（三回）· 中介</text>
+
+  <circle cx="70" cy="618" r="11" fill="#F0E9DA" stroke="#8C8170" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <text x="70" y="643" text-anchor="middle" font-size="11" fill="#8C8170">武大（亡）</text>
+  <path d="M128,556 L82,608" fill="none" stroke="#7a2f22" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#nwR)"/>
+  <text x="46" y="585" font-size="10" fill="#7a2f22">命案 · 表外血债</text>
+
+  <circle cx="152" cy="675" r="17" fill="#FFFDF8" stroke="#2E2925" stroke-width="1.8"/>
+  <text x="152" y="700" text-anchor="middle" font-size="12" fill="#2E2925">武松</text>
+  <path d="M150,658 L143,563" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#nwR)"/>
+  <path d="M166,666 L255,609" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#nwR)"/>
+  <text x="146" y="606" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="217" y="642" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="240" y="672" text-anchor="middle" font-size="10.5" fill="#BC4B33">血债追偿（八十七回）</text>
+
+  <!-- 右簇 商借 · 官府 -->
+  <rect x="700" y="250" width="132" height="42" rx="9" fill="rgba(122,74,85,.08)" stroke="#7A4A55" stroke-width="1.4"/>
+  <text x="766" y="276" text-anchor="middle" font-size="12" fill="#7A4A55">东平府 · 官府</text>
+  <path d="M762,292 L748,352" fill="none" stroke="#3F7E6B" stroke-width="1.4" marker-end="url(#nwT)"/>
+  <text x="770" y="320" font-size="10" fill="#2f5e50">承揽合同 · 回款作保</text>
+
+  <circle cx="742" cy="370" r="19" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="742" y="374" text-anchor="middle" font-size="10.5" fill="#2c4d70">李三黄四</text>
+  <path d="M482,424 L721,373" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#nwT)"/>
+  <text x="590" y="386" font-size="10.5" fill="#2f5e50">放贷 · 月息五分</text>
+  <text x="700" y="392" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="626" y="410" font-size="10" fill="#BC4B33">七十九回后成死账</text>
+
+  <circle cx="586" cy="340" r="16" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="586" y="317" text-anchor="middle" font-size="11.5" fill="#6B4F3A">应伯爵 · 帮闲</text>
+  <path d="M573,330 L470,400" fill="none" stroke="#3A6491" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <path d="M602,346 L723,364" fill="none" stroke="#3A6491" stroke-width="1.5" stroke-dasharray="2 4"/>
+  <text x="530" y="352" text-anchor="middle" font-size="10.5" fill="#2c4d70">说合 · 两头抽用</text>
+
+  <circle cx="722" cy="480" r="19" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="722" y="477" text-anchor="middle" font-size="10" fill="#2c4d70">韩道国</text>
+  <text x="722" y="489" text-anchor="middle" font-size="10" fill="#2c4d70">来保</text>
+  <path d="M481,443 L702,474" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#nwT)"/>
+  <text x="565" y="448" font-size="10.5" fill="#2f5e50">领本 · 分利</text>
+  <path d="M740,489 L824,523" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#nwR)"/>
+  <text x="783" y="500" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="774" y="545" text-anchor="middle" font-size="10" fill="#BC4B33">八十一回 卷银远遁</text>
+
+  <circle cx="622" cy="588" r="18" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="622" y="592" text-anchor="middle" font-size="11" fill="#2c4d70">张二官</text>
+  <path d="M462,462 L606,577" fill="none" stroke="#8C8170" stroke-width="1.8" marker-end="url(#nwG)"/>
+  <text x="472" y="540" font-size="10.5" fill="#6f6555">补缺 · 牌照易主（八十回）</text>
+  <path d="M588,356 L618,570" fill="none" stroke="#8C8170" stroke-width="1.5" stroke-dasharray="2 4" marker-end="url(#nwG)"/>
+  <text x="616" y="505" font-size="10.5" fill="#6f6555">帮闲迁移</text>
+
+  <circle cx="775" cy="648" r="15" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="775" y="672" text-anchor="middle" font-size="11.5" fill="#7A4A55">苗青</text>
+  <path d="M761,640 C640,636 545,520 476,456" fill="none" stroke="#B07D2B" stroke-width="1.8" marker-end="url(#nwA)"/>
+  <text x="600" y="616" text-anchor="middle" font-size="10.5" fill="#8a5d18">千两贿 · 纵凶（四十七回）</text>
+  <text x="600" y="633" text-anchor="middle" font-size="9.5" fill="#BC4B33">曾御史参劾 · 蔡京压下（四十八回）</text>
+
+  <!-- 断点时间线 -->
+  <rect x="36" y="716" width="808" height="58" rx="10" fill="rgba(188,75,51,.06)" stroke="rgba(188,75,51,.3)"/>
+  <text x="52" y="740" font-size="11.5" fill="#5F5648"><tspan font-weight="700" fill="#9e3a25">断点时间线：</tspan>十四回 花子虚死（信任首断）→ 七十九回 西门庆死（中心铰链 · 明斯基时刻）→ 八十/八十一回 盗财 · 卷银 · 补缺</text>
+  <text x="52" y="760" font-size="11.5" fill="#5F5648">→ 八十七回 武松追偿（血债兑现）→ 一百回 金兵南下（元抵押品失灵 · 总清算）。铰链断裂的顺序：信任 → 人身 → 代理 → 血债 → 皇权。</text>
+
+  <!-- 图例 -->
+  <g font-size="11" fill="#5F5648">
+    <line x1="44" y1="800" x2="72" y2="800" stroke="#3F7E6B" stroke-width="2" marker-end="url(#nwT)"/><text x="80" y="804">债权 · 放贷</text>
+    <line x1="200" y1="800" x2="228" y2="800" stroke="#BC4B33" stroke-width="2" marker-end="url(#nwC)"/><text x="236" y="804">资产转移 · 并购</text>
+    <line x1="390" y1="800" x2="418" y2="800" stroke="#B07D2B" stroke-width="2" marker-end="url(#nwA)"/><text x="426" y="804">寻租 · 贿赂/保护费</text>
+    <line x1="600" y1="800" x2="628" y2="800" stroke="#8C8170" stroke-width="2" marker-end="url(#nwG)"/><text x="636" y="804">迁移 · 补缺（死后延续）</text>
+    <line x1="44" y1="832" x2="72" y2="832" stroke="#6B4F3A" stroke-width="2" stroke-dasharray="6 4"/><text x="80" y="836">担保 · 信任（社会资本）</text>
+    <line x1="230" y1="832" x2="258" y2="832" stroke="#3A6491" stroke-width="2" stroke-dasharray="2 4"/><text x="266" y="836">中介 · 说合</text>
+    <circle cx="400" cy="832" r="7" fill="#2E2925"/><text x="414" y="836">深色节点＝铰链（人身 / 权力）</text>
+    <text x="612" y="837" font-size="13" font-weight="700" fill="#BC4B33">✕</text><text x="628" y="836">＝断点</text>
+  </g>
+</svg>
+      <p><b>六列如何对应：</b>家庭列是婚姻并购（LBO 的晚明版）、身体杠杆（肉身上的以贷养贷）、妆奁转移（欺诈性转移）与武大命案这笔表外血债；民间金融列是结拜（社会资本）、应伯爵（中人做市）、李三黄四（月息五分的应收质押）与王婆（交易结构设计者）；公司列是生药铺本业（全帝国罕见的对冲端）、伙计领本分利（代理成本）与多店贩运；银行列是解当铺（抵押品铰链最裸露的柜台形态）、影子吸储（李瓶儿寄存）与称量白银体系（货币基础设施，全书唯一从不违约的角色）；金融市场列是盐引（政府信用凭证 + 久期套利）、专卖承揽合同（官府应收的再抵押）与珍玩准货币（贿赂经济的大额无记名票据）；国家列是生辰担（政治保护看涨期权）、官缺牌照（缺是耐久资产、人是租户）、苗青案（司法定价权变现）与皇权这个元抵押品。</p>
+      <p><b>三条结构性读法：</b>其一，反身性主环是「财→权→财」——银子买官、官保生意、生更多银子，与「地价→财政→信用」同构；西门庆自己说破了货币流速：「兀那东西是好动不喜静的……一个人堆积，就有一个人缺少了」，几乎是「我的负债＝你的资产」的白话版。其二，整条链的脆弱度来自<b>人身性</b>：无法人、无有限责任、信用不可让渡，帝国的久期等于西门庆的寿命——而他偏用胡僧药给这唯一的底层抵押品上满杠杆。其三，第七十九回就是明斯基时刻：人死当夜，账上债权俱在（李三黄四的欠银、伙计手中的货）而分文收不回，第八十一回韩道国、来保席卷而去——「信用还在、流动性没了」的文学原型；随后张二官补缺、帮闲迁移，则演示了牌照与中介比债权更耐久。</p>
+      <p><b>边界与提醒：</b>打分是诠释性的序数判断，供结构比较，不是文学考证的结论；回目以词话本为准。文学文本不是财务史料——但正因它把人情、权力与银钱写在同一本账上，反而比史料更完整地保存了那条信用链的全貌。小说自带的因果框架是最后一层：普净幻度孝哥，是这部总账的最终清算人——对死亡与业力而言，书中的一切信用都是庞氏。</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>文本案例层：《大明王朝 1566》——嘉靖朝的主权资产负债表危机（六列同坐标）</summary>
+    <div class="mbody">
+      <p><b>为什么这部剧能上这张图：</b>《大明王朝 1566》整部剧就是一场主权资产负债表危机：开场御前财政会议为亏空定调——说破赤字的钦天监周云逸先被杖毙，言路先于财政破产；收场则是遗诏换锚。切换控制栏「案例集」至「1566」，即可在同一套三轴（抵押品强度 / 杠杆 / 反身性）与六列坐标下查看嘉靖朝的十九条信用线。</p>
+      <svg viewBox="0 0 880 880" style="display:block;width:100%;height:auto;margin:10px 0 16px" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Serif SC',serif">
+  <defs>
+    <marker id="mwT" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3F7E6B"/></marker>
+    <marker id="mwC" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+    <marker id="mwA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B07D2B"/></marker>
+    <marker id="mwG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8C8170"/></marker>
+    <marker id="mwR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+  </defs>
+  <rect x="1" y="1" width="878" height="878" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#2E2925">《大明王朝 1566》信用网络：圣意作元抵押品的主权信用体系</text>
+  <text x="28" y="60" font-size="12" fill="#8C8170">节点＝人物 · 边＝债权 / 资产转移 / 寻租 / 担保 / 中介 · 深色节点＝铰链 · 红✕＝断点 · 灰箭头＝换锚迁移</text>
+
+  <!-- 嘉靖 meta hinge -->
+  <circle cx="440" cy="130" r="40" fill="#2E2925"/>
+  <text x="440" y="128" text-anchor="middle" font-size="15" font-weight="700" fill="#FBF7EC">嘉靖</text>
+  <text x="440" y="146" text-anchor="middle" font-size="9.5" fill="#cdbfa6">元抵押品</text>
+  <text x="490" y="106" font-size="10" fill="#8C8170">云在青天水在瓶 · 垂帘掌总</text>
+
+  <!-- 冯保 / 周云逸 -->
+  <circle cx="600" cy="92" r="12" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="600" y="74" text-anchor="middle" font-size="10.5" fill="#7A4A55">冯保</text>
+  <circle cx="712" cy="92" r="11" fill="#F0E9DA" stroke="#8C8170" stroke-width="1.4" stroke-dasharray="3 2"/>
+  <text x="712" y="115" text-anchor="middle" font-size="10" fill="#8C8170">周云逸（亡）</text>
+  <path d="M613,92 L699,92" fill="none" stroke="#BC4B33" stroke-width="1.6" marker-end="url(#mwR)"/>
+  <text x="656" y="83" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="660" y="127" text-anchor="middle" font-size="9.5" fill="#BC4B33">杖毙 · 开场（说破赤字）</text>
+  <path d="M604,105 C630,160 655,205 668,236" fill="none" stroke="#8C8170" stroke-width="1.4" stroke-dasharray="2 4" marker-end="url(#mwG)"/>
+  <text x="692" y="162" font-size="9.5" fill="#6f6555">思危思退思变 · 长久期布子</text>
+
+  <!-- 吕芳 -->
+  <circle cx="440" cy="262" r="19" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.8"/>
+  <text x="440" y="266" text-anchor="middle" font-size="11" fill="#7A4A55">吕芳</text>
+  <line x1="440" y1="170" x2="440" y2="243" stroke="#8C8170" stroke-width="1.4"/>
+  <text x="452" y="205" font-size="9.5" fill="#8C8170">批红 · 条线</text>
+
+  <!-- 严党 -->
+  <circle cx="235" cy="255" r="26" fill="#7A4A55"/>
+  <text x="235" y="260" text-anchor="middle" font-size="13" font-weight="700" fill="#FBF7EC">严党</text>
+  <text x="235" y="295" text-anchor="middle" font-size="9.5" fill="#7A4A55">严嵩 · 严世蕃（白手套 SPV）</text>
+  <text x="235" y="312" text-anchor="middle" font-size="10" font-weight="700" fill="#BC4B33">✕ 倒严 · 抄没充库（掠之于臣）</text>
+  <path d="M256,238 C310,190 355,160 402,140" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#mwA)"/>
+  <text x="300" y="170" font-size="10" fill="#8a5d18">上供 · 分润</text>
+  <path d="M402,152 C355,180 310,210 258,238" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#mwA)"/>
+  <text x="300" y="222" font-size="10" fill="#8a5d18">遮风挡雨 · 脏活出表</text>
+
+  <!-- 鄢懋卿 -->
+  <circle cx="95" cy="165" r="14" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.6"/>
+  <text x="95" y="143" text-anchor="middle" font-size="10.5" fill="#7A4A55">鄢懋卿</text>
+  <path d="M107,173 L212,243" fill="none" stroke="#B07D2B" stroke-width="1.8" marker-end="url(#mwA)"/>
+  <text x="118" y="222" font-size="9.5" fill="#8a5d18">巡盐五百余万 · 截留大半</text>
+
+  <!-- 裕王清流 -->
+  <circle cx="668" cy="262" r="24" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.8"/>
+  <text x="668" y="258" text-anchor="middle" font-size="10.5" fill="#7A4A55">裕王</text>
+  <text x="668" y="272" text-anchor="middle" font-size="9.5" fill="#7A4A55">清流</text>
+  <text x="668" y="300" text-anchor="middle" font-size="9.5" fill="#7A4A55">徐阶 · 高拱 · 张居正</text>
+  <path d="M478,142 C550,170 610,205 655,238" fill="none" stroke="#8C8170" stroke-width="2" marker-end="url(#mwG)"/>
+  <text x="560" y="185" font-size="10" fill="#6f6555">主权换锚 · 遗诏（隆庆）</text>
+
+  <!-- 杨金水 -->
+  <circle cx="440" cy="392" r="18" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.8"/>
+  <text x="440" y="396" text-anchor="middle" font-size="10" fill="#7A4A55">杨金水</text>
+  <line x1="440" y1="281" x2="440" y2="374" stroke="#8C8170" stroke-width="1.4"/>
+  <text x="452" y="330" font-size="9.5" fill="#8C8170">宫里条线</text>
+  <text x="440" y="424" text-anchor="middle" font-size="9.5" fill="#7A4A55">织造局 · 市舶司</text>
+  <text x="440" y="440" text-anchor="middle" font-size="9.5" font-weight="600" fill="#BC4B33">装疯＝主动熔断</text>
+
+  <!-- 沈一石 -->
+  <circle cx="608" cy="435" r="24" fill="#6B4F3A"/>
+  <text x="608" y="440" text-anchor="middle" font-size="12" font-weight="700" fill="#FBF7EC">沈一石</text>
+  <text x="608" y="472" text-anchor="middle" font-size="9.5" fill="#6B4F3A">织造局官商 · 白手套的白手套</text>
+  <text x="608" y="488" text-anchor="middle" font-size="10" font-weight="700" fill="#BC4B33">✕ 自焚（两难清算）</text>
+  <path d="M458,398 L582,428" fill="none" stroke="#B07D2B" stroke-width="1.8" marker-end="url(#mwA)"/>
+  <text x="470" y="404" font-size="9.5" fill="#8a5d18">牌照 · 打织造局的牌子</text>
+  <path d="M598,412 C555,310 515,215 470,158" fill="none" stroke="#BC4B33" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#mwR)"/>
+  <text x="464" y="250" font-size="9.5" fill="#BC4B33">账册外流 · 审计做空凭证</text>
+
+  <!-- 西洋商人 -->
+  <circle cx="795" cy="345" r="16" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="795" y="322" text-anchor="middle" font-size="10.5" fill="#2c4d70">西洋商人</text>
+  <path d="M781,354 L629,424" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#mwT)"/>
+  <text x="650" y="378" font-size="9.5" fill="#2f5e50">五十万匹订单 · 远期锚</text>
+
+  <!-- 胡宗宪 -->
+  <circle cx="150" cy="400" r="20" fill="#FFFDF8" stroke="#2E2925" stroke-width="1.8"/>
+  <text x="150" y="404" text-anchor="middle" font-size="11" fill="#2E2925">胡宗宪</text>
+  <path d="M228,278 L163,382" fill="none" stroke="#6B4F3A" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="96" y="338" font-size="9.5" fill="#6B4F3A">师生 · 政治担保</text>
+
+  <!-- 戚继光 -->
+  <circle cx="95" cy="530" r="16" fill="#FFFDF8" stroke="#2E2925" stroke-width="1.6"/>
+  <text x="95" y="556" text-anchor="middle" font-size="10.5" fill="#2E2925">戚继光</text>
+  <path d="M141,418 L104,516" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#mwT)"/>
+  <text x="38" y="468" font-size="9.5" fill="#2f5e50">军需 · 刚性支出</text>
+
+  <!-- 赵贞吉 -->
+  <circle cx="305" cy="482" r="17" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="305" y="508" text-anchor="middle" font-size="10.5" fill="#2c4d70">赵贞吉</text>
+  <path d="M170,406 L286,472" fill="none" stroke="#3F7E6B" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="196" y="430" font-size="9.5" fill="#2f5e50">求粮（同业拆借）</text>
+  <text x="240" y="462" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="240" y="478" text-anchor="middle" font-size="9.5" fill="#BC4B33">拒贷 · 朝局冻结</text>
+
+  <!-- 郑何 -->
+  <circle cx="345" cy="585" r="20" fill="#FFFDF8" stroke="#7A4A55" stroke-width="1.8"/>
+  <text x="345" y="582" text-anchor="middle" font-size="9.5" fill="#7A4A55">郑泌昌</text>
+  <text x="345" y="595" text-anchor="middle" font-size="9.5" fill="#7A4A55">何茂才</text>
+  <text x="345" y="620" text-anchor="middle" font-size="10" font-weight="700" fill="#BC4B33">✕ 处决（弃卒出表）</text>
+  <path d="M244,281 C275,390 310,490 338,565" fill="none" stroke="#B07D2B" stroke-width="1.8" marker-end="url(#mwA)"/>
+  <text x="252" y="405" font-size="9.5" fill="#8a5d18">严党条线 · 考成</text>
+
+  <!-- 灾民 -->
+  <circle cx="580" cy="628" r="20" fill="#FFFDF8" stroke="#3F7E6B" stroke-width="1.8"/>
+  <text x="580" y="632" text-anchor="middle" font-size="11" fill="#2f5e50">灾民</text>
+  <text x="580" y="662" text-anchor="middle" font-size="9.5" fill="#2f5e50">淳安 · 建德</text>
+  <path d="M365,592 L557,622" fill="none" stroke="#BC4B33" stroke-width="2" marker-end="url(#mwR)"/>
+  <text x="408" y="596" font-size="10" font-weight="600" fill="#9e3a25">毁堤淹田 · 人造危机</text>
+  <text x="470" y="628" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+
+  <!-- 徽商 -->
+  <circle cx="775" cy="628" r="17" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="775" y="656" text-anchor="middle" font-size="10.5" fill="#6B4F3A">徽商</text>
+  <path d="M600,624 L756,626" fill="none" stroke="#BC4B33" stroke-width="1.6" marker-end="url(#mwC)"/>
+  <text x="668" y="616" text-anchor="middle" font-size="9.5" fill="#9e3a25">贱卖田地</text>
+  <path d="M365,596 C520,700 660,690 761,640" fill="none" stroke="#BC4B33" stroke-width="1.6" marker-end="url(#mwC)"/>
+  <text x="540" y="692" text-anchor="middle" font-size="9.5" fill="#9e3a25">贱卖沈家作坊 · 定向输送</text>
+
+  <!-- 海瑞 -->
+  <circle cx="165" cy="672" r="20" fill="#FFFDF8" stroke="#2E2925" stroke-width="2"/>
+  <text x="165" y="676" text-anchor="middle" font-size="11" font-weight="700" fill="#2E2925">海瑞</text>
+  <path d="M185,664 L558,634" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#mwT)"/>
+  <text x="300" y="640" font-size="9.5" fill="#2f5e50">开仓借粮 · 硬通货干预</text>
+  <path d="M178,655 L330,602" fill="none" stroke="#BC4B33" stroke-width="1.6" marker-end="url(#mwR)"/>
+  <text x="196" y="666" font-size="9.5" fill="#BC4B33">查案 · 翻案（通倭构陷）</text>
+  <path d="M148,653 C40,470 45,250 400,140" fill="none" stroke="#BC4B33" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#mwR)"/>
+  <text x="56" y="285" font-size="10" fill="#BC4B33">《治安疏》</text>
+  <text x="56" y="301" font-size="9.5" fill="#BC4B33">对主权的审计</text>
+  <text x="56" y="317" font-size="9.5" fill="#BC4B33">（家家皆净）</text>
+
+  <!-- 断点时间线 -->
+  <rect x="36" y="726" width="808" height="58" rx="10" fill="rgba(188,75,51,.06)" stroke="rgba(188,75,51,.3)"/>
+  <text x="52" y="750" font-size="11.5" fill="#5F5648"><tspan font-weight="700" fill="#9e3a25">断点时间线：</tspan>开场 周云逸杖毙（言路先破产）→ 毁堤淹田（先毁抵押品）→ 沈一石自焚 · 账册外流（官商熔断 · 引信点燃）→ 杨金水装疯（条线自断）</text>
+  <text x="52" y="770" font-size="11.5" fill="#5F5648">→ 郑何处决 · 倒严抄家（弃卒 → 清算白手套）→ 嘉靖驾崩 · 遗诏纠错（主权换锚，未断裂）。铰链顺序：言路 → 田土 → 官商 → 条线 → 白手套 → 圣意（换锚续期）。</text>
+
+  <!-- 图例 -->
+  <g font-size="11" fill="#5F5648">
+    <line x1="44" y1="812" x2="72" y2="812" stroke="#3F7E6B" stroke-width="2" marker-end="url(#mwT)"/><text x="80" y="816">债权 · 放贷 / 供给</text>
+    <line x1="230" y1="812" x2="258" y2="812" stroke="#BC4B33" stroke-width="2" marker-end="url(#mwC)"/><text x="266" y="816">资产转移 · 贱卖</text>
+    <line x1="420" y1="812" x2="448" y2="812" stroke="#B07D2B" stroke-width="2" marker-end="url(#mwA)"/><text x="456" y="816">寻租 · 分润/条线</text>
+    <line x1="620" y1="812" x2="648" y2="812" stroke="#8C8170" stroke-width="2" marker-end="url(#mwG)"/><text x="656" y="816">迁移 · 换锚（延续）</text>
+    <line x1="44" y1="844" x2="72" y2="844" stroke="#6B4F3A" stroke-width="2" stroke-dasharray="6 4"/><text x="80" y="848">担保 · 信任（师生乡谊）</text>
+    <line x1="270" y1="844" x2="298" y2="844" stroke="#BC4B33" stroke-width="2" stroke-dasharray="5 3"/><text x="306" y="848">审计 · 做空（账册 / 治安疏）</text>
+    <circle cx="530" cy="844" r="7" fill="#2E2925"/><text x="544" y="848">深色节点＝铰链</text>
+    <text x="672" y="849" font-size="13" font-weight="700" fill="#BC4B33">✕</text><text x="688" y="848">＝断点</text>
+  </g>
+</svg>
+      <p><b>六列如何对应：</b>家庭列是灾民贱卖田地（人造危机下的被迫去杠杆）与改桑断粮（转型期过桥缺口）；民间金融列是严嵩—胡宗宪的师生乡谊（政治担保）与徽商贱买官产；公司列是沈一石（织造局官商、白手套的白手套）与织造局牌子（可挪用的牌照信用）；银行列是官仓借粮（被朝局冻结的省际同业）、织造局·市舶司（宫里的融资平台）与赈灾粮（灾年硬通货，全图唯一的对冲端）；金融市场列是五十万匹丝绸订单（以出口远期作国策之锚）与沈一石账册（对整条分利链的做空凭证）；国家列是圣意（元抵押品）、严党（皇帝的表外白手套 SPV）、改稻为桑（定向产业信贷）、毁堤淹田（人造危机套利，全图脆弱度之最 4.83）、鄢懋卿巡盐（竭泽式征税）、通倭构陷（司法夺产）、刚性支出（宫观内帑与抗倭军费）与主权换锚（遗诏纠错）。</p>
+      <p><b>三条结构性读法：</b>其一，元抵押品是圣意，严党是皇帝的表外融资平台：遮风挡雨＝脏活出表，分润＝平台费，倒严抄家＝主权对自家 SPV 的清算回收——沈一石遗书「上下挥霍无度，便掠之于民；民变在即，便掠之于商」之后还有第三段：掠之于臣。其二，毁堤淹田是「反身性武器化」的极端形态：先毁抵押品、再收抵押品，人为制造不良资产然后贱价收购；沈一石的两难（买田污宫里之名、赈灾自曝亏空）则是牌照信用的死锁——同一盏灯笼，两种死法。其三，与《金瓶梅》对照最有意味：西门庆的链条断于人身（关键人一死、账上债权俱在而分文收不回），嘉靖朝的链条却完成了换锚（遗诏纠错、海瑞出狱）——私人信用死于久期，主权信用靠否定自己完成再融资；而两张网络图共用同一句判词：账册（信息）是最后的做空凭证。</p>
+      <p><b>边界与提醒：</b>打分是诠释性的序数判断，供结构比较；剧作对史实多有虚构（沈一石、高翰文等均为艺术形象），此处解读的是剧的结构而非明史本身；剧中数字（巡盐五百余万两等）从台词，仅供示意。海瑞的《治安疏》是全剧真正的审计报告——「嘉靖者言家家皆净而无财用也」，把主权信用的坏账写在了皇帝眼前。</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>案例集：恒大 —— 一台打通六领域的信用机器，及其「机制 → 罪名」清算</summary>
+    <div class="mbody">
+      <p><b>为什么恒大单列一集：</b>在「当代」集里，恒大只是「高周转」节点的极端案例；但它本身不是一条信用线，而是一整台把六个领域全部咬合、以土地财政为燃料的信用机器。更独特的是：这些扩张手法后来被逐条<b>刑事定性</b>——2026 年 4 月深圳中院开庭，恒大集团被控非法吸收公众存款、集资诈骗、违法发放贷款、欺诈发行证券、违规披露重要信息、单位行贿六项罪名，恒大地产被控欺诈发行证券，许家印个人被控八至九项罪名，当庭认罪、择期宣判。切换控制栏「案例集」至「恒大」，即可在六列坐标下查看这十六条信用线；详情面板的案例栏同时标出该机制对应的定性罪名。</p>
+      <svg viewBox="0 0 880 900" style="display:block;width:100%;height:auto;margin:10px 0 16px" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Serif SC',serif">
+  <defs>
+    <marker id="hwT" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3F7E6B"/></marker>
+    <marker id="hwC" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+    <marker id="hwA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B07D2B"/></marker>
+    <marker id="hwG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8C8170"/></marker>
+    <marker id="hwR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+    <marker id="hwB" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3A6491"/></marker>
+  </defs>
+  <rect x="1" y="1" width="878" height="898" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#2E2925">恒大信用网络：一台打通六领域的信用机器，及其清算</text>
+  <text x="28" y="60" font-size="12" fill="#8C8170">节点＝主体 · 边＝债权 / 资产转移 / 寻租 / 监管 · 深色＝中心铰链 · 红✕＝断点 · 蓝箭头＝清算穿透</text>
+
+  <!-- 国家层 top: 土地财政 / 三条红线 -->
+  <rect x="300" y="80" width="150" height="40" rx="9" fill="rgba(122,74,85,.10)" stroke="#7A4A55" stroke-width="1.5"/>
+  <text x="375" y="105" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7A4A55">土地财政 · 地方政府</text>
+  <rect x="470" y="80" width="130" height="40" rx="9" fill="rgba(122,74,85,.07)" stroke="#7A4A55" stroke-width="1.4"/>
+  <text x="535" y="98" text-anchor="middle" font-size="11.5" fill="#7A4A55">三条红线（2020）</text>
+  <text x="535" y="113" text-anchor="middle" font-size="10" fill="#BC4B33">总量急刹 · 引爆点</text>
+  <path d="M375,120 C395,175 415,215 432,262" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#hwA)" marker-start="url(#hwA)"/>
+  <text x="300" y="180" font-size="10" fill="#8a5d18">拿地 ⇄ 地价 · 反身</text>
+  <path d="M520,120 C500,175 480,215 462,262" fill="none" stroke="#BC4B33" stroke-width="1.8" stroke-dasharray="5 3" marker-end="url(#hwR)"/>
+  <text x="540" y="200" font-size="10" fill="#BC4B33">红档 · 融资收紧</text>
+
+  <!-- 中心：恒大 / 许家印 -->
+  <circle cx="440" cy="330" r="46" fill="#2E2925"/>
+  <text x="440" y="324" text-anchor="middle" font-size="14" font-weight="700" fill="#FBF7EC">恒大 · 许家印</text>
+  <text x="440" y="343" text-anchor="middle" font-size="9.5" fill="#cdbfa6">中心铰链（高周转）</text>
+  <text x="440" y="392" text-anchor="middle" font-size="10" fill="#5F5648">2.44 万亿负债 · 2021 暴雷</text>
+  <text x="440" y="407" text-anchor="middle" font-size="10" font-weight="700" fill="#9e3a25">明斯基时刻 · 八至九项罪名</text>
+
+  <!-- 家庭：购房者 -->
+  <circle cx="150" cy="250" r="20" fill="#FFFDF8" stroke="#3F7E6B" stroke-width="1.8"/>
+  <text x="150" y="246" text-anchor="middle" font-size="10.5" fill="#2f5e50">购房者</text>
+  <text x="150" y="259" text-anchor="middle" font-size="9.5" fill="#2f5e50">1300 盘烂尾</text>
+  <path d="M170,258 L396,318" fill="none" stroke="#3F7E6B" stroke-width="1.8" marker-end="url(#hwT)" marker-start="url(#hwT)"/>
+  <text x="230" y="284" font-size="10" fill="#2f5e50">预售款 · 按揭（无息杠杆）</text>
+  <text x="300" y="300" text-anchor="middle" font-size="12" font-weight="700" fill="#BC4B33">✕</text>
+
+  <!-- 恒大财富 + 员工业主 -->
+  <circle cx="150" cy="360" r="22" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="150" y="356" text-anchor="middle" font-size="10" fill="#6B4F3A">员工·业主</text>
+  <text x="150" y="369" text-anchor="middle" font-size="9.5" fill="#6B4F3A">8 万投资人</text>
+  <path d="M172,358 L394,338" fill="none" stroke="#BC4B33" stroke-width="2" marker-end="url(#hwR)"/>
+  <text x="228" y="352" font-size="10" font-weight="600" fill="#9e3a25">恒大财富 · 定融 921 亿</text>
+  <text x="290" y="368" text-anchor="middle" font-size="12" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="216" y="386" font-size="9.5" fill="#BC4B33">非吸 · 集资诈骗（340 亿未兑付）</text>
+
+  <!-- 供应商 -->
+  <circle cx="150" cy="470" r="20" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8"/>
+  <text x="150" y="466" text-anchor="middle" font-size="10.5" fill="#6B4F3A">供应商</text>
+  <text x="150" y="479" text-anchor="middle" font-size="9.5" fill="#6B4F3A">上万家</text>
+  <path d="M170,462 L400,360" fill="none" stroke="#BC4B33" stroke-width="1.8" marker-end="url(#hwR)"/>
+  <text x="212" y="440" font-size="10" fill="#9e3a25">商票拖欠 · 无息占款</text>
+  <text x="300" y="418" text-anchor="middle" font-size="12" font-weight="700" fill="#BC4B33">✕</text>
+
+  <!-- 银行 违规放贷 -->
+  <circle cx="215" cy="560" r="22" fill="#FFFDF8" stroke="#9A6A2F" stroke-width="1.8"/>
+  <text x="215" y="556" text-anchor="middle" font-size="10.5" fill="#7a5320">银行 · 机构</text>
+  <text x="215" y="569" text-anchor="middle" font-size="9.5" fill="#7a5320">违规放贷</text>
+  <path d="M235,545 L410,362" fill="none" stroke="#9A6A2F" stroke-width="1.8" marker-end="url(#hwA)"/>
+  <text x="250" y="500" font-size="10" fill="#7a5320">违法发放贷款 · 资金腾挪</text>
+
+  <!-- 债券投资人（境内） -->
+  <circle cx="700" cy="250" r="22" fill="#FFFDF8" stroke="#6E5A7D" stroke-width="1.8"/>
+  <text x="700" y="246" text-anchor="middle" font-size="10" fill="#584668">境内债券</text>
+  <text x="700" y="259" text-anchor="middle" font-size="9.5" fill="#584668">投资人</text>
+  <path d="M680,258 L484,318" fill="none" stroke="#6E5A7D" stroke-width="1.8" marker-end="url(#hwT)" marker-start="url(#hwT)"/>
+  <text x="556" y="292" font-size="10" fill="#584668">公司债 208 亿 · 欺诈发行</text>
+  <text x="612" y="308" text-anchor="middle" font-size="12" font-weight="700" fill="#BC4B33">✕</text>
+
+  <!-- 财务造假 引信 -->
+  <rect x="628" y="330" width="150" height="42" rx="9" fill="rgba(188,75,51,.08)" stroke="#BC4B33" stroke-width="1.4"/>
+  <text x="703" y="350" text-anchor="middle" font-size="11" font-weight="700" fill="#9e3a25">财务造假 · 虚增 5641 亿</text>
+  <text x="703" y="365" text-anchor="middle" font-size="9.5" fill="#9e3a25">发债/放贷/理财的做空引信</text>
+  <path d="M628,351 L486,340" fill="none" stroke="#BC4B33" stroke-width="1.8" stroke-dasharray="5 3" marker-end="url(#hwR)"/>
+  <text x="556" y="332" text-anchor="middle" font-size="10" fill="#BC4B33">违规披露</text>
+
+  <!-- 境外美元债 + 离岸 -->
+  <circle cx="700" cy="470" r="22" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="700" y="466" text-anchor="middle" font-size="10" fill="#2c4d70">境外债权人</text>
+  <text x="700" y="479" text-anchor="middle" font-size="9.5" fill="#2c4d70">450 亿美元</text>
+  <path d="M680,462 L482,362" fill="none" stroke="#3A6491" stroke-width="1.8" marker-end="url(#hwB)" marker-start="url(#hwB)"/>
+  <text x="548" y="440" font-size="10" fill="#2c4d70">境外美元债 · 离岸架构</text>
+
+  <!-- 多元化 烧钱 -->
+  <circle cx="655" cy="565" r="22" fill="#FFFDF8" stroke="#3A6491" stroke-width="1.8"/>
+  <text x="655" y="561" text-anchor="middle" font-size="9.5" fill="#2c4d70">汽车·足球</text>
+  <text x="655" y="574" text-anchor="middle" font-size="9.5" fill="#2c4d70">文旅（烂尾）</text>
+  <path d="M470,364 L636,548" fill="none" stroke="#B07D2B" stroke-width="1.8" marker-end="url(#hwA)"/>
+  <text x="470" y="500" font-size="10" fill="#8a5d18">多元化烧钱 · 现金流摊薄</text>
+
+  <!-- 防火墙：离婚信托 -->
+  <circle cx="440" cy="560" r="24" fill="#FFFDF8" stroke="#6B4F3A" stroke-width="1.8" stroke-dasharray="4 3"/>
+  <text x="440" y="556" text-anchor="middle" font-size="10" fill="#6B4F3A">丁玉梅 · 信托</text>
+  <text x="440" y="569" text-anchor="middle" font-size="9.5" fill="#6B4F3A">「防火墙」</text>
+  <path d="M440,376 L440,536" fill="none" stroke="#6B4F3A" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#hwG)"/>
+  <text x="452" y="470" font-size="10" fill="#6B4F3A">技术性离婚 · 境外转移</text>
+
+  <!-- 清盘人 穿透 -->
+  <circle cx="440" cy="690" r="24" fill="#FFFDF8" stroke="#2E2925" stroke-width="2"/>
+  <text x="440" y="686" text-anchor="middle" font-size="11" font-weight="700" fill="#2E2925">清盘人</text>
+  <text x="440" y="700" text-anchor="middle" font-size="9.5" fill="#2E2925">香港高院</text>
+  <path d="M440,584 L440,666" fill="none" stroke="#3A6491" stroke-width="2" marker-end="url(#hwB)"/>
+  <text x="452" y="628" font-size="10" fill="#2c4d70">信托穿透 · 冻结 77 亿美元</text>
+  <text x="300" y="600" text-anchor="middle" font-size="13" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="300" y="616" text-anchor="middle" font-size="9.5" fill="#BC4B33">离婚无效 · 防火墙击穿</text>
+
+  <!-- 司法/监管 清算 -->
+  <circle cx="655" cy="690" r="22" fill="#7A4A55"/>
+  <text x="655" y="686" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FBF7EC">证监会</text>
+  <text x="655" y="700" text-anchor="middle" font-size="9.5" fill="#e8d9c4">深圳中院</text>
+  <path d="M478,368 C520,480 560,580 636,672" fill="none" stroke="#3A6491" stroke-width="1.8" marker-end="url(#hwB)"/>
+  <text x="500" y="512" font-size="10" fill="#2c4d70">顶格罚 41.75 亿 · 终身禁入</text>
+  <text x="500" y="528" font-size="10" fill="#2c4d70">六项罪名起诉 · 认罪</text>
+
+  <!-- 断点时间线 -->
+  <rect x="36" y="744" width="808" height="58" rx="10" fill="rgba(188,75,51,.06)" stroke="rgba(188,75,51,.3)"/>
+  <text x="52" y="768" font-size="11.5" fill="#5F5648"><tspan font-weight="700" fill="#9e3a25">断点时间线：</tspan>2020 三条红线（急刹）→ 2021 暴雷（回款断流）→ 2023 恒大财富爆雷 · 许家印被控制 → 2024 香港清盘 · 证监会顶格罚</text>
+  <text x="52" y="788" font-size="11.5" fill="#5F5648">→ 2025 退市（蒸发 99%）· 信托防火墙击穿 → 2026 深圳中院开庭 · 当庭认罪。铰链顺序：政策闸门 → 销售回款 → 理财兑付 → 资本市场 → 防火墙 → 主权清算。</text>
+
+  <!-- 图例 -->
+  <g font-size="11" fill="#5F5648">
+    <line x1="44" y1="826" x2="72" y2="826" stroke="#3F7E6B" stroke-width="2" marker-end="url(#hwT)"/><text x="80" y="830">债权 · 预售/认购</text>
+    <line x1="210" y1="826" x2="238" y2="826" stroke="#BC4B33" stroke-width="2" marker-end="url(#hwR)"/><text x="246" y="830">违约 · 拖欠/未兑付</text>
+    <line x1="400" y1="826" x2="428" y2="826" stroke="#B07D2B" stroke-width="2" marker-end="url(#hwA)"/><text x="436" y="830">寻租/输血 · 拿地·多元化</text>
+    <line x1="620" y1="826" x2="648" y2="826" stroke="#3A6491" stroke-width="2" marker-end="url(#hwB)"/><text x="656" y="830">清算穿透 · 冻结</text>
+    <line x1="44" y1="858" x2="72" y2="858" stroke="#6B4F3A" stroke-width="2" stroke-dasharray="6 4"/><text x="80" y="862">防火墙 · 离婚/信托</text>
+    <line x1="230" y1="858" x2="258" y2="858" stroke="#BC4B33" stroke-width="2" stroke-dasharray="5 3"/><text x="266" y="862">做空引信 · 财务造假</text>
+    <circle cx="430" cy="858" r="7" fill="#2E2925"/><text x="444" y="862">深色＝中心铰链</text>
+    <text x="600" y="863" font-size="13" font-weight="700" fill="#BC4B33">✕</text><text x="616" y="862">＝断点</text>
+  </g>
+</svg>
+      <p><b>机制 → 罪名（把信用扩张的每一步翻译成刑法条目）：</b></p>
+      <div class="hinge-row" style="border-left-color:#BC4B33"><div class="hinge-flow"><span class="hf-coll" style="background:#3F7E6B">恒大财富定融理财</span><span class="hf-arrow">→</span><span class="hf-liq">非法吸收公众存款 · 集资诈骗</span></div><div class="hinge-fail">约 921 亿元、涉超 8 万人，约 300–340 亿未兑付；集资诈骗最高可判无期。</div></div>
+      <div class="hinge-row" style="border-left-color:#BC4B33"><div class="hinge-flow"><span class="hf-coll" style="background:#6E5A7D">虚增收入 5641 亿 · 发债 208 亿</span><span class="hf-arrow">→</span><span class="hf-liq">欺诈发行证券 · 违规披露重要信息</span></div><div class="hinge-fail">证监会按募资 20% 顶格罚：恒大地产 41.75 亿、许家印 4700 万并终身市场禁入。</div></div>
+      <div class="hinge-row" style="border-left-color:#BC4B33"><div class="hinge-flow"><span class="hf-coll" style="background:#9A6A2F">金融机构配合放水 · 资金腾挪</span><span class="hf-arrow">→</span><span class="hf-liq">违法发放贷款 · 违法运用资金 · 职务侵占</span></div><div class="hinge-fail">涉嫌以分红薪酬等侵占公司资产约 438 亿元。</div></div>
+      <div class="hinge-row" style="border-left-color:#BC4B33"><div class="hinge-flow"><span class="hf-coll" style="background:#7A4A55">打通监管 · 拿地发债</span><span class="hf-arrow">→</span><span class="hf-liq">单位行贿</span></div><div class="hinge-fail">涉嫌行贿金额超 2 亿元；八项罪名覆盖资金端、金融端、资本市场与公司治理四个层面。</div></div>
+      <p><b>三条结构性读法：</b>其一，恒大是「土地财政」这台反身机器上体量最大的单一节点——地价撑财政、财政保基建、房企拿地推高地价；三条红线（2020）踩下急刹，「回款不断流」的假设被政策直接击穿，2021 年暴雷。其二，它把信用扩张的六个领域一次打通：家庭端用预售款与恒大财富、公司端用高周转与商票、银行端靠违规放贷与资金腾挪、市场端靠欺诈发行与财务造假、国家端嵌进土地财政——每一环都对应全景图里已有的机制，恒大只是把它们同时推到极端。其三，与《金瓶梅》《1566》对照：西门庆的链断于人身、嘉靖朝靠遗诏换锚，而恒大的终局是双重清算——香港清盘处置资产、境内刑事追责定性罪名，「防火墙」（技术性离婚 + 境外信托）被逐层穿透，经营风险被正式推入违法犯罪的范畴。</p>
+      <p><b>边界与提醒：</b>三轴打分是诠释性的结构判断；罪名与金额引自公开报道与证监会处罚、检察机关起诉信息，截至 2026 年 4 月为一审认罪、择期宣判，最终以法院生效裁判为准；此处解读的是信用机制的结构，不预断量刑。它也给出全景图最硬的一课：当账册（信息）被戳穿，发债、放贷、理财所依赖的抵押品同时失效——财务造假是这条信用链真正的做空引信。</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>专题层：「大而不倒」——那条隐形的线画在哪（真实案例定位）</summary>
+    <div class="mbody">
+      <p><b>先厘清概念：</b>真正的「大而不倒」不是「大到不能倒」的自信，而是——你嵌进金融系统或经济命脉的核心，以至于<b>放任你倒的外溢成本 ＞ 救你的成本</b>，于是政府被迫在危机时刻用公共资源救你，<b>债权人乃至股东免于清算</b>（损失社会化、收益早已私有化）。判据是「出事后被兜底，而非被清算」。恒大恰恰不满足：它嵌的是「房价永涨」的信念而非不可替代的系统管道，于是「保交楼」只保项目民生、清算掉公司与实控人——三条红线主动证明了它<b>可以</b>倒。</p>
+      <svg viewBox="0 0 880 660" style="display:block;width:100%;height:auto;margin:8px 0 16px" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Serif SC',serif">
+  <defs>
+    <marker id="tbtfax" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8C8170"/></marker>
+  </defs>
+  <rect x="1" y="1" width="878" height="658" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#2E2925">「大而不倒」的那条线：系统重要性 × 救助结果</text>
+  <text x="28" y="60" font-size="12.5" fill="#8C8170">纵轴＝出事后的处置结果（被放倒 → 部分救 → 债权人乃至股东全额兜底）；横轴＝系统重要性（外溢多大）。</text>
+  <text x="28" y="78" font-size="11.5" fill="#8C8170">判据：当「放任你倒的外溢成本 ＞ 救你的成本」，你才真的大而不倒——救的从来不只是你，是你背后那张对手方网络。</text>
+
+  <!-- zones -->
+  <rect x="70" y="108" width="376" height="196" fill="rgba(188,75,51,.06)"/>
+  <rect x="454" y="108" width="356" height="196" fill="rgba(94,140,97,.09)"/>
+  <text x="120" y="130" font-size="12.5" fill="rgba(158,58,37,.55)">被放倒 · 立威区</text>
+  <text x="712" y="130" font-size="12.5" fill="rgba(63,107,67,.62)" text-anchor="middle">兜底区（救比清算便宜）</text>
+  <text x="726" y="410" font-size="12" fill="rgba(122,74,85,.5)" text-anchor="middle">太大而救不动（Too Big To Save）</text>
+
+  <!-- axes -->
+  <line x1="70" y1="500" x2="806" y2="500" stroke="#8C8170" stroke-width="1.5" marker-end="url(#tbtfax)"/>
+  <line x1="70" y1="500" x2="70" y2="98" stroke="#8C8170" stroke-width="1.5" marker-end="url(#tbtfax)"/>
+  <line x1="454" y1="500" x2="454" y2="108" stroke="rgba(46,41,37,.07)" stroke-width="1"/>
+  <line x1="70" y1="304" x2="806" y2="304" stroke="rgba(46,41,37,.07)" stroke-width="1"/>
+  <text x="438" y="540" text-anchor="middle" font-size="13" fill="#5F5648">系统重要性 · 外溢（低 → 高）</text>
+  <text transform="rotate(-90 26 300)" x="26" y="300" text-anchor="middle" font-size="13" fill="#5F5648">救助结果（放倒 → 全额兜底）</text>
+  <text x="76" y="150" font-size="10.5" fill="#8C8170">兜底</text>
+  <text x="76" y="480" font-size="10.5" fill="#8C8170">放倒</text>
+
+  <!-- dots: helper positions computed for viewBox; groups by color -->
+  <!-- 银行/准银行 = teal ; 公司 = blue ; 国家 = maroon ; 被放倒反例 = coral hollow -->
+
+  <!-- Continental Illinois 1984 : high sys, full -->
+  <circle cx="690" cy="150" r="8" fill="#3F7E6B"/>
+  <text x="678" y="154" text-anchor="end" font-size="11.5" fill="#2f5e50">大陆伊利诺伊（1984 · TBTF 原点）</text>
+
+  <!-- AIG 2008 : very high sys, full (counterparties 100c) -->
+  <circle cx="792" cy="176" r="10" fill="#3F7E6B"/>
+  <text x="778" y="180" text-anchor="end" font-size="11.5" font-weight="600" fill="#2f5e50">AIG（2008 · 对手方 100 美分）</text>
+
+  <!-- TARP 大行 2008 : very high, full -->
+  <circle cx="734" cy="205" r="9" fill="#3F7E6B"/>
+  <text x="720" y="209" text-anchor="end" font-size="11.5" fill="#2f5e50">花旗 / 美银（2008 · TARP）</text>
+
+  <!-- 两房 2008 : very high, full (接管) -->
+  <circle cx="788" cy="232" r="9" fill="#3F7E6B"/>
+  <text x="774" y="236" text-anchor="end" font-size="11.5" fill="#2f5e50">房利美 / 房地美（接管）</text>
+
+  <!-- 北岩/RBS 2008 UK : high, full -->
+  <circle cx="512" cy="250" r="8" fill="#3F7E6B"/>
+  <text x="526" y="254" font-size="11.5" fill="#2f5e50">北岩 / RBS（英 · 国有化）</text>
+
+  <!-- LTCM 1998 : high-ish, 私人救助(央行召集) -> mid-high outcome -->
+  <circle cx="590" cy="270" r="8" fill="#6E5A7D"/>
+  <text x="576" y="274" text-anchor="end" font-size="11.5" fill="#584668">LTCM（1998 · 央行召集私人接盘）</text>
+
+  <!-- GM/克莱斯勒 2009 : high sys(就业/供应链), 部分(股东清零) -> just above mid -->
+  <circle cx="590" cy="330" r="9" fill="#3A6491"/>
+  <text x="576" y="334" text-anchor="end" font-size="11.5" fill="#2c4d70">通用 / 克莱斯勒（2009 · 保实体 · 股东清零）</text>
+
+  <!-- 希腊 2010 : very high(欧元区), 救活但被接管+私人减记53% -> mid -->
+  <circle cx="748" cy="368" r="10" fill="#7A4A55"/>
+  <text x="734" y="372" text-anchor="end" font-size="11.5" font-weight="600" fill="#7A4A55">希腊（2010–18 · 续命 · 私人减记 53%）</text>
+
+  <!-- ECB 不惜一切 / 主权信用 : highest, full backstop (软) -->
+  <circle cx="792" cy="288" r="8" fill="#7A4A55"/>
+  <text x="778" y="292" text-anchor="end" font-size="11.5" fill="#7A4A55">ECB「不惜一切代价」（2012 · 主权背书）</text>
+
+  <!-- 被放倒反例 -->
+  <!-- 雷曼 2008 : high sys BUT 放倒 (立威) -->
+  <circle cx="500" cy="452" r="9" fill="#FBF7EC" stroke="#BC4B33" stroke-width="2.4"/>
+  <text x="514" y="456" font-size="11.5" font-weight="600" fill="#9e3a25">雷曼兄弟（2008 · 被放倒 → 逼出后续全额救助）</text>
+
+  <!-- 恒大 2021 : mid-high sys(信念非管道), 放倒+清算 -->
+  <circle cx="150" cy="470" r="9" fill="#FBF7EC" stroke="#BC4B33" stroke-width="2.4"/>
+  <text x="164" y="474" font-size="11.5" font-weight="600" fill="#9e3a25">恒大（2021– · 保交楼保民生 · 清算公司与实控人）</text>
+
+  <!-- 冰岛 2008 : highest sys/GDP BUT 救不动 -> bottom-right -->
+  <circle cx="792" cy="470" r="9" fill="#FBF7EC" stroke="#7A4A55" stroke-width="2.2"/>
+  <text x="778" y="474" text-anchor="end" font-size="11.5" fill="#7A4A55">冰岛（2008 · 银行是 GDP 十倍 · 救不动只能倒）</text>
+
+  <!-- footer note strip -->
+  <rect x="36" y="560" width="808" height="66" rx="10" fill="rgba(63,126,107,.06)" stroke="rgba(63,126,107,.25)"/>
+  <text x="52" y="584" font-size="12" fill="#5F5648"><tspan font-weight="700" fill="#2f5e50">读法：</tspan>右上＝嵌得深且被全额兜底（AIG、TARP、两房、Continental）——「成功」＝债权人被救，收益早已私有化、损失社会化。</text>
+  <text x="52" y="604" font-size="12" fill="#5F5648">中段＝救活但有代价（希腊被接管+减记；GM 保实体但股东清零；LTCM 靠央行召集私人接盘）。左下＝被放倒立威（雷曼、恒大）。</text>
+  <text x="52" y="622" font-size="11.5" fill="#8C8170">右下＝太大而救不动（冰岛）——「大而不倒」有上限：相对施救者的资产负债表太大，连兜底都做不到。颜色：绿＝银行/准银行 · 蓝＝实体企业 · 红棕＝主权 · 空心＝被放倒/救不动。</text>
+</svg>
+      <p><b>三段式读法：</b>右上「兜底区」是最纯粹的成功——AIG（2008 对手方获 100 美分足额兑付）、花旗/美银（TARP）、房利美/房地美（接管）、大陆伊利诺伊（1984，TBTF 一词的原点），成功＝债权人被救，救的从来不只是你、是你背后那张对手方网络；LTCM（1998）则是纽约联储召集私人接盘的「私人救助」变体。中段是「救活但有代价」——希腊被三驾马车续命却让渡财政主权、私人债权人减记约 53%，通用/克莱斯勒保住实体与就业但股东基本清零。左下「立威区」是被放倒——雷曼（其崩塌反过来逼出了后续的全额救助）、恒大。右下是「太大而救不动（Too Big To Save）」——冰岛三大银行是 GDP 的近十倍，大到政府根本兜不动、只能让银行倒而保本国储户；它框住了规则的上限。</p>
+      <p><b>为什么许家印输了：</b>他看懂了「大」，没看懂「不倒」的前提是让政府觉得<b>救你比清算你更便宜</b>。在「房住不炒」框架下，清算他，才是更便宜、也更有威慑力的那个选项。一句话收：「大而不倒」的成功从来不是公司的成功，而是<b>债权人的成功</b>。（案例与金额引自公开报道，为结构示意；两轴均为诠释性判断。）</p>
+    </div>
+  </details>
+
+  <details class="method">
+    <summary>专题层：工程层层分包 —— 不是层层加杠杆，是层层「卸责任」</summary>
+    <div class="mbody">
+      <p><b>把底层逻辑讲透：</b>建筑业的层层分包/转包/挂靠，表面看和其它节点一样是「核心企业占款」，但它多干了一件别处没有的事——<b>责任的证券化</b>。资金端，总包用应付账款、商票、以票充款向下无息占款，把自己的负债表做轻（这一半与「应付账款」同构）；<b>责任端</b>，再用分包、转包、挂靠合同，把安全、质量、用工的<b>法律责任</b>连同资质外壳一起，推给下一层的影子承包人。于是风险与责任沿链向下卸、欠款与工资沿链向上累，最后一起压在最没有议价权的包工头与农民工身上——这不是「我的负债＝你的资产」，而是「我的责任＝你的责任」。</p>
+      <svg viewBox="0 0 880 640" style="display:block;width:100%;height:auto;margin:8px 0 16px" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Serif SC',serif">
+  <defs>
+    <marker id="sbDown" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B07D2B"/></marker>
+    <marker id="sbUp" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#BC4B33"/></marker>
+    <marker id="sbLaw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3F7E6B"/></marker>
+  </defs>
+  <rect x="1" y="1" width="878" height="638" rx="14" fill="#FFFDF8" stroke="rgba(46,41,37,.10)"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#2E2925">工程层层分包：不是层层加杠杆，是层层「卸责任」</text>
+  <text x="28" y="60" font-size="12.5" fill="#8C8170">向下传的是风险与法律责任（琥珀）；向上累积的是欠款（赤红）；断裂时靠司法把责任归位（绿）。</text>
+
+  <!-- column headers -->
+  <text x="240" y="92" text-anchor="middle" font-size="12" font-weight="600" fill="#8a5d18">↓ 责任 · 风险 · 资质外壳（层层下卸）</text>
+  <text x="610" y="92" text-anchor="middle" font-size="12" font-weight="600" fill="#9e3a25">↑ 欠款 · 账期 · 商票（层层上累）</text>
+
+  <!-- chain rows: each a box on the left ladder -->
+  <!-- 发包方 -->
+  <rect x="150" y="106" width="240" height="46" rx="9" fill="rgba(122,74,85,.10)" stroke="#7A4A55" stroke-width="1.5"/>
+  <text x="270" y="127" text-anchor="middle" font-size="13" font-weight="700" fill="#7A4A55">建设单位（发包方 · 甲方）</text>
+  <text x="270" y="143" text-anchor="middle" font-size="10" fill="#7A4A55">工程款源头 · 最终责任兜底人</text>
+
+  <!-- 总包 -->
+  <rect x="150" y="176" width="240" height="46" rx="9" fill="rgba(58,100,145,.10)" stroke="#3A6491" stroke-width="1.5"/>
+  <text x="270" y="197" text-anchor="middle" font-size="13" font-weight="700" fill="#2c4d70">施工总承包（持资质 · 中标）</text>
+  <text x="270" y="213" text-anchor="middle" font-size="10" fill="#2c4d70">留管理费 · 用商票/账期向下占款</text>
+
+  <!-- 专业分包 -->
+  <rect x="168" y="246" width="222" height="42" rx="9" fill="rgba(58,100,145,.07)" stroke="#3A6491" stroke-width="1.3"/>
+  <text x="279" y="266" text-anchor="middle" font-size="12" fill="#2c4d70">专业分包 / 劳务分包</text>
+  <text x="279" y="281" text-anchor="middle" font-size="9.5" fill="#2c4d70">再抽一手 · 再往下转</text>
+
+  <!-- 挂靠/转包 -->
+  <rect x="186" y="312" width="204" height="42" rx="9" fill="rgba(107,79,58,.10)" stroke="#6B4F3A" stroke-width="1.3" stroke-dasharray="5 3"/>
+  <text x="288" y="332" text-anchor="middle" font-size="12" fill="#6B4F3A">挂靠 / 转包（借资质 · 违法）</text>
+  <text x="288" y="347" text-anchor="middle" font-size="9.5" fill="#6B4F3A">无资质者借壳承接 · 责任真空</text>
+
+  <!-- 包工头 -->
+  <rect x="204" y="378" width="186" height="42" rx="9" fill="rgba(107,79,58,.08)" stroke="#6B4F3A" stroke-width="1.3"/>
+  <text x="297" y="398" text-anchor="middle" font-size="12" fill="#6B4F3A">包工头（实际施工人）</text>
+  <text x="297" y="413" text-anchor="middle" font-size="9.5" fill="#6B4F3A">带队干活 · 垫资垫工资</text>
+
+  <!-- 农民工 -->
+  <rect x="222" y="444" width="168" height="46" rx="9" fill="rgba(188,75,51,.09)" stroke="#BC4B33" stroke-width="1.6"/>
+  <text x="306" y="465" text-anchor="middle" font-size="12.5" font-weight="700" fill="#9e3a25">农民工（链条末端）</text>
+  <text x="306" y="481" text-anchor="middle" font-size="9.5" fill="#9e3a25">出卖劳动 · 欠薪最终承受者</text>
+
+  <!-- DOWN arrows (responsibility) on left edge -->
+  <path d="M150,152 C110,164 110,164 150,176" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#sbDown)"/>
+  <path d="M168,222 C128,234 128,234 168,246" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#sbDown)"/>
+  <path d="M186,288 C146,300 146,300 186,312" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#sbDown)"/>
+  <path d="M204,354 C164,366 164,366 204,378" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#sbDown)"/>
+  <path d="M222,420 C182,432 182,432 222,444" fill="none" stroke="#B07D2B" stroke-width="2" marker-end="url(#sbDown)"/>
+  <text x="96" y="300" transform="rotate(-90 96 300)" text-anchor="middle" font-size="11.5" font-weight="600" fill="#8a5d18">安全 · 质量 · 用工责任层层下卸</text>
+
+  <!-- UP arrows (debt) on right edge -->
+  <path d="M390,466 C440,454 440,220 392,200" fill="none" stroke="#BC4B33" stroke-width="2" marker-end="url(#sbUp)"/>
+  <text x="470" y="330" transform="rotate(-90 470 330)" text-anchor="middle" font-size="11.5" font-weight="600" fill="#9e3a25">欠款/工资沿链向上追索</text>
+
+  <!-- 断点 -->
+  <text x="300" y="437" text-anchor="middle" font-size="14" font-weight="700" fill="#BC4B33">✕</text>
+  <text x="405" y="437" font-size="10" fill="#BC4B33">链断＝欠薪爆发点</text>
+
+  <!-- 右侧：底层逻辑注解 -->
+  <rect x="530" y="118" width="322" height="150" rx="10" fill="rgba(63,126,107,.05)" stroke="rgba(63,126,107,.22)"/>
+  <text x="546" y="140" font-size="12.5" font-weight="700" fill="#2f5e50">底层逻辑：责任的证券化</text>
+  <text x="546" y="162" font-size="11" fill="#5F5648">· 资金端：总包用商票、账期、以票充款向下</text>
+  <text x="556" y="177" font-size="11" fill="#5F5648">无息占款，把负债表做轻（同应付账款）。</text>
+  <text x="546" y="197" font-size="11" fill="#5F5648">· 责任端：用分包/转包/挂靠把安全、质量、</text>
+  <text x="556" y="212" font-size="11" fill="#5F5648">用工的法律责任推到表外的影子承包人。</text>
+  <text x="546" y="232" font-size="11" fill="#5F5648">· 结果：风险与责任向下卸、欠款向上累，</text>
+  <text x="556" y="247" font-size="11" fill="#5F5648">压在最没议价权的一端——责任真空 + 债权</text>
+  <text x="556" y="262" font-size="11" fill="#5F5648">沉底。</text>
+
+  <!-- 右下：司法回补 -->
+  <rect x="530" y="286" width="322" height="150" rx="10" fill="rgba(63,126,107,.08)" stroke="rgba(63,126,107,.3)"/>
+  <text x="546" y="308" font-size="12.5" font-weight="700" fill="#2f5e50">监管/司法：把被卸掉的责任重新归位</text>
+  <text x="546" y="330" font-size="11" fill="#5F5648">· 实际施工人可突破合同相对性，在发包人</text>
+  <text x="556" y="345" font-size="11" fill="#5F5648">欠付工程款范围内直接向其追索（司解一 43 条）。</text>
+  <text x="546" y="365" font-size="11" fill="#5F5648">· 《保障农民工工资支付条例》(2020)：工资</text>
+  <text x="556" y="380" font-size="11" fill="#5F5648">专用账户、总包代发、实名制、欠薪连带。</text>
+  <text x="546" y="400" font-size="11" fill="#5F5648">· 本质：法律强行刺穿分包链，把「合同相对</text>
+  <text x="556" y="415" font-size="11" fill="#5F5648">性」这层防火墙击穿，让责任回到发包人。</text>
+  <text x="546" y="430" font-size="10.5" fill="#8C8170">（与恒大「防火墙被清盘人穿透」同构。）</text>
+
+  <!-- 与全景图对照 -->
+  <path d="M546,336 C500,360 470,420 392,462" fill="none" stroke="#3F7E6B" stroke-width="1.8" stroke-dasharray="5 3" marker-end="url(#sbLaw)"/>
+
+  <!-- 底部一句 -->
+  <rect x="36" y="516" width="808" height="98" rx="10" fill="rgba(176,125,43,.06)" stroke="rgba(176,125,43,.28)"/>
+  <text x="52" y="540" font-size="12.5" fill="#5F5648"><tspan font-weight="700" fill="#8a5d18">一句话：</tspan>其它节点是「我的负债＝你的资产」地把信用做大；这条链是「我的责任＝你的责任」地把风险卸出——</text>
+  <text x="52" y="560" font-size="12.5" fill="#5F5648">用产业组织（分包合同 + 资质出借）实现「责任出表」，与用金融工具（TRS/表外/信托）实现「负债出表」，是同一动作的两副面孔。</text>
+  <text x="52" y="582" font-size="12" fill="#5F5648">反身性不高（不靠价格自我强化），但脆弱在<tspan font-weight="600" fill="#9e3a25">责任真空</tspan>：出事时人人都是「上一层的问题」，直到司法强行归位。</text>
+  <text x="52" y="602" font-size="11.5" fill="#8C8170">在全景图中位于「公司」列，与应付账款、商票相邻——同属核心企业对上下游的无息占款，但它多卸了一层「法律责任」。</text>
+</svg>
+      <p><b>为什么它值得单列：</b>前面所有节点讲的都是「负债出表」（用 TRS、表外、信托、离婚把负债与风险搬走）；这条链讲的是<b>「责任出表」</b>——用产业组织（分包合同＋资质出借）达到同样的效果，是同一动作的另一副面孔。它的反身性不高（不靠价格自我强化，故坐标落在投机区而非庞氏端），真正的脆弱在<b>责任真空</b>：出事时人人都是「上一层的问题」，合同相对性成了每一层的防火墙。</p>
+      <p><b>监管/司法如何回补：</b>法律的应对，本质是<b>强行刺穿这条分包链、把被卸掉的责任重新归位</b>——实际施工人可突破合同相对性，在发包人欠付工程款范围内直接向其追索（《建工司法解释一》第 43 条）；《保障农民工工资支付条例》(2020) 用工资专用账户、总包代发、实名制与欠薪连带责任，把「谁用工谁负责、总包兜底」钉死。这与「恒大的信托防火墙被清盘人实质穿透」是同一个法理动作：当一层结构被用来逃避责任、损害弱势债权人时，它就会被法律击穿。（本节为结构解读；条例与司法解释引自公开法规，具体个案以生效裁判为准。）</p>
+    </div>
+  </details>
+
+  <div class="foot">信用扩张场景全景图 · 一条铁律贯穿六个领域：我的负债 = 你的资产。脆弱与稳健的尺子，是现金流能否自偿。</div>
+</div>
+
+<script>
+const DATA_XD = [
+  // 家庭
+  {L:"家庭",n:"按揭购房",s:"按揭",c:4,lv:4,rf:4,k:"p",note:"首付作权益、房贷作负债、房子作资产，一笔交易使资产负债表两端同时撑大；偿付靠家庭收入，最大风险是房价（抵押品）与借贷能力之间的反身循环。",case:"极端样本：中国商品房预售制——购房者在房子尚未建成时就背上全额三十年按揭，把开发商的完工风险完全前置到家庭；2021 年后烂尾与断供潮即其代价。顶层设计：用未来三十年收入作押、在标的物尚不存在时就完成全额信用扩张。"},
+  {L:"家庭",n:"次级房贷 / 掠夺性贷款",s:"次级房贷",c:2,lv:4.5,rf:4.5,k:"p",note:"向信用薄弱者发放诱饵利率（teaser ARM）、免收入证明（NINJA）的房贷，利率重置后违约率飙升，是房贷泡沫的导火索。",case:"极端样本：2004–07 美国次贷——放贷标准被推到「有呼吸就放贷」（NINJA：无收入、无工作、无资产），前两年诱饵低息掩盖重置后的爆炸还款。顶层设计：贷款立即被证券化卖出、放贷人不担违约（发起—分销），于是责任与风险彻底分离、标准趋零。"},
+  {L:"家庭",n:"房产净值再融资 / 经营贷置换",s:"净值贷",c:4,lv:4.5,rf:5,k:"p",note:"把房子升值出来的净值再抵押借出，或用低息经营贷置换房贷套利；直接变现「抵押品升值→可借更多」的反身链，并叠加利率与短期续贷风险。",case:"极端样本：把房子当永动提款机——每次升值就再融资套现（cash-out refi），或用低息经营贷接力置换房贷，首付被反复抽回、实际权益趋零。顶层设计：把不动产升值即时变现为可消费购买力，让「涨价→借更多」的反身链无限循环。"},
+  {L:"家庭",n:"车贷",s:"车贷",c:2,lv:3,rf:1.5,k:"p",note:"结构同房贷，但抵押品是快速折旧的车，常出现贷款余额高于残值的资不抵债；零利率分期实为厂商把利息计入车价补贴促销。",case:"极端样本：美国「深度次级」车贷——84 个月超长期 + 零首付，使月供显得可负担，但贷款余额永远高于车残值（永久资不抵债），再打包成车贷 ABS 转嫁。顶层设计：用拉长期限把不可负担伪装成可负担，把违约风险证券化外推。"},
+  {L:"家庭",n:"消费贷 / 信用卡循环（含先买后付）",s:"消费贷",c:1,lv:3.5,rf:1.5,k:"p",note:"不形成资产，纯把未来收入提前消费；信用卡只还最低额则按日利滚利，是家庭最贵的信用，循环滚动时现金流自偿性极差，实质更接近庞氏。",case:"极端样本：2003 年韩国信用卡危机——发卡机构竞相滥发、不看偿付能力，全民循环负债，LG 卡濒临崩溃需政府接管。顶层设计：把消费信贷做成可无限循环的「准货币」，授信只看额度不看现金流，直到家庭整体现金流断裂。"},
+  {L:"家庭",n:"证券杠杆（融资融券 / 配资）",s:"证券杠杆",c:2.5,lv:5,rf:5,k:"p",note:"用保证金撬动数倍市值，放大收益与回撤；跌破维持担保比例即追保或强平，形成「下跌→平仓→再跌」的快速螺旋。",case:"极端样本：1929 年华尔街——10% 保证金即 10 倍杠杆全民炒股，崩盘触发连环强平与保证金追缴螺旋，直接坠入大萧条（中国 2015 场外配资是其翻版）。顶层设计：用保证金把投机者杠杆推到极限，价格与保证金互相踩踏。"},
+  {L:"家庭",n:"教育 / 人力资本贷款",s:"学贷",c:1,lv:2.5,rf:1,k:"p",note:"借款投向无形的人力资本，资产难以在表上计量，偿付完全依赖毕业后收入的实现，预期落空即失去自偿来源。",case:"极端样本：美国营利性大学（Corinthian、ITT 等）诱导学生借联邦学贷读无价值学位，全美学贷累至超 1.7 万亿美元、破产也无法免除。顶层设计：政府无限度担保 + 不可豁免，使学校敢抬学费、学生无议价，把尚未实现的人力资本提前资本化为债务。"},
+  {L:"家庭",n:"民间借贷 / 以贷养贷",s:"以贷养贷",c:1,lv:4.5,rf:2,k:"p",note:"正规体系之外的债权债务扩张；以贷养贷用新债偿还旧债本息、自身不产生偿债现金流，是家庭版庞氏融资，链断即崩。",case:"极端样本：「714 高炮」式网络高利贷——砍头息 + 暴力催收 + 多头借贷闭环，迫使借款人不断借新还旧，债务指数级膨胀。顶层设计：用极短期、超高息、先扣息的设计，把借款人锁进只能以贷养贷的纯庞氏循环。"},
+  // 民间金融
+  {L:"民间金融",n:"互保联保 / 担保圈",s:"互保联保",c:1.5,lv:4,rf:5,k:"p",note:"企业间相互担保替代抵押品向银行贷款（生意圈、老乡、同行联保）；一家违约即沿担保圈连环触发，社会信任被放大为系统性杠杆。",case:"极端样本：2011 年温州民间借贷危机——上百家骨干民企互相担保（信泰集团胡福林跑路牵连百余家、庄吉集团一条链 300 多亿），银根一紧单点违约沿担保圈连环引爆，跑路潮、跳楼频发，温家宝亲赴。顶层设计：用企业间相互担保替代抵押品，把彼此信用捆成一根链——社会信任本身成了系统性杠杆。"},
+  {L:"民间金融",n:"合会 / 标会（抬会）",s:"标会",c:1,lv:4,rf:4.5,k:"p",note:"民间轮流集资互助会（标会、摇会）；正常形态是互助，一旦异化为「以新会员的钱付旧会员高息」的抬会，就成为纯庞氏。",case:"极端样本：1980 年代温州乐清「抬会」——会首不断抬高利率、拉新会员的会钱付老会员高息，1986–89 年崩盘波及数十万人、酿成命案与动荡。顶层设计：把民间轮会（ROSCA）的互助机制异化为「以新钱付旧息」的纯庞氏，利率竞相抬高直至崩塌。"},
+  {L:"民间金融",n:"地下钱庄 / 跨境汇兑",s:"地下钱庄",c:2,lv:3.5,rf:3.5,k:"p",note:"体制外的存贷、兑换与跨境资金转移；用境内外「对敲」实现资金跨境而本金不出境，是民间汇兑也是资本管制的灰色绕道。",case:"极端样本：千亿级地下钱庄「对敲」洗钱与资本外逃——境内收人民币、境外付外币，本金不跨境却完成资金跨境（与中东南亚的 hawala 同理）。顶层设计：用境内外两套账的「对敲」绕过资本管制，把跨境支付与信用脱离正规银行体系。"},
+  {L:"民间金融",n:"民间集资（非法集资 / 庞氏）",s:"民间集资",c:1,lv:4.5,rf:4.5,k:"p",note:"借同乡、熟人、社群的亲缘信任以高息募资，与合法民间借贷界限模糊；一旦靠借新还旧维系即滑向集资诈骗（庞氏）。",case:"极端样本：吴英·本色集团（2005–07 向以林卫平为首的职业放贷网络集资 7.7 亿、3.8 亿无法偿还，二审死刑后改判）；全球极致是麦道夫凭犹太社群亲缘信任行骗约 650 亿美元。顶层设计：用同乡、熟人、社群的亲缘信任降低戒心，以高息 + 借新还旧维系，信任网越紧、崩盘越彻底。"},
+  {L:"民间金融",n:"炒房团 / 炒作团",s:"炒房团",c:2.5,lv:4,rf:5,k:"p",note:"以同乡资金池 + 银行按揭组团集中扫货某类资产（房、蒜、茶等），制造稀缺与上涨预期、再高位套现，是民间版的反身性逼空。",case:"极端样本：温州炒房团——以同乡资金池 + 银行按揭组团集中扫货全国楼盘 pump-and-flip，亦炒蒜（「蒜你狠」）、炒普洱。顶层设计：用抱团的集中资金制造稀缺与上涨预期、让价格自我实现，是民间版的反身性逼空。"},
+  {L:"民间金融",n:"宗族 · 同乡信任（社会资本）",s:"社会资本",c:2,lv:3,rf:3.5,k:"m",note:"以血缘、地缘、同乡信任替代抵押与征信，让信用在熟人网络里以极低摩擦扩张——这是民间金融的「货币乘数」与底层基础设施。",case:"极端样本：潮汕、温州的宗族同乡商业网络——以血缘地缘信任替代抵押与征信，让信用在熟人圈里以极低摩擦扩张。顶层设计：把「社会资本」当作抵押品的替代物，这是民间金融的「货币乘数」，也是其一损俱损的根源。"},
+  // 公司
+  {L:"公司",n:"银行信贷（流贷 / 项目贷）",s:"银行信贷",c:3.5,lv:3,rf:2.5,k:"p",note:"流贷垫付存货应收、项目贷投资扩产；核心是财务杠杆——资产回报高于借债成本时放大 ROE，反之放大亏损。",case:"极端样本：1980 年代日本泡沫——「土地神话」下银行以地价作押疯狂放贷，地价越高放得越多、又推高地价，1990 年破灭后陷入失落的二十年。顶层设计：把顺周期放贷推到极致——抵押品估值与信贷互相喂大。"},
+  {L:"公司",n:"债券发行（含可转债）",s:"债券",c:2.5,lv:3.5,rf:2.5,k:"p",note:"绕开银行直接向资本市场借钱，常用于扩张或借新还旧；可转债平时是债、股价达标转股，是低息融资与期权的混合品种。",case:"极端样本：1980 年代米尔肯与德崇证券（Drexel）的垃圾债帝国——把投机级企业债做成可大规模发行的资产类别、为杠杆收购供弹药并操纵市场，1990 年崩塌、米尔肯入狱。顶层设计：用高收益债把最弱信用也证券化、规模化，债市定价被一手做庄。"},
+  {L:"公司",n:"商业信用 / 应付账款",s:"应付账款",c:1.5,lv:2.5,rf:2,k:"p",note:"企业间赊账形成无息负债，无偿占用上下游资金；核心企业用强势地位拉长账期把融资压力转嫁中小供应商，链条具传染性。",case:"极端样本：恒大商票——用绝对市场支配地位把对供应商的欠款（商票）拉到极限规模、长期拖欠，把整条供应链变成自己的无息银行，2021 年起大面积逾期、传染无数中小供应商。顶层设计：用账期与商票把应付账款变成强制、无息、规模化的融资。"},
+  {L:"公司",n:"工程层层分包 / 转包挂靠（责任出表）",s:"层层分包",c:1.5,lv:4,rf:2.5,k:"p",note:"与加杠杆相反，这是层层「卸责任」：总包用应付账款、商票、以票充款向下无息占款，同时用分包合同把安全、质量、用工的法律责任推给下一层——负债与风险一起搬到表外的影子承包人，欠款却沿反方向层层累积到最没议价权的农民工与包工头。",case:"违法分包、转包、挂靠是行业顽疾；欠薪链断裂时，法律以「实际施工人可突破合同相对性、在发包人欠付范围内向其追索」回补断裂的信用链（《建工司法解释一》第 43 条、《保障农民工工资支付条例》2020、农民工工资专用账户与实名制）——用司法把被卸掉的责任重新归位。"},
+  {L:"公司",n:"供应链金融 / 票据贴现",s:"票据",c:3,lv:3,rf:3,k:"p",note:"围绕应收与票据，开承兑汇票支付、再贴现提前拿现金；票据可背书流转近似准货币，贴现把未来债权变现，易滋生空转套利。",case:"极端样本：承兴国际（罗静，2019）——凭空伪造对京东、苏宁的应收账款骗取供应链融资，无真实贸易也套出巨额资金，诺亚踩雷约 34 亿。顶层设计：把应收账款这种「准货币」直接伪造，让信用脱离任何真实交易凭空创造。"},
+  {L:"公司",n:"融资租赁（直租 / 售后回租）",s:"融资租赁",c:3,lv:3,rf:2,k:"p",note:"直租以分期租金取得设备使用权，售后回租把自有设备卖出再租回套现；以「使用权」替代「所有权」完成设备融资，亦用于出表盘活资产。",case:"极端样本：「明租实贷」——租赁公司给城投、房企做售后回租，把借贷包装成设备租赁以规避借贷监管并出表，标的甚至虚高或虚构。顶层设计：用「使用权」外壳把贷款伪装成租赁，绕开额度、资本与出表约束。"},
+  {L:"公司",n:"杠杆收购（LBO）",s:"LBO",c:3,lv:5,rf:3.5,k:"p",note:"极薄自有资金＋大量举债收购，用目标自身资产与现金流抵押偿债，ROE 被极度放大，对目标现金流稳定性要求极高，典型玩家是 PE。",case:"极端样本：1989 年 KKR 以约 250 亿美元杠杆收购 RJR 纳贝斯克（《门口的野蛮人》），用目标自身资产与现金流抵押举债收购它、收购方只出极薄股本。顶层设计：「用你的钱买你」——把被收购方的资产负债表当作收购的融资来源。"},
+  {L:"公司",n:"股权质押",s:"股权质押",c:2.5,lv:4,rf:5,k:"p",note:"大股东质押股票换现金；反身性最凶——股价跌→质押物缩水→触平仓线→被迫卖出→股价再跌，A 股曾多次引发连锁平仓。",case:"极端样本：乐视贾跃亭——将所持乐视网股票近乎 100% 质押套现支撑「生态化反」，2017 年股价崩、质押爆仓，控制权与信用同时归零、远走美国。顶层设计：把控制权股票全部抵押为现金，股价＝信用，赌价格永不跌破平仓线。"},
+  {L:"公司",n:"房地产高周转预售",s:"高周转",c:3,lv:5,rf:5,k:"p",note:"拿地用开发贷启动、未建成即预售，购房者预付款＋按揭成为近乎无息的杠杆资金，回款再拿地循环；高度依赖销售回款不断流（曾以三道红线约束）。",case:"极端样本：恒大——把「456」高周转 + 预售款 + 商票 + 理财推到极限，杠杆扩张到造车、足球、财富管理并财务造假，2.4 万亿负债、2024 清盘、许家印受审。顶层设计：把自有资金占用时间压到趋零、用购房者与供应商的钱滚动，IRR 趋无穷，赌房价永涨。"},
+  {L:"公司",n:"举债回购股票",s:"举债回购",c:2.5,lv:4,rf:3,k:"p",note:"借债买回自家股票、抬高每股收益与股价，是不投向生产的财务工程；推高杠杆、削薄权益垫，顺周期时风光、逆周期时脆弱。",case:"极端样本：波音——2013–19 借债回购股票约 430 亿美元、把净资产做到为负以抬高 EPS 与高管期权，随后 737 MAX 危机来袭、几无缓冲。顶层设计：借债把股本抽走、做高每股指标，以掏空权益垫为代价。"},
+  {L:"公司",n:"私人信贷 / 直接借贷",s:"私人信贷",c:3,lv:3.5,rf:3,k:"p",note:"非银机构（私募债基、BDC）绕开银行与公开市场直接放贷给中小及高杠杆企业；估值不透明、层层嵌套杠杆，是 2008 后增长最快的影子信贷。",case:"极端样本：当下的「私募信贷 + 关联寿险」循环（如 Apollo–Athene 模式）——私募信贷基金把贷款卖给自家关联保险，层层嵌套杠杆、估值靠模型（mark-to-model）。顶层设计：把信用风险藏进不透明、长锁定、关联交易与模型估值之中——影子里的影子。"},
+  // 银行
+  {L:"银行",n:"贷款创造存款 / 派生存款",s:"派生存款",c:3,lv:3.5,rf:3,k:"m",note:"放贷时同时记资产端债权与负债端存款，那笔存款即凭空创造的新货币；一笔基础货币层层派生，上限约为基础货币÷准备金率（货币乘数）。",case:"极端样本：2008 年冰岛——三大银行把「贷款创造存款」推到资产约为本国 GDP 的十倍，信用创造彻底脱离实体，崩盘拖垮整个国家。顶层设计：银行体系整体把货币派生推到资产数倍于 GDP，信用与实体经济脱钩。"},
+  {L:"银行",n:"票据贴现 / 转贴现",s:"贴现",c:3,lv:3.5,rf:3,k:"p",note:"银行买入未到期票据垫付现金即创造信用，再相互转贴现、向央行再贴现，把这笔信用在金融体系内传递放大。",case:"极端样本：票据空转大案（如 2016 年多起银行票据案）——用银票在「开票—贴现—存款—再开票」间空转、无真实贸易，凭空放大存款与信用、套取利差。顶层设计：把票据从支付工具变成无贸易背景的空转套利工具。"},
+  {L:"银行",n:"同业业务 / 同业存单",s:"同业",c:2.5,lv:4,rf:3.5,k:"p",note:"银行间拆借、发同业存单、买卖同业理财，在存贷之外另辟扩张渠道；助长资金空转，常用于规避信贷额度与资本约束的监管套利。",case:"极端样本：包商银行（2019 被接管）——明天系用同业资金把银行掏空，中小行靠同业存单滚动负债、错配到长期非标，处置中同业债权首次被减记、打破同业刚兑。顶层设计：用同业把存贷之外的批发融资推到极限，以规避资本与额度约束。"},
+  {L:"银行",n:"影子银行（理财—通道—非标）",s:"影子银行",c:2,lv:4.5,rf:4,k:"p",note:"理财募资经信托券商资管通道投向非标债权，把信贷搬到表外、绕开资本充足率与额度约束，是中国式信用扩张里最庞大也最隐蔽的一块。",case:"极端样本：河南村镇银行（新财富集团吕奕，2022）——用持牌银行外壳在账外吸收约 400 亿存款、不缴准不缴保险，资金被直接挪走，引爆「健康码红码」事件。顶层设计：影子银行的极端是「连账都不上」——用牌照信用在体系外凭空吸金。"},
+  {L:"银行",n:"资产证券化（ABS / MBS）",s:"ABS",c:2.5,lv:4.5,rf:4.5,k:"p",note:"把贷款打包卖给 SPV、以其现金流为支撑发证券；「发起—分销」让贷款出表腾出资本与额度去放新贷，正是 2008 次贷危机的传导链。",case:"极端样本：2008 年合成 CDO 的「CDO 平方」——把次贷分层、再把夹层打包成新 CDO、再平方，靠评级机构的 AAA 炼金术把垃圾包装成「安全资产」。顶层设计：用层层再证券化 + 评级背书，让同一批劣质资产的信用被无限放大。"},
+  {L:"银行",n:"资本补充工具",s:"资本补充",c:3.5,lv:3,rf:2.5,k:"p",note:"永续债、二级资本债、定增等补充资本，加厚风险缓冲；资本垫越厚可承载的风险资产越多——本质是为下一轮信用扩张腾出空间。",case:"极端样本：2023 年瑞信 AT1——约 160 亿瑞郎「额外一级资本」债被全额减记、且先于股东清零，暴露这种「伪资本」平时算资本、危机时甩给债权人。顶层设计：用可减记次级债冒充资本垫，腾出放贷空间却在危机时转嫁损失。"},
+  {L:"银行",n:"央行工具（降准降息 / MLF / PSL / QE）",s:"央行工具",c:4,lv:2.5,rf:2,k:"m",note:"通过降准降息、再贷款再贴现、MLF / PSL 乃至 QE 投放基础货币，拧松三道闸门；不直接放贷，却决定整个体系能创造多少信用、转速多快。",case:"极端样本：日本央行——把 QE / QQE / YCC 推到极限，持有过半国债 + 大量股票 ETF，资产负债表超过 GDP，成为国债市场与股市的最后做市商。顶层设计：央行把基础货币投放推到买下整个国债市场乃至股市的程度。"},
+  {L:"银行",n:"期限错配与存款挤兑",s:"期限错配",c:3,lv:4,rf:4.5,k:"p",note:"银行天然借短（活期存款）用长（长期贷款 / 债券）；一旦久期浮亏暴露、储户信心崩塌，挤兑会在资产贱卖前击穿流动性，是最古典的银行脆弱性。",case:"极端样本：硅谷银行（2023）——把约 94% 存款押注长久期美债与 MBS、撤掉利率对冲，赌利率不升；社交媒体时代储户一日挤兑约 420 亿美元、约 44 小时倒闭。顶层设计：把借短用长 + 久期赌注推到极限，遇上光速数字挤兑。"},
+  // 金融市场
+  {L:"金融市场",n:"回购融资（repo / 逆回购）",s:"回购",c:3,lv:3.5,rf:4,k:"p",note:"以证券质押的短期融资，是影子银行体系的核心管道；折扣率顺周期（抵押品跌→折扣升→被迫抛售），2008 年的「回购挤兑」是危机主线，优质国债回购则安全得多。",case:"极端样本：雷曼「Repo 105」——把回购从融资工具异化为季末粉饰报表的工具，将约 500 亿美元资产暂时移出资产负债表、隐藏真实杠杆，直至 2008 年崩塌。顶层设计：用回购的法律外壳在报告日把杠杆「藏」到表外。"},
+  {L:"金融市场",n:"证券借贷 / 转融通",s:"证券借贷",c:3.5,lv:3,rf:3,k:"p",note:"出借证券收取费用与保证金，支持做空与杠杆；担保品可被再抵押，把信用链条进一步拉长。",case:"极端样本：AIG 证券借贷部门（2008）——把出借证券收到的、本应高流动性的现金抵押拿去买长久期次贷套利差，期限与信用双错配，挤兑时资金链断裂。顶层设计：把保守的证券借贷异化为长久期次贷的杠杆载体。"},
+  {L:"金融市场",n:"收益互换（总收益互换 TRS）",s:"收益互换",c:2.5,lv:5,rf:5,k:"p",note:"用保证金换取标的全部损益的合成融资，名义敞口远超本金且规避持仓披露；Archegos 以约 360 亿美元撬动约 1600 亿美元敞口，2021 年一周崩盘。",case:"极端样本：Archegos（Bill Hwang，2021）——用收益互换以约 360 亿美元撬动约 1600 亿美元敞口、券商代持使持仓彻底隐形、规避披露，一周崩盘令瑞信巨亏 55 亿美元，Hwang 2024 获刑 18 年。顶层设计：用 TRS 同时实现高杠杆与持仓隐形，直到追保螺旋。"},
+  {L:"金融市场",n:"信用违约互换 / 合成 CDO",s:"CDS",c:2,lv:5,rf:4.5,k:"p",note:"卖出信用保护＝无需出资的合成做多信用；AIG 在 2008 年为数千亿美元按揭敞口卖出保护却几无资本垫，成为危机的核心节点。",case:"极端样本：AIG 金融产品部（2008）——为数千亿美元次贷敞口卖出 CDS 却几无资本垫，被要求补抵押品时瞬间资不抵债，美国政府约 1850 亿美元纾困。顶层设计：卖出信用保护＝不出一分本金就做多数千亿信用，赚保费直到被追保。"},
+  {L:"金融市场",n:"外汇掉期 / 表外美元负债",s:"外汇掉期",c:3.5,lv:3.5,rf:4,k:"p",note:"经济实质是抵押借贷（先换入美元、到期换回），构成庞大的表外美元负债（BIS 称之为「看不见的债务」），美元收紧时续作风险骤升。",case:"极端样本：1997 年亚洲金融危机——韩国与东南亚企业用短期外汇掉期/外债借美元投长期本币资产，期限 + 货币双错配，美元一紧、汇率一崩即全面爆裂；其当代规模是 BIS 所称数十万亿美元的表外美元负债。顶层设计：用外汇掉期在表外借美元，债务不显形，美元收紧时集中断裂。"},
+  {L:"金融市场",n:"担保品再抵押 / 复用",s:"再抵押",c:2.5,lv:4.5,rf:4,k:"m",note:"同一担保品被层层再抵押、支撑多笔义务，是市场版的「货币乘数」（担保品流速）；链条在压力期收缩，放大去杠杆。",case:"极端样本：明富环球（MF Global，2011）——挪用并再抵押客户隔离资金下注欧债，崩塌后约 16 亿美元客户资金一度去向不明。顶层设计：把同一笔（甚至客户的）担保品反复再抵押支撑多笔头寸，担保品流速趋无穷。"},
+  {L:"金融市场",n:"券商收益凭证 / 结构性票据",s:"收益凭证",c:3,lv:3,rf:2.5,k:"p",note:"「本金＋挂钩收益」的券商凭证，本质是券商负债端的融资（信用），区别于风险转移型的场外期权与雪球。",case:"极端样本：雷曼「迷你债券」——把卖出信用保护的衍生品包装成「保本型债券」卖给散户、用发行人信用背书，散户实际在裸卖 CDS，雷曼一倒血本无归（香港、新加坡爆发投诉潮）。顶层设计：把高风险信用衍生品用「债券」外壳零售给不知情散户。"},
+  {L:"金融市场",n:"杠杆贷款 · CLO",s:"杠杆贷款",c:2.5,lv:4.5,rf:4,k:"p",note:"把高杠杆企业的「轻契约」贷款打包成 CLO 分销，让同一笔资本反复放贷；是企业版的次贷证券化链条。",case:"极端样本：2010 年代美国 cov-lite 贷款 + EBITDA「add-back」注水——去掉债权人契约保护、用虚增的「调整后 EBITDA」抬高可借额度，再打包成 CLO 分销，逾八成杠杆贷款为轻契约。顶层设计：取消契约 + 美化盈利把企业杠杆堆到极限，再证券化转嫁。"},
+  {L:"金融市场",n:"货币市场基金",s:"货基",c:3,lv:2.5,rf:4.5,k:"p",note:"货基是类存款的影子负债，按面值赎回却投向短期信用资产；一旦「跌破面值」就触发挤兑，杠杆虽低但流动性极脆。",case:"极端样本：Reserve Primary Fund（2008）——因持有雷曼商票而「跌破面值」，引爆全行业货基挤兑，迫使美联储与财政部出手兜底。顶层设计：用「永远 1 美元」的隐性刚兑 + 投向有信用风险的商票，本质是无保险的影子存款。"},
+  {L:"金融市场",n:"加密杠杆与稳定币",s:"加密杠杆",c:2,lv:5,rf:5,k:"p",note:"加密借贷与算法稳定币把杠杆与期限转换搬到无监管之地；算法稳定币的「合成美元」在信心逆转时陷入死亡螺旋。",case:"极端样本：2022 年 Terra / Luna——算法稳定币用一个可无限增发的姊妹币 Luna 来「锚定」UST，信心逆转即「印 Luna 救 UST」的死亡螺旋（Do Kwon 获刑 15 年）；同年 FTX 挪用客户资金、SBF 获刑 25 年。顶层设计：用左脚踩右脚的合成锚定，把稳定与杠杆建在纯信心之上。"},
+  {L:"金融市场",n:"国债基差交易",s:"基差交易",c:3.5,lv:5,rf:4,k:"p",note:"对冲基金做多现券、做空国债期货赚取微小价差，再以 repo 加 15–20 倍杠杆放大；高度依赖隔夜融资，挤兑式平仓会放大国债市场动荡。",case:"极端样本：1998 年长期资本管理（LTCM）——诺奖团队以约 25 倍资产负债表杠杆 + 上万亿名义衍生品做相对价值套利，俄债违约触发崩盘、需纽约联储组织约 36 亿美元救助；当代翻版是 15–20 倍杠杆、约 1.85 万亿美债的基差交易。顶层设计：在「无风险」微利差上叠加极高杠杆、靠隔夜 repo 滚动，赌价差收敛。"},
+  // 国家
+  {L:"国家",n:"中央财政赤字 / 国债",s:"国债",c:4.5,lv:3,rf:2,k:"p",note:"支出大于收入靠发国债弥补；国债是政府负债、同时是银行居民海外的资产，把未来征税能力提前动用，背后有主权信用兜底。",case:"极端样本：日本——政府债务约为 GDP 的 2.6 倍（发达国家最高），靠本币计价 + 央行无限承接维持。顶层设计：把主权债务推到 GDP 数倍，用本币发行权与央行购债把财政可持续性「货币化」。"},
+  {L:"国家",n:"地方政府专项债",s:"专项债",c:3.5,lv:3.5,rf:2.5,k:"p",note:"为特定项目（基建、土储等）融资、以项目未来收益偿债，属计入政府账面的显性地方债，是积极财政的重要抓手。",case:"极端样本：把缺乏真实收益的项目包装成「有收益」以发专项债、甚至借新还旧，使显性地方债的边界被不断拉伸。顶层设计：用「项目自平衡」的名义把一般性举债装进专项债的合规外壳。"},
+  {L:"国家",n:"地方融资平台（LGFV）/ 隐性债务",s:"LGFV",c:2.5,lv:4.5,rf:3.5,k:"p",note:"通过城投平台举债搞基建，资金来自城投债、银行贷款、非标，却不计入政府表，靠土地与政府信用兜底，是地方信用里最需警惕的灰色地带。",case:"极端样本：贵州——全省城投债务远超财政承受、遵义道桥 156 亿银行贷款展期 20 年、靠茅台输血，付息一度都靠借新。顶层设计：用城投这个「政府的影子企业」无限举债搞公益基建，债不上政府表、靠土地与隐性兜底。"},
+  {L:"国家",n:"土地财政（抵押品轴心）",s:"土地财政",c:3,lv:4,rf:5,k:"p",note:"出让土地获取收入，而土地是整座信用大厦的核心抵押品，把居民—开发商—政府—基建四方咬合，地价是牵一发动全身的总枢纽。",case:"极端样本：中国土地财政巅峰——地方政府垄断土地一级市场，靠不断推高地价获取近半财政收入并撑起全社会抵押品，地价＝财政＝信用三位一体；2021 年后卖地崩塌即逆转。顶层设计：把土地金融化为财政与全社会信用的共同总抵押品。"},
+  {L:"国家",n:"央行扩表 / 基础货币投放",s:"基础货币",c:4,lv:3,rf:2.5,k:"m",note:"早年靠外汇占款被动投放人民币，后转为以 MLF / PSL 等抵押方式主动供给基础货币（PSL 曾大规模支持棚改货币化）。",case:"极端样本：2015–18 棚改货币化——央行经国开行用 PSL 定向印钱发给拆迁户买房，去三四线库存的同时直接点燃其房价。顶层设计：用基础货币定向灌入特定人群，直接点燃特定资产价格。"},
+  {L:"国家",n:"财政赤字货币化 / QE",s:"赤字货币化",c:3.5,lv:4,rf:3.5,k:"m",note:"央行直接或间接为赤字融资、购买主权债，是信用扩张的终极形态；中国法律限制一级市场直购国债故多为间接，是 MMT 争论的焦点。",case:"极端样本：魏玛德国、津巴布韦（曾发行 100 万亿面值钞票）、委内瑞拉——央行直接为财政赤字印钞，直至货币本身归零的恶性通胀。顶层设计：央行无锚地为赤字印钞，信用扩张的终极形态——直到货币失去价值。"},
+  {L:"国家",n:"对外信用（外债 / 外储 / 美元体系）",s:"对外信用",c:3,lv:3.5,rf:4,k:"p",note:"通过对外借债或持有对外净资产、随国际资本流动扩张收缩；美元体系下离岸美元派生构成全球性信用层，把本国周期嵌入全球潮汐。",case:"极端样本：阿根廷——在固定汇率 + 开放资本账户下大举借美元，三难困境下九次主权违约、货币反复崩溃。顶层设计：用别国货币（美元）举债投本币资产，把货币错配风险押在汇率不破上。"},
+  {L:"国家",n:"总量调控（社融 / M2 / 窗口指导）",s:"总量调控",c:4.5,lv:2,rf:2,k:"m",note:"用社融与 M2 增速目标调控全社会信用总闸门，辅以宏观审慎、信贷额度与窗口指导，以宏观杠杆率为标尺在去/稳杠杆之间切换。",case:"极端样本：中国 2024 年 11 月约 10 万亿元（连同棚改共约 12 万亿元）化债组合拳——用中央债务限额 + 专项债把地方隐性债显性化、展期、降息，目标把 2028 年前需消化的隐性债从 14.3 万亿压到 2.3 万亿。顶层设计：用最高层的总量工具一次性置换、收拾前期信用扩张的残局。"},
+  {L:"国家",n:"主权债务危机 / 违约",s:"主权违约",c:2.5,lv:4,rf:4,k:"p",note:"主权过度举债、又无硬抵押，一旦市场对偿付能力生疑，再融资利率飙升与「主权—银行」末日循环会自我强化，直至违约或被迫纾困。",case:"极端样本：希腊（2010–12）——债务/GDP 冲到约 180%，身处欧元区既不能印钞又不能贬值，最终私人债权人减记约 53%、三轮纾困、被「三驾马车」接管。顶层设计：在硬货币约束下把主权债务推到无法自我货币化，只能违约 + 外部接管。"},
+];
+
+
+const DATA_JPM = [
+  // 家庭
+  {L:"家庭",n:"婚姻并购（娶孟玉楼 · 李瓶儿）",s:"婚姻并购",c:3,lv:5,rf:3.5,k:"p",note:"以极薄的聘礼作自有资金，吞进亡夫的整张资产负债表——布商的遗产、太监一脉的珠宝细软随人过门；婚姻是清河县成本最低的并购通道，结构上就是「用你的钱娶你」。",case:"第七回娶孟玉楼，得杨家布商巨资；第十四至十六回娶李瓶儿，花太监积攒的金银细软尽数并入西门府——晚明版的杠杆收购，标的自带对价。"},
+  {L:"家庭",n:"身体杠杆（胡僧药 · 纵欲透支）",s:"身体杠杆",c:1,lv:5,rf:3,k:"p",note:"西门庆真正的底层抵押品是自己的身体：纵欲是加杠杆，药是杠杆工具，借明日之精气偿今日之欲——现金流不自偿、只能借新还旧，是做在肉身上的庞氏融资。",case:"第四十九回得胡僧药，杠杆倍数骤升；第七十九回油枯灯尽——追加保证金失败的爆仓。帝国的久期等于他的寿命，而他亲手给这唯一的底层抵押品上满了杠杆。"},
+  {L:"家庭",n:"妆奁转移（李瓶儿抽逃花家资产）",s:"妆奁转移",c:4,lv:3.5,rf:2.5,k:"p",note:"诉讼缠身之际把硬通货提前搬进未来夫家——债权人尚未清算，资产已换了资产负债表；婚姻通道兼作资产转移通道，是教科书级的欺诈性转移。",case:"第十四回花子虚系狱，李瓶儿连夜从墙头递过箱笼：沉香、白蜡、水银、胡椒并三千两银——皆是当时最硬的可变现资产，官司未了，产权已改。"},
+  {L:"家庭",n:"表外血债（武大命案 · 或有负债）",s:"表外血债",c:1,lv:4,rf:4,k:"p",note:"合谋的命案是一笔不上账的或有负债：无契约、无账期，以仇恨计息复利；账面看不见它，清算日却一定到来——全书最硬的一笔表外义务。",case:"第八十七回武松归来，杀嫂祭兄——表外负债被暴力催收；同回「王婆子贪财忘祸」，中介与主谋同席清算。"},
+  // 民间金融
+  {L:"民间金融",n:"十兄弟结拜（社会资本）",s:"结拜",c:1.5,lv:3,rf:4.5,k:"m",note:"以盟兄信任替代抵押与征信，是清河县信用的基础设施；但信任既是乘数也是猎场——网络里最有权势的节点，可以捕食其余所有节点。",case:"第一回热结十弟兄；花子虚至死信任盟兄，西门庆睡其妻、吞其产、送其命——「社会资本」这根铰链在书中最彻底的一次失灵。"},
+  {L:"民间金融",n:"中人经纪（应伯爵说合）",s:"中人",c:2,lv:2.5,rf:3,k:"m",note:"撮合借贷、两头抽用的活体征信与做市商；帮闲不出本钱、只出信息与关系，是永不违约的流动资产——它总能再抵押到最新的那张资产负债表上。",case:"应伯爵为李三黄四说合借银、按单抽中人钱；西门庆尸骨未寒（八十回起），整个帮闲网络无缝迁移到张二官门下——中介比债权更耐久。"},
+  {L:"民间金融",n:"香蜡放贷（李三黄四 · 月息五分）",s:"香蜡放贷",c:2.5,lv:4,rf:3.5,k:"p",note:"以官府承揽合同的回款作保、金镯首饰抵补，月息五分（年化逾六成）的应收账款质押贷；利率再高，也覆盖不了合同回款系于衙门与关键人的双重风险。",case:"李三黄四借银屡借屡展、以东平府香蜡合同与首饰作抵；西门庆一死，这些欠银成了收不回的死账——高息补不齐关键人风险的窟窿。"},
+  {L:"民间金融",n:"媒妁定计（王婆 · 十件挨光计）",s:"王婆",c:1,lv:2,rf:3,k:"m",note:"非法交易的中介与交易结构设计者：十件挨光计是一份分步执行的并购方案书，按进度收费；中介抽成的对价，是承担交易败露的尾部风险。",case:"第三回定计抽成；第八十七回「王婆子贪财忘祸」——尾部风险兑现，与主谋同日被武松清算。"},
+  // 公司
+  {L:"公司",n:"生药铺本业（对冲端）",s:"生药铺",c:3.5,lv:2,rf:1.5,k:"p",note:"祖传本业，进销差价、现金流自偿，是整个帝国里罕见的对冲融资——也正因回报平实，最早被冷落在一旁。",case:"家业的起点；此后当铺、缎铺、盐引、官缺层层盖过本业——一部微型的「脱实向虚」史，实业成了帝国的装饰。"},
+  {L:"公司",n:"伙计领本分利（韩道国 · 来保）",s:"伙计分利",c:2,lv:3,rf:2.5,k:"p",note:"无法人外壳的合伙制：伙计领东家本钱经营、按分分利；代理成本平日被威权压住，关键人一倒即刻兑现——威权是唯一的公司治理。",case:"第八十一回「韩道国拐财远遁 汤来保欺主背恩」——闻丧即席卷货银千两而去，另一位如法炮制；代理成本一夜之间全额结清。"},
+  {L:"公司",n:"多店扩张 · 长途贩运",s:"贩运扩张",c:3,lv:3.5,rf:2.5,k:"p",note:"缎铺、绒线铺、标船贩运，以商业信用与预付滚动扩张；现金流依赖回款不断流，在途资产与铺面高度依赖东家坐镇。",case:"杭州置货、临清过税，铺面越开越多——晚明版高周转；西门庆一死，在途货物与铺面旋即被伙计亲眷瓜分殆尽。"},
+  // 银行
+  {L:"银行",n:"解当铺（当票 · 死当）",s:"当铺",c:4,lv:3,rf:3,k:"p",note:"收当头、出银子：当票即信用，死当即抵押品处置——抵押品铰链最裸露的柜台形态，折当率是内置的安全垫，是西门府的「准银行」。",case:"以李瓶儿带来的本钱开设解当铺，月月生利；首饰衣物床帐皆可作当头——清河县的柜台版回购市场。"},
+  {L:"银行",n:"影子吸储（李瓶儿寄存银两箱笼）",s:"影子吸储",c:2,lv:4,rf:3,k:"p",note:"无凭无照代管他人巨额财物：无存款保险、无准备金、无账可查的影子负债；存款与股本之间只隔一层人身关系。",case:"第十四回李瓶儿以银两箱笼寄存西门府，花子虚一死尽数并入——储户与银行最终合并于一张婚床，「存款」变成了股本。"},
+  {L:"银行",n:"称量白银体系（戥子 · 成色 · 火耗）",s:"称银体系",c:4.5,lv:1.5,rf:1.5,k:"m",note:"一条鞭法后白银货币化的基础设施：戥子称重、验看成色、倾银铺兑换，「火耗」即体系自带的摩擦成本——货币基础设施本身极稳，脆弱全在其上的信用层。",case:"全书交易皆以称量银结算，打赏论分、宴席论两、并购论千——兰陵笑笑生几乎逐笔记账，白银是全书唯一从不违约的角色。"},
+  // 金融市场
+  {L:"金融市场",n:"盐引（三万引 · 早掣一月）",s:"盐引",c:2.5,lv:4,rf:3.5,k:"p",note:"对未来食盐的政府信用凭证：价值取决于何时兑付，提前支盐即久期套利；对手方是屡变盐法的朝廷——主权违约风险内嵌于纸。",case:"第四十九回借宴请蔡御史之机求得早掣一月，插队套利；徽宗朝蔡京屡改盐法、旧引限期贴换，持旧引者动辄破产——凭证的对手方风险写在史里。"},
+  {L:"金融市场",n:"专卖承揽（香蜡 · 古器采办合同）",s:"承揽合同",c:2.5,lv:3.5,rf:3,k:"p",note:"对官府的应收账款是可质押、可融资的标的资产：合同即抵押品，回款进度系于衙门与经手人，官府信用被层层转押。",case:"李三黄四以东平府香蜡合同作保向西门庆举债——一纸承揽合同在放贷人、承揽人、衙门之间被反复抵押流转。"},
+  {L:"金融市场",n:"珍玩准货币（蟒衣玉带 · 帽顶）",s:"珍玩准货币",c:3.5,lv:2,rf:2.5,k:"m",note:"高面值、可鉴别、可流转的奢侈品，在贿赂经济里充当大额无记名票据——礼物即支付，支付即隐匿，是权力市场的现钞。",case:"生辰担里的蟒衣玉带、金壶玉杯是献给蔡京的「大额现钞」；李瓶儿的帽顶绦环则是可随身携带的资本转移。"},
+  // 国家
+  {L:"国家",n:"生辰担（政治保护费 · 看涨期权）",s:"生辰担",c:2,lv:4,rf:4.5,k:"p",note:"向相府缴纳的税，也是买入的政治保护看涨期权：行权即免罪、加官；权力的对价随权势水涨船高，且随时可被更高出价者稀释。",case:"第十八回来保赍礼上东京，杨戬案中全身而退；第三十回生辰担换来金吾卫理刑副千户——期权深度实值，保护费变成了官身。"},
+  {L:"国家",n:"官缺牌照（理刑千户 · 补缺）",s:"官缺",c:3,lv:3.5,rf:4.5,k:"m",note:"「缺」是耐久资产，人只是租户：牌照生租金、租金买更大的牌照——财→权→财的主环在此闭合；人死缺存，牌照永续经营。",case:"西门庆死后张二官旋即「补了他的缺」，连帮闲网络与姬妾都要一并盘下——资产易主，牌照照常营业。"},
+  {L:"国家",n:"司法寻租（苗青案 · 断案作价）",s:"苗青案",c:1.5,lv:3.5,rf:3.5,k:"p",note:"理刑之职即断案定价权，受贿纵凶是牌照的直接变现；上有御史参劾的监管风险，靠更高层的保护伞对冲——寻租被更大的寻租吸收。",case:"第四十七、四十八回受苗青千两贿而纵之；曾御史参劾，反被蔡京一系压下——监管风险被保护伞内部化，定价权完好如初。"},
+  {L:"国家",n:"皇权 · 元抵押品（蔡京网络）",s:"皇权",c:2.5,lv:4,rf:4,k:"m",note:"整条链最上层的抵押品是圣眷与相权：官缺、盐引、司法皆是它的再抵押——元抵押品一失灵，所有下游信用同日到期。",case:"第一百回金兵南下、徽钦北狩，蔡京一系败落——以权力为锚的一切信用同时清算；普净幻度孝哥，是这部因果总账的最终清算人。"},
+];
+
+
+const DATA_MJ = [
+  // 家庭
+  {L:"家庭",n:"灾民贱卖田地（人造危机下的被迫去杠杆）",s:"灾民卖田",c:2,lv:2.5,rf:4.5,k:"p",note:"洪水先毁掉抵押品，再让灾民在饥饿的贴现率下贱卖它——被迫去杠杆的对手方，正是制造危机的人；田价的下跌螺旋是被人为点燃的反身性。",case:"毁堤淹田之后，郑泌昌、何茂才们压着灾价强收淳安、建德的田，海瑞以「买田先过我这一关」死死顶住——买方与纵火者同席，是这场交易的全部真相。"},
+  {L:"家庭",n:"改桑断粮（转型期的过桥缺口）",s:"改桑断粮",c:1.5,lv:3.5,rf:3,k:"p",note:"改稻为桑断的是当年的口粮现金流：桑还没结钱，米已经没了——转型的过桥融资完全缺位，政策把久期错配直接压给最没有缓冲的家庭。",case:"「以改兼赈，两难自解」是高翰文的书生公式：拿灾赈当过桥贷款——落地即变形，桥没搭成，田先没了，人差点反了。"},
+  // 民间金融
+  {L:"民间金融",n:"师生乡谊（严嵩 ⇄ 胡宗宪 · 政治担保）",s:"师生乡谊",c:2,lv:3,rf:4,k:"m",note:"师生名分是一笔政治担保：它让胡宗宪借得到粮、调得动兵，也让他永远背着「严党」的或有负债——担保是双向的，受保人同时在为担保人背书。",case:"胡宗宪一生夹在「不能倒严师」与「不能祸浙江」之间；严党一倒，这笔担保的负债端立刻兑现，国之干城随之退场。"},
+  {L:"民间金融",n:"徽商贱买官产（沈家作坊）",s:"徽商买产",c:3,lv:3.5,rf:3,k:"p",note:"用司法查抄制造的折价，定向输送给关系买家——低价入场的对价，是事后被官府反手拿捏；贪来的便宜，迟早变成投名状。",case:"郑何把沈一石的作坊织机贱卖给徽商换好处；朝局一翻、案子重审，贱买合同成了把柄——买家从赢家变成人质。"},
+  // 公司
+  {L:"公司",n:"沈一石 · 织造局官商（白手套的白手套）",s:"沈一石",c:2.5,lv:4,rf:3.5,k:"p",note:"持织造局牌子二十年，织绸数百万匹，利银层层分润给宫里与各级、自己「所剩无几」——名为商人，实为体制的代理人；资产名义在己，处置权在上。",case:"买田则宫里落「与民争利」之名，赈灾则自曝二十年亏空——两难之下自焚，遗书写尽官商宿命：「上下挥霍无度，便掠之于民；民变在即，便掠之于商。」"},
+  {L:"公司",n:"织造局牌子（牌照信用 · 打谁的旗）",s:"牌照信用",c:3,lv:3,rf:4,k:"m",note:"「打着谁的牌子」＝借用谁的信用背书：灯笼一挂，买田是宫里买田，赈灾是奉旨赈灾——牌照是可挪用的信用凭证，也因此能反噬持牌人。",case:"沈一石的船队一夜之间把「织造局」灯笼换成「奉旨赈灾」——同一批粮、两套信用；牌子没能救他，反而锁死了他的死法。"},
+  // 银行
+  {L:"银行",n:"官仓借粮（省际同业拆借）",s:"官仓借粮",c:3.5,lv:2.5,rf:3,k:"p",note:"省际调粮是官仓体系的同业拆借：信用本身无虞，冻结它的是政治——借给谁、不借给谁，是朝局站队而非风险定价。",case:"胡宗宪为灾民与军需向邻省求粮，赵贞吉以朝局为由按住不放——同业市场在最需要流动性的时刻，因政治风险而冻结。"},
+  {L:"银行",n:"织造局 · 市舶司（宫里的融资平台）",s:"织造局",c:3,lv:3.5,rf:3,k:"m",note:"织造局兼市舶司是宫里的表外钱袋：垄断织造与外贸专营，给内库输血——业务在江南，负债在圣意，账目在暗处。",case:"杨金水总管条线，上对吕芳、下辖沈一石；案发后装疯——平台不能倒，就让经手人「主动熔断」，把线在自己身上掐断。"},
+  {L:"银行",n:"赈灾粮（灾年硬通货）",s:"赈灾粮",c:4.5,lv:1.5,rf:2,k:"m",note:"灾年里粮食是唯一硬通货：一切债务、田价、人心都以粮计价——赈灾粮是那个体系的基础货币，握粮者握定价权。",case:"海瑞在淳安逼粮商借粮、开仓平粜，用粮把田价从崩溃线上拉了回来——以基础货币干预，阻断贱卖螺旋。"},
+  // 金融市场
+  {L:"金融市场",n:"五十万匹丝绸订单（出口远期作锚）",s:"丝绸订单",c:2.5,lv:4,rf:3.5,k:"p",note:"与西洋商人的丝绸大单是整个改稻为桑的锚：以未来交货的应收，作为国策融资的抵押——远期合约倒逼现货暴政。",case:"为按期交货，产能缺口被层层摊派成毁堤与贱买——订单本身无罪，拿订单当抵押品去压榨转型成本的机制有罪。"},
+  {L:"金融市场",n:"沈一石账册（审计做空凭证）",s:"账册",c:2,lv:3,rf:4.5,k:"m",note:"账册记下二十年分润流水：谁的牌子、谁的份例、几时几两——信息即武器，一册在手等于持有对整条分利链的做空凭证。",case:"账册随遗书外流、直达御前——严党与织造局的暗账瞬间透明，做空凭证引爆，倒严的引信由此点燃。"},
+  // 国家
+  {L:"国家",n:"圣意 · 元抵押品（嘉靖垂帘掌总）",s:"圣意",c:2.5,lv:4,rf:4.5,k:"m",note:"整座体系的元抵押品是圣意：严党的权、织造局的牌、司法的刀，全是它的再抵押；修道离场是姿态，垂帘掌总是实权。",case:"「云在青天水在瓶」——嘉靖二十年不上朝而威柄不移；万寿宫的工期与《治安疏》的狱案，同出一个锚。"},
+  {L:"国家",n:"严党 · 白手套（皇帝的表外平台）",s:"严党",c:2,lv:4.5,rf:4.5,k:"m",note:"严嵩内阁是皇帝的表外融资平台：替上遮风挡雨、脏活出表，分润是平台费——养肥再杀，抄家即主权对自家 SPV 的清算回收。",case:"倒严抄没充公，成了空虚国库最后的大额进项——「掠之于民、掠之于商」之后的第三段：掠之于臣。"},
+  {L:"国家",n:"改稻为桑（定向产业信贷国策）",s:"改稻为桑",c:2,lv:4,rf:4,k:"p",note:"以行政力量把稻田强制转换为出口产能的定向信贷：政策收益归上、转型成本压给最底层——执行层层加码，国策变酷政。",case:"御前定策、浙江执行，从「买田改桑」到「毁堤淹田」只隔一层考成压力——定向信贷在缺约束的科层里必然变形。"},
+  {L:"国家",n:"毁堤淹田（人造危机套利）",s:"毁堤淹田",c:1,lv:4.5,rf:5,k:"p",note:"先毁抵押品、再收抵押品：人为制造不良资产，再以救灾之名贱价收购——把反身性当武器使的极端形态，全图脆弱度之最。",case:"新安江决口淹田，随后压价收地；事泄后马宁远等四人顶罪处决——制造危机者用弃卒完成风险出表。"},
+  {L:"国家",n:"鄢懋卿巡盐（竭泽式征税）",s:"巡盐",c:2.5,lv:4,rf:3.5,k:"p",note:"对最后一块现金牛的竭泽式征税：一次抽干数年的税基——短期入账越猛，税基与信用毁得越快。",case:"巡盐所得五百余万两，大半被严党与各级截留——皇帝算清这笔账的那一刻，白手套的清算倒计时开始。"},
+  {L:"国家",n:"通倭构陷（司法夺产）",s:"通倭构陷",c:1.5,lv:3.5,rf:3.5,k:"p",note:"司法是夺产与灭口的工具：一顶「通倭」帽子既能抹掉证人，也能没收家产——定罪权就是定价权。",case:"何茂才以通倭构陷齐大柱、欲借刀灭口；海瑞当堂翻案——刀被夺下，持刀人后来自己上了刑场。"},
+  {L:"国家",n:"刚性支出（宫观内帑 · 抗倭军费）",s:"刚性支出",c:3,lv:3.5,rf:2,k:"p",note:"宫观工程与抗倭军费是两笔最硬的现金流出：一笔是圣意的面子，一笔是社稷的里子——所有政策创新都是被这两笔刚性负债逼出来的。",case:"岁初御前财政会议为亏空定调；钦天监周云逸言「朝廷开支无度」被杖毙——预算约束硬不过圣意，言路先于财政破产。"},
+  {L:"国家",n:"主权换锚（嘉靖 → 隆庆 · 遗诏纠错）",s:"主权换锚",c:3.5,lv:3,rf:2.5,k:"m",note:"皇位更替是主权信用的展期换锚：新君以「纠错」重建信用——平反、赦免、清算旧账，都是换锚的会计分录。",case:"嘉靖驾崩、遗诏出，海瑞出狱、冤案昭雪——主权没有断裂，而是以否定前朝的方式完成了对自己的再融资。"},
+];
+
+
+const DATA_HD = [
+  // 家庭
+  {L:"家庭",n:"购房者预售款（无息强制杠杆）",s:"预售款",c:2,lv:5,rf:5,k:"p",note:"未建成即预售，购房者的首付与按揭是近乎无息、且无处置权的杠杆资金——回款拿地、再预售，全押房价永涨；房价一停，业主背着三十年月供面对停工楼盘。",case:"截至 2025 年，恒大在 280 余个城市仍有约 1300 个楼盘处于烂尾或将烂尾状态；「保交楼」被提到国策高度，专项借款与贷款规模达数千亿元。购房者是这台机器最底层、最沉默的债权人。"},
+  {L:"家庭",n:"恒大财富（向员工业主非法吸储）",s:"恒大财富",c:1,lv:5,rf:4.5,k:"p",note:"以高额回报承诺向社会（尤重员工、业主、亲友）发行定融理财——本质是无牌照的公众吸储，靠借新还旧维持，是家庭端最典型的庞氏融资。",case:"恒大财富定融产品合共募资约 921 亿元、涉超 8 万人（五年逾千亿），至今约 300–340 亿元本息未兑付。定性罪名：非法吸收公众存款、集资诈骗（后者最高可判无期）。2023 年 9 月总经理杜亮等被采取刑事强制措施。"},
+  // 民间金融
+  {L:"民间金融",n:"员工亲友捆绑认购（社会资本变提款机）",s:"员工捆绑",c:1,lv:4.5,rf:4.5,k:"m",note:"用上下级关系与人情信任把理财额度摊派下去：完成任务靠的是熟人网络而非风险定价——社会资本被当成吸储渠道，一损俱损。",case:"大量认购人是被公司捆绑购买的恒大员工与业主，养老钱、教育钱一夜归零；信任网越紧，兑付违约的伤害越彻底——「社会资本」这根铰链在恒大财富上再次断裂。"},
+  {L:"民间金融",n:"技术性离婚 · 境外信托（防火墙）",s:"离婚信托",c:2,lv:4,rf:3,k:"p",note:"危机初起即预设个人层面的隔离结构：离婚切割、境外家族信托——试图把家族财富与公司债务的连带责任隔开，是「金蝉脱壳」式的表外转移。",case:"2021 年与丁玉梅「技术性离婚」转移伦敦豪宅、私人飞机等；2019 年在美设 23 亿美元家族信托。法院认定离婚无效、信托防火墙被实质穿透；2025–26 年全球冻结家族约 77 亿美元资产。"},
+  // 公司
+  {L:"公司",n:"高周转预售模式（本业即赌局）",s:"高周转",c:3,lv:5,rf:5,k:"p",note:"「高杠杆、高负债、高周转」——拿地即开发贷启动、未建成即预售、回款再拿地，把自有资金占用压到趋零，IRR 趋无穷，全赌房价与销售不断流。",case:"1996 年创立、2009 年港股上市（市值超 700 亿港元）、许家印一度中国首富；2021 年暴雷，累计负债约 2.44 万亿元——高周转模式推到极致的一败。"},
+  {L:"公司",n:"商票拖欠供应商（无息占款）",s:"商票",c:1.5,lv:2.5,rf:2,k:"p",note:"用市场支配地位把对供应商的欠款（商票）拉到极限规模、长期拖欠，把整条供应链变成自己的无息银行——账期即融资。",case:"上万家供应商被拖欠工程款，建筑商、材料商、施工队整条产业链被拖入深渊，有的小企业直接倒闭——应付账款＝占用上下游资金的教科书样本。"},
+  {L:"公司",n:"层层分包与工程款欠付（责任下沉）",s:"层层分包",c:1.5,lv:4,rf:2.5,k:"p",note:"高周转的工地末端就是这条分包链：总包把工程款压力与安全用工责任层层下推，商票与账期沿链传导，最终堆在农民工与包工头身上——责任出表、欠款下沉，是「保交楼」之外最沉默的一层债权人。",case:"恒大停工后，上万家供应商与无数分包队被拖欠工程款，整条产业链被拖入深渊、部分小企业直接倒闭；欠薪与烂尾叠加，实际施工人只能沿分包链向上、并依法向发包人追索。"},
+  {L:"公司",n:"多元化烧钱（汽车 · 足球 · 文旅）",s:"多元化",c:2,lv:4.5,rf:3.5,k:"p",note:"用房地产赚来的钱与举来的债，在造车、足球、文旅、饮用水多线复制——盲目多元化把现金流摊薄、加速资金链断裂，是「脱实向虚」的反向版：主业的钱流向更烧钱的副业。",case:"央行回应称恒大「盲目多元化扩张，造成经营和财务指标严重恶化」；恒大汽车业务持续烂尾、2025 年 4 月停牌，至今未觅得战略投资者。"},
+  // 银行
+  {L:"银行",n:"违规发放贷款（金融机构配合放水）",s:"违规放贷",c:2.5,lv:4,rf:3.5,k:"p",note:"信用扩张不是单方行为：银行与金融机构违规发放、腾挪贷款，才让这台机器转得起来——放贷端的合规失守是危机的共谋。",case:"定性罪名：违法发放贷款（恒大集团与许家印均被控此项）——把银行信贷的顺周期放水与监管套利，正式钉入刑事范畴。"},
+  {L:"银行",n:"表内外融资腾挪（违法运用资金）",s:"资金腾挪",c:2,lv:4.5,rf:4,k:"m",note:"在项目公司、财富平台、上市主体间腾挪资金，打通预售款、理财与贷款的管道——把受监管的资金挪作他用，是整台机器的暗管。",case:"定性罪名：违法运用资金、职务侵占（许家印个人被控）——涉嫌通过分红、薪酬等方式侵占公司资产约 438 亿元。资金在体系内的暗流被逐笔追认。"},
+  // 金融市场
+  {L:"金融市场",n:"境内公司债（欺诈发行证券）",s:"欺诈发行",c:2,lv:4,rf:4,k:"p",note:"以虚增的财务数据取得发行资格：账面越好看、越能大规模发债融资——发起-分销链条建立在伪造的偿债能力之上。",case:"以虚增数据发行 208 亿元公司债，涉嫌欺诈发行证券。证监会 2024 年 5 月按募集资金 20% 顶格处罚，恒大地产罚 41.75 亿元、许家印顶格罚 4700 万元并终身证券市场禁入。"},
+  {L:"金融市场",n:"财务造假（虚增收入 5641 亿）",s:"财务造假",c:1.5,lv:3,rf:4.5,k:"m",note:"提前确认收入、虚增营收利润，是撑起整条信用链的总账做空凭证的反面——一旦戳穿，发债、放贷、理财的抵押品同时失效。",case:"2019 年虚增收入 2139.89 亿元（占营收 50.14%）、2020 年虚增 3501 亿元（占 78.54%），两年虚增营收 5641 亿元；定性罪名：违规披露重要信息。证监会称许家印「手段特别恶劣，情节特别严重」。"},
+  {L:"金融市场",n:"境外美元债 · 离岸架构",s:"境外美元债",c:2,lv:4.5,rf:4,k:"p",note:"借离岸架构大举发行美元债、并向境外转移资产——把信用与资产同时搬到表外与境外，美元收紧与信心逆转时最先断裂。",case:"清盘人在全球 12 国冻结许家印家族 77 亿美元资产，涉 33 家境外公司；至 2025 年 7 月清盘人收到 187 份债权证明、申报总额约 3500 亿港元（450 亿美元）。"},
+  // 国家
+  {L:"国家",n:"土地财政依赖（地方与房企的共生）",s:"土地财政",c:3,lv:4,rf:5,k:"p",note:"高周转的燃料是地方政府垄断出让的土地：地价撑财政、财政保基建、房企拿地推高地价——恒大是这台反身机器上体量最大的单一节点。",case:"1998 年房改后地产以「高杠杆高负债高周转」狂飙二十余年；「房住不炒」与「三条红线」落地后，土地这一核心抵押品逆转，恒大成为模式转向的第一块多米诺。"},
+  {L:"国家",n:"三条红线（总量调控踩下急刹）",s:"三条红线",c:4,lv:2,rf:3,k:"m",note:"以剔除预收款后的资产负债率、净负债率、现金短债比三条线给房企总杠杆划闸——是国家层面对高周转模式的定向去杠杆，也是引爆点。",case:"2020 年三条红线出台，恒大三线全踩、被列「红档」，融资通道收紧——高周转赖以为生的「回款不断流」假设被政策直接击穿，2021 年暴雷。"},
+  {L:"国家",n:"保交楼（主权信用兜底烂尾）",s:"保交楼",c:3.5,lv:3,rf:2.5,k:"m",note:"当私人信用链断裂、购房者面临房财两空，国家以专项借款与政策性贷款兜底续建——把断掉的私人抵押品，接到主权信用上。",case:"「保交楼」上升为国策，专项借款与贷款规模达数千亿元；但截至 2025 年仍有约 1300 个恒大楼盘烂尾——主权兜底也难以完全填平这台机器留下的窟窿。"},
+  {L:"国家",n:"清盘与刑事清算（掠之于企的终局）",s:"刑事清算",c:2.5,lv:3.5,rf:3,k:"m",note:"危机的终局是双重清算：香港清盘令处置资产、境内刑事追责定性罪名——「防火墙」被逐层穿透，经营风险被正式推入违法犯罪的范畴。",case:"2024 年 1 月港交所最大清盘案；2025 年 8 月中国恒大退市（较峰值蒸发超 99%）；2026 年 4 月深圳中院开庭，恒大集团被控六项、恒大地产一项、许家印个人八至九项罪名，当庭认罪、择期宣判，法律界预判大概率无期徒刑。"},
+];
+
+const LAYERS=["家庭","民间金融","公司","银行","金融市场","国家"];
+const LCOLOR={"家庭":"#3F7E6B","民间金融":"#6B4F3A","公司":"#3A6491","银行":"#9A6A2F","金融市场":"#6E5A7D","国家":"#7A4A55"};
+const frag=d=> (d.lv + d.rf + (6 - d.c))/3;
+const band=f=> f>3.5?"ponzi": f>=2.5?"spec":"hedge";
+const BANDCOLOR={hedge:"#5E8C61",spec:"#C8923D",ponzi:"#BC4B33"};
+const BANDNAME={hedge:"对冲",spec:"投机",ponzi:"庞氏"};
+[DATA_XD,DATA_JPM,DATA_MJ,DATA_HD].forEach(arr=>arr.forEach(d=>{d.f=frag(d); d.b=band(d.f);}));
+let DATA = DATA_XD;
+
+const state={ydim:"frag", sdim:"lv", labels:true, view:"plot", dataset:"xd",
+  active:new Set(LAYERS), sortKey:"f", sortDir:-1, sel:null};
+
+const SVGNS="http://www.w3.org/2000/svg";
+const svg=document.getElementById("svg");
+const W=1480,H=720, mL=92,mR=24,mT=34,mB=66;
+const plotW=W-mL-mR, plotH=H-mT-mB;
+
+// value accessor per y-dimension
+function yval(d){
+  if(state.ydim==="frag") return d.f;
+  if(state.ydim==="lv") return d.lv;
+  if(state.ydim==="rf") return d.rf;
+  if(state.ydim==="ci") return 6-d.c; // 抵押品薄弱
+}
+const Y_LABELS={frag:"脆弱度（越上越接近庞氏）",lv:"杠杆强度",rf:"反身性强度",ci:"抵押品薄弱程度"};
+function yToPx(v){ return mT + (5-v)/(5-1)*plotH; } // domain 1..5 -> bottom..top
+function sizeR(d){
+  let v = state.sdim==="lv"? d.lv : state.sdim==="frag"? d.f : 3;
+  if(state.sdim==="fix") return 9;
+  return 6 + (v-1)/(5-1)*10; // 6..16
+}
+
+function el(tag,attrs,parent){
+  const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+
+function textW(s){let w=0;for(const ch of s){w+= ch.charCodeAt(0)>255?11:7;}return w;}
+function rectsOverlap(a,b){return !(a.x2<=b.x1||a.x1>=b.x2||a.y2<=b.y1||a.y1>=b.y2);}
+
+function renderPlot(){
+  svg.innerHTML="";
+  const colN=LAYERS.length, colW=plotW/colN;
+  const labelBlockers=[];
+
+  // Minsky zone bands (only when ydim is fragility); else gridlines
+  if(state.ydim==="frag"){
+    const zones=[["ponzi",3.5,5],["spec",2.5,3.5],["hedge",1,2.5]];
+    zones.forEach(([b,lo,hi])=>{
+      const y1=yToPx(hi), y2=yToPx(lo);
+      el("rect",{x:mL,y:y1,width:plotW,height:y2-y1,
+        fill:BANDCOLOR[b],"fill-opacity":0.10},svg);
+      el("line",{x1:mL,y1:y2,x2:mL+plotW,y2:y2,stroke:"rgba(46,41,37,.10)","stroke-width":1},svg);
+      const t=el("text",{x:mL+8,y:(y1+y2)/2,fill:BANDCOLOR[b],"font-size":13,
+        "dominant-baseline":"central"},svg);
+      t.setAttribute("class","band-l"); t.textContent=BANDNAME[b]+"融资";
+      labelBlockers.push({x1:mL+6,y1:(y1+y2)/2-12,x2:mL+6+textW(BANDNAME[b]+"融资"),y2:(y1+y2)/2+12});
+    });
+  } else {
+    for(let v=1;v<=5;v++){
+      const y=yToPx(v);
+      el("line",{x1:mL,y1:y,x2:mL+plotW,y2:y,class:"gridline"},svg);
+      const t=el("text",{x:mL-10,y:y,"text-anchor":"end","dominant-baseline":"central",class:"axis-t"},svg);
+      t.textContent=v;
+    }
+  }
+  // y axis caption
+  const yc=el("text",{x:mL-10,y:mT-14,"text-anchor":"start",class:"axis-t"},svg);
+  yc.textContent=Y_LABELS[state.ydim];
+
+  // build nodes for all columns (beeswarm in x, true y)
+  const allNodes=[];
+  LAYERS.forEach((L,ci)=>{
+    const cx=mL+colW*ci+colW/2;
+    if(ci>0) el("line",{x1:mL+colW*ci,y1:mT,x2:mL+colW*ci,y2:mT+plotH,
+      stroke:"rgba(46,41,37,.07)","stroke-width":1},svg);
+    const on=state.active.has(L);
+    const cl=el("text",{x:cx,y:H-mB+30,"text-anchor":"middle",class:"col-l",
+      "fill-opacity":on?1:.3},svg); cl.textContent=L;
+    const cnt=DATA.filter(d=>d.L===L).length;
+    const cs=el("text",{x:cx,y:H-mB+48,"text-anchor":"middle",class:"col-sub",
+      "fill-opacity":on?1:.3},svg); cs.textContent=cnt+" 个场景";
+
+    let nodes=DATA.filter(d=>d.L===L).map(d=>({d, x:cx, y:yToPx(yval(d)), r:sizeR(d), on}));
+    nodes.sort((a,b)=>a.y-b.y);
+    const placedC=[];
+    const halfW=colW/2-12;
+    nodes.forEach(nd=>{
+      let found=false;
+      for(let step=0; step<=halfW; step+=3){
+        const dirs= step===0?[0]:[-1,1];
+        for(const dir of dirs){
+          const x=cx+dir*step;
+          if(x<cx-halfW || x>cx+halfW) continue;
+          if(placedC.every(p=>{const dx=p.x-x,dy=p.y-nd.y,rr=p.r+nd.r+2.5;return dx*dx+dy*dy>=rr*rr;})){
+            nd.x=x; placedC.push(nd); found=true; break;
+          }
+        }
+        if(found) break;
+      }
+      if(!found){ nd.x=cx; placedC.push(nd); }
+      allNodes.push(nd);
+    });
+  });
+
+  // draw node shapes
+  allNodes.forEach(nd=>{
+    const d=nd.d;
+    const g=el("g",{class:"node"+(state.sel===d?" sel":"")+(nd.on?"":" dim")},svg);
+    g.style.opacity = nd.on?1:0.16;
+    if(d.k==="m"){
+      const s=nd.r;
+      el("path",{d:`M${nd.x} ${nd.y-s} L${nd.x+s} ${nd.y} L${nd.x} ${nd.y+s} L${nd.x-s} ${nd.y} Z`,
+        fill:"var(--card2)",stroke:BANDCOLOR[d.b],"stroke-width":2},g);
+    } else {
+      el("circle",{cx:nd.x,cy:nd.y,r:nd.r,fill:BANDCOLOR[d.b],"fill-opacity":.82},g);
+    }
+    if(nd.on) g.addEventListener("click",()=>select(d));
+    nd.g=g;
+  });
+
+  // place labels with collision avoidance (active nodes only)
+  if(state.labels){
+    const nodeBoxes=allNodes.filter(n=>n.on).map(n=>({x1:n.x-n.r,y1:n.y-n.r,x2:n.x+n.r,y2:n.y+n.r}));
+    const placedL=labelBlockers.slice();
+    allNodes.filter(n=>n.on).sort((a,b)=>a.y-b.y).forEach(nd=>{
+      const w=textW(nd.d.s), h=14, r=nd.r, cx=nd.x, cy=nd.y;
+      const cands=[
+        {x:cx+r+5, y:cy, a:"start",  box:{x1:cx+r+5,y1:cy-h/2,x2:cx+r+5+w,y2:cy+h/2}},
+        {x:cx-r-5, y:cy, a:"end",    box:{x1:cx-r-5-w,y1:cy-h/2,x2:cx-r-5,y2:cy+h/2}},
+        {x:cx, y:cy-r-9, a:"middle", box:{x1:cx-w/2,y1:cy-r-16,x2:cx+w/2,y2:cy-r-2}},
+        {x:cx, y:cy+r+10,a:"middle", box:{x1:cx-w/2,y1:cy+r+3,x2:cx+w/2,y2:cy+r+17}}
+      ];
+      let ch=null;
+      for(const c of cands){
+        if(c.box.x1<mL+2 || c.box.x2>mL+plotW-2) continue;
+        if(nodeBoxes.some(b=>rectsOverlap(c.box,b))) continue;
+        if(placedL.some(b=>rectsOverlap(c.box,b))) continue;
+        ch=c; break;
+      }
+      if(!ch) ch=cands[0];
+      placedL.push(ch.box);
+      const t=el("text",{x:ch.x,y:ch.y,"text-anchor":ch.a},nd.g);
+      t.textContent=nd.d.s;
+    });
+  }
+  renderLegend();
+}
+
+function renderLegend(){
+  const lg=document.getElementById("legend");
+  const counts={hedge:0,spec:0,ponzi:0};
+  DATA.forEach(d=>counts[d.b]++);
+  lg.innerHTML="";
+  const mk=(html)=>{const s=document.createElement("div");s.className="it";s.innerHTML=html;return s;};
+  ["ponzi","spec","hedge"].forEach(b=>{
+    lg.appendChild(mk(`<span class="sw" style="background:${BANDCOLOR[b]}"></span>${BANDNAME[b]}融资 <span class="count">${counts[b]}</span>`));
+  });
+  lg.appendChild(mk(`<span class="ring"></span>机制 · 政策（非借款人头寸）`));
+  const skName = state.sdim==="lv"?"杠杆": state.sdim==="frag"?"脆弱度":"一致";
+  if(state.sdim!=="fix"){
+    lg.appendChild(mk(`<span class="size-key"><span class="c" style="width:10px;height:10px"></span><span class="c" style="width:18px;height:18px"></span></span>节点大小 = ${skName}`));
+  }
+}
+
+function renderTable(){
+  const thead=document.querySelector("#tbl thead");
+  const tbody=document.querySelector("#tbl tbody");
+  const cols=[["rank","#",""],["n","场景",""],["L","层",""],
+    ["c","抵押品","num"],["lv","杠杆","num"],["rf","反身性","num"],["f","脆弱度","num"],["b","明斯基带",""]];
+  thead.innerHTML="";
+  const tr=document.createElement("tr");
+  cols.forEach(([key,label,cls])=>{
+    const th=document.createElement("th");
+    if(cls) th.className=cls;
+    th.textContent=label;
+    if(["c","lv","rf","f"].includes(key)){
+      th.innerHTML=label+' <span class="ar">↕</span>';
+      th.addEventListener("click",()=>{ if(state.sortKey===key){state.sortDir*=-1;} else {state.sortKey=key; state.sortDir=-1;} renderTable(); });
+    }
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+
+  let rows=[...DATA].sort((a,b)=> (a[state.sortKey]-b[state.sortKey])*state.sortDir);
+  tbody.innerHTML="";
+  rows.forEach((d,i)=>{
+    const r=document.createElement("tr");
+    r.className="row"+(state.sel===d?" sel":"");
+    r.innerHTML=`<td class="rank">${i+1}</td>
+      <td>${d.n}${d.k==="m"?' <span class="lname">· 机制</span>':''}</td>
+      <td class="lname">${d.L}</td>
+      <td class="num">${d.c}</td><td class="num">${d.lv}</td><td class="num">${d.rf}</td>
+      <td class="num" style="font-weight:700">${d.f.toFixed(2)}</td>
+      <td><span class="bandtag" style="background:${BANDCOLOR[d.b]}"></span>${BANDNAME[d.b]}</td>`;
+    r.addEventListener("click",()=>select(d));
+    tbody.appendChild(r);
+  });
+}
+
+function select(d){
+  state.sel=d;
+  const box=document.getElementById("detail");
+  const bars=[["抵押品强度",d.c,"var(--teal)"],["杠杆",d.lv,"var(--coral)"],["反身性",d.rf,"var(--amber)"]];
+  box.innerHTML=`
+    <div class="dt-head">
+      <span class="dt-name">${d.n}</span>
+      <span class="lchip" style="background:${LCOLOR[d.L]}">${d.L}</span>
+      <span class="kind">${d.k==="m"?"机制 · 政策":"杠杆头寸"}</span>
+    </div>
+    <div class="dt-body">
+      <div class="scores">
+        ${bars.map(([l,v,c])=>`<div class="srow"><span class="sl">${l}</span>
+          <span class="bar"><i style="width:${v/5*100}%;background:${c}"></i></span>
+          <span class="sv">${v}</span></div>`).join("")}
+        <div class="frag-box">
+          <div class="frag-row">
+            <span class="frag-num" style="color:${BANDCOLOR[d.b]}">${d.f.toFixed(2)}</span>
+            <span class="frag-band" style="background:${BANDCOLOR[d.b]}">${BANDNAME[d.b]}融资</span>
+          </div>
+          <div class="frag-cap">脆弱度 = (杠杆 ${d.lv} + 反身性 ${d.rf} + (6 − 抵押品 ${d.c})) / 3</div>
+        </div>
+      </div>
+      <div class="note">${d.note}
+        <div class="case"><span class="ck">${CASE_LABEL}</span>${d.case}</div>
+        <div class="axes">${d.k==="m"?"※ 该项为机制／政策，纵轴位置表示其内含的扩张／顺周期属性，非借款人脆弱度。":"※ 坐标刻画结构脆弱度；最终明斯基归类仍取决于现金流能否覆盖本息。"}</div>
+      </div>
+    </div>`;
+  if(state.view==="plot") renderPlot(); else renderTable();
+  if(window.innerWidth<860){ box.scrollIntoView({behavior:"smooth",block:"nearest"}); }
+}
+
+// ---- controls ----
+function segHandler(id,key,after){
+  document.getElementById(id).addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); state[key]=b.dataset.v; after&&after();
+  });
+}
+segHandler("ydim","ydim",renderPlot);
+segHandler("sdim","sdim",renderPlot);
+const DETAIL_PLACEHOLDER=document.getElementById("detail").innerHTML;
+let CASE_LABEL="真实案例";
+segHandler("dataset","dataset",()=>{
+  DATA = state.dataset==="jpm" ? DATA_JPM : state.dataset==="mj" ? DATA_MJ : state.dataset==="hd" ? DATA_HD : DATA_XD;
+  CASE_LABEL = state.dataset==="jpm" ? "文本案例 ·《金瓶梅》" : state.dataset==="mj" ? "文本案例 ·《大明王朝1566》" : state.dataset==="hd" ? "真实案例 · 机制与定性罪名" : "真实案例";
+  state.sel=null;
+  document.getElementById("detail").innerHTML=DETAIL_PLACEHOLDER;
+  renderPlot(); renderTable();
+});
+segHandler("view","view",()=>{
+  const plot=state.view==="plot";
+  document.getElementById("plotView").classList.toggle("hidden",!plot);
+  document.getElementById("tableView").classList.toggle("hidden",plot);
+  plot?renderPlot():renderTable();
+});
+document.getElementById("lblToggle").addEventListener("change",e=>{
+  state.labels=e.target.checked; renderPlot();
+});
+
+// layer chips
+const lc=document.getElementById("layers");
+LAYERS.forEach(L=>{
+  const b=document.createElement("button"); b.className="chip";
+  b.innerHTML=`<span class="d" style="background:${LCOLOR[L]}"></span>${L}`;
+  b.addEventListener("click",()=>{
+    if(state.active.has(L)) state.active.delete(L); else state.active.add(L);
+    if(state.active.size===0) state.active.add(L); // keep at least one
+    b.classList.toggle("off",!state.active.has(L));
+    renderPlot();
+  });
+  lc.appendChild(b);
+});
+
+renderPlot();
+renderTable();
+</script>
+</body>
+</html>
