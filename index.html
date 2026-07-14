@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOOGL · Gamma Profile (SpotGamma Framework)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================
+       SpotGamma-inspired color system
+    ============================================ */
+    :root {
+      --bg: #0d1117;
+      --bg-elev: #161b22;
+      --surface: #1c2128;
+      --surface-2: #22272e;
+      --border: #30363d;
+      --border-strong: #444c56;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --text-subtle: #6e7681;
+
+      /* SpotGamma color convention: Green = positive gamma, Red = negative */
+      --positive: #3fb950;
+      --positive-dim: #238636;
+      --positive-soft: rgba(63,185,80,0.10);
+      --negative: #f85149;
+      --negative-dim: #da3633;
+      --negative-soft: rgba(248,81,73,0.10);
+
+      /* Key level colors */
+      --call-wall: #d29922;
+      --put-wall: #db8a34;
+      --flip: #a371f7;
+      --flip-soft: rgba(163,113,247,0.12);
+      --abs-gamma: #f0883e;
+
+      /* Chart accents */
+      --gex-curve: #58a6ff;
+      --price-line: #f0f6fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 16px 20px;
+    }
+
+    /* ============================================
+       Top bar
+    ============================================ */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--positive) 0%, var(--gex-curve) 100%);
+      position: relative;
+      border-radius: 4px;
+    }
+
+    .brand-logo::after {
+      content: 'γ';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-bright);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .brand-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-bright);
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+    }
+
+    .ticker-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ticker-info {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .ticker-symbol {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-bright);
+      letter-spacing: -0.02em;
+    }
+
+    .ticker-name {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--negative);
+    }
+
+    .change {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--negative);
+    }
+
+    .last-update {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-subtle);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    /* ============================================
+       Key Levels strip
+    ============================================ */
+    .key-levels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .kl-card {
+      background: var(--bg-elev);
+      padding: 14px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kl-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 3px;
+      background: var(--kl-color, var(--accent));
+    }
+
+    .kl-card.call-wall { --kl-color: var(--call-wall); }
+    .kl-card.put-wall { --kl-color: var(--put-wall); }
+    .kl-card.flip { --kl-color: var(--flip); }
+    .kl-card.abs { --kl-color: var(--abs-gamma); }
+    .kl-card.range { --kl-color: var(--gex-curve); }
+
+    .kl-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kl-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-bright);
+      line-height: 1.1;
+    }
+
+    .kl-meta {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 4px;
+    }
+
+    /* ============================================
+       Regime banner
+    ============================================ */
+    .regime-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border: 1px solid;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .regime-banner.positive {
+      border-color: var(--positive);
+      background: var(--positive-soft);
+    }
+
+    .regime-banner.negative {
+      border-color: var(--negative);
+      background: var(--negative-soft);
+    }
+
+    .regime-banner.flip-zone {
+      border-color: var(--flip);
+      background: var(--flip-soft);
+    }
+
+    .regime-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .regime-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .regime-banner.positive .regime-badge {
+      background: var(--positive);
+      color: #051d05;
+    }
+
+    .regime-banner.negative .regime-badge {
+      background: var(--negative);
+      color: #1d0505;
+    }
+
+    .regime-banner.flip-zone .regime-badge {
+      background: var(--flip);
+      color: #1a0a2e;
+    }
+
+    .regime-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .regime-desc {
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .regime-desc strong {
+      color: var(--text-bright);
+    }
+
+    .regime-metrics {
+      display: flex;
+      gap: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    .regime-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .regime-metric-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+    }
+
+    .regime-metric-value {
+      color: var(--text-bright);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       Main grid
+    ============================================ */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 1100px) {
+      .main-grid {
+        grid-template-columns: 1fr 340px;
+      }
+    }
+
+    /* ============================================
+       Chart panel
+    ============================================ */
+    .panel {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-bright);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--positive);
+    }
+
+    .panel-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* ============================================
+       Chart controls
+    ============================================ */
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .control-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .slider-wrap {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--text-bright);
+      border-radius: 50%;
+      cursor: grab;
+      border: 2px solid var(--bg);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--text-bright);
+      border-radius: 50%;
+      cursor: grab;
+      border: 2px solid var(--bg);
+    }
+
+    .slider-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+      min-width: 80px;
+      text-align: right;
+    }
+
+    button {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-radius: 3px;
+    }
+
+    button:hover {
+      border-color: var(--text-muted);
+      color: var(--text-bright);
+    }
+
+    button.primary {
+      background: var(--positive-soft);
+      border-color: var(--positive);
+      color: var(--positive);
+    }
+
+    button.primary:hover {
+      background: var(--positive);
+      color: #051d05;
+    }
+
+    /* ============================================
+       Sidebar (right)
+    ============================================ */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .sb-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sb-title-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--positive);
+    }
+
+    .sb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 7px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sb-row:last-child {
+      border-bottom: none;
+    }
+
+    .sb-label {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .sb-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      color: var(--text-bright);
+    }
+
+    .sb-value.pos { color: var(--positive); }
+    .sb-value.neg { color: var(--negative); }
+    .sb-value.flip { color: var(--flip); }
+
+    .hedging-flow {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border-left: 3px solid var(--positive);
+      border-radius: 0 3px 3px 0;
+      transition: border-color 0.3s ease;
+    }
+
+    .hedging-flow.negative {
+      border-left-color: var(--negative);
+    }
+
+    .hedging-flow-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .hedging-arrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 4px 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hedging-arrow .direction {
+      color: var(--text-muted);
+      min-width: 50px;
+    }
+
+    .hedging-arrow .action {
+      color: var(--text-bright);
+      font-weight: 500;
+    }
+
+    .hedging-note {
+      font-size: 11px;
+      color: var(--text-subtle);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    /* ============================================
+       Secondary metrics (Vanna, Charm)
+    ============================================ */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 800px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .metric-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    .metric-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-bright);
+    }
+
+    .metric-greek {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-subtle);
+      padding: 2px 8px;
+      background: var(--surface);
+      border-radius: 3px;
+    }
+
+    .metric-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.55;
+    }
+
+    .metric-flow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-radius: 3px;
+      margin-top: 10px;
+    }
+
+    .metric-flow-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .metric-flow-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .metric-flow-value.pos { color: var(--positive); }
+    .metric-flow-value.neg { color: var(--negative); }
+
+    /* ============================================
+       Tooltip
+    ============================================ */
+    .tooltip {
+      position: absolute;
+      background: rgba(13,17,23,0.97);
+      border: 1px solid var(--border-strong);
+      padding: 10px 12px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transform: translate(-50%, -100%);
+      margin-top: -8px;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 100;
+      min-width: 160px;
+      border-radius: 3px;
+    }
+
+    .tooltip.visible { opacity: 1; }
+
+    .tooltip-strike {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .tooltip-row .label { color: var(--text-muted); }
+
+    /* ============================================
+       Disclaimer
+    ============================================ */
+    .disclaimer {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--text-subtle);
+      font-size: 11.5px;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    .disclaimer-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-bright);
+      margin-bottom: 6px;
+    }
+
+    /* ============================================
+       Legend
+    ============================================ */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+
+    .legend-item.disabled { opacity: 0.35; }
+
+    .legend-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+    }
+
+    .legend-dot.line {
+      width: 14px;
+      height: 2px;
+    }
+
+    .legend-dot.vline {
+      width: 2px;
+      height: 14px;
+    }
+
+    /* ============================================
+       Responsive
+    ============================================ */
+    @media (max-width: 640px) {
+      .container { padding: 12px; }
+      .ticker-symbol { font-size: 20px; }
+      .price { font-size: 18px; }
+      .kl-value { font-size: 18px; }
+      .panel { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ============================================
+         TOP BAR
+    ============================================ -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <div class="brand-text">
+          <div class="brand-title">Gamma Profile Dashboard</div>
+          <div class="brand-sub">SpotGamma Framework</div>
+        </div>
+      </div>
+
+      <div class="ticker-block">
+        <div class="ticker-info">
+          <span class="ticker-symbol">GOOGL</span>
+          <span class="ticker-name">Alphabet Inc.</span>
+        </div>
+        <span class="price">$396.015</span>
+        <span class="change">▼ -5.055 (-1.26%)</span>
+        <span class="last-update">2026/05/15 · OPEX</span>
+      </div>
+    </div>
+
+    <!-- ============================================
+         KEY LEVELS STRIP
+    ============================================ -->
+    <div class="key-levels">
+
+      <div class="kl-card call-wall">
+        <div class="kl-label">CALL WALL</div>
+        <div class="kl-value">$400.00</div>
+        <div class="kl-meta">Largest +γ · Resistance</div>
+      </div>
+
+      <div class="kl-card put-wall">
+        <div class="kl-label">PUT WALL</div>
+        <div class="kl-value">$395.00</div>
+        <div class="kl-meta">Largest -γ · Support</div>
+      </div>
+
+      <div class="kl-card flip">
+        <div class="kl-label">GAMMA FLIP (HVL)</div>
+        <div class="kl-value">$371.24</div>
+        <div class="kl-meta">Regime threshold</div>
+      </div>
+
+      <div class="kl-card abs">
+        <div class="kl-label">ABSOLUTE γ</div>
+        <div class="kl-value">$400.00</div>
+        <div class="kl-meta">Max dealer hedge</div>
+      </div>
+
+      <div class="kl-card range">
+        <div class="kl-label">DAILY 1σ RANGE</div>
+        <div class="kl-value" id="dailyRangeValue">$392.8 - $399.2</div>
+        <div class="kl-meta">±$3.2 implied</div>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         REGIME BANNER
+    ============================================ -->
+    <div class="regime-banner positive" id="regimeBanner">
+      <div class="regime-left">
+        <div class="regime-badge">
+          <span class="regime-pulse"></span>
+          <span id="regimeLabel">POSITIVE GAMMA</span>
+        </div>
+        <div class="regime-desc" id="regimeDesc">
+          Dealers in <strong>mean reversion</strong> mode · Volatility suppressed · Price pinned between walls
+        </div>
+      </div>
+      <div class="regime-metrics">
+        <div class="regime-metric">
+          <span class="regime-metric-label">DIST. TO FLIP</span>
+          <span class="regime-metric-value" id="distFlip">+24.78</span>
+        </div>
+        <div class="regime-metric">
+          <span class="regime-metric-label">PIN STRENGTH</span>
+          <span class="regime-metric-value" id="pinStrength">HIGH</span>
+        </div>
+        <div class="regime-metric">
+          <span class="regime-metric-label">DEALER FLOW</span>
+          <span class="regime-metric-value" id="dealerFlow">SUPPRESSIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================
+         MAIN GRID
+    ============================================ -->
+    <div class="main-grid">
+
+      <!-- Chart panel -->
+      <div class="panel" style="position:relative">
+        <div class="panel-header">
+          <div class="panel-title">Net Gamma Profile by Strike</div>
+          <div class="panel-meta">2026/05/15 · Range $350-430 · 38 strikes</div>
+        </div>
+
+        <svg id="chart" class="chart-svg" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet"></svg>
+
+        <!-- Tooltip -->
+        <div class="tooltip" id="tooltip"></div>
+
+        <!-- Controls -->
+        <div class="chart-controls">
+          <span class="control-label">SIMULATE</span>
+          <div class="slider-wrap">
+            <input type="range" id="priceSlider" class="slider" min="350" max="430" step="0.25" value="396.015" />
+            <span class="slider-value" id="priceValue">$396.0</span>
+          </div>
+          <button id="resetBtn">Reset</button>
+          <button id="playBtn" class="primary">▶ Pinning Sim</button>
+        </div>
+
+        <!-- Legend (clickable) -->
+        <div class="legend">
+          <div class="legend-item" data-layer="bars-pos">
+            <span class="legend-dot" style="background:var(--positive)"></span>+γ (Call dominant)
+          </div>
+          <div class="legend-item" data-layer="bars-neg">
+            <span class="legend-dot" style="background:var(--negative)"></span>-γ (Put dominant)
+          </div>
+          <div class="legend-item" data-layer="gex">
+            <span class="legend-dot line" style="background:var(--gex-curve)"></span>Total GEX
+          </div>
+          <div class="legend-item" data-layer="walls">
+            <span class="legend-dot vline" style="background:var(--call-wall)"></span>Call/Put Walls
+          </div>
+          <div class="legend-item" data-layer="flip">
+            <span class="legend-dot vline" style="background:var(--flip)"></span>Gamma Flip (HVL)
+          </div>
+          <div class="legend-item" data-layer="price">
+            <span class="legend-dot vline" style="background:var(--price-line);border-left:1px dashed var(--price-line)"></span>Simulated Price
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+
+        <div class="sidebar-card">
+          <div class="sb-title">
+            <span class="sb-title-icon"></span>
+            HEDGING ANALYSIS
+          </div>
+
+          <div class="sb-row">
+            <span class="sb-label">Simulated Price</span>
+            <span class="sb-value" id="simPrice">$396.02</span>
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">Regime</span>
+            <span class="sb-value pos" id="simRegime">+γ</span>
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">Distance to Flip</span>
+            <span class="sb-value flip" id="simDistFlip">+24.78</span>
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">Total GEX at Price</span>
+            <span class="sb-value pos" id="simGex">+$1.65B</span>
+          </div>
+
+          <div class="hedging-flow" id="hedgingFlow">
+            <div class="hedging-flow-header">DEALER HEDGE FLOW</div>
+            <div class="hedging-arrow">
+              <span class="direction">$↑ $1:</span>
+              <span class="action" id="hedgeUp">Sell 3.5K shares</span>
+            </div>
+            <div class="hedging-arrow">
+              <span class="direction">$↓ $1:</span>
+              <span class="action" id="hedgeDown">Buy 3.5K shares</span>
+            </div>
+            <div class="hedging-note" id="hedgeNote">
+              MM is short γ (always). In +γ zone, hedging compresses moves — price gets pinned toward $397.5 between walls.
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sb-title">
+            <span class="sb-title-icon" style="background:var(--call-wall)"></span>
+            NEAREST LEVELS
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">↑ Nearest Resistance</span>
+            <span class="sb-value pos" id="nearestUp">Call Wall $400</span>
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">↓ Nearest Support</span>
+            <span class="sb-value neg" id="nearestDown">Put Wall $395</span>
+          </div>
+          <div class="sb-row">
+            <span class="sb-label">Range Width</span>
+            <span class="sb-value" id="rangeWidth">$5.00</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         SECONDARY METRICS (Vanna, Charm)
+    ============================================ -->
+    <div class="metrics-grid">
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-name">Vanna Exposure</span>
+          <span class="metric-greek">∂²V / ∂S∂σ</span>
+        </div>
+        <div class="metric-desc">
+          Dealer's delta sensitivity to IV changes. <strong style="color:var(--text-bright)">When IV drops, vanna flows trigger systematic buying</strong> as dealers reduce hedges. Critical near OPEX.
+        </div>
+        <svg id="vannaChart" viewBox="0 0 400 120" style="width:100%;height:auto;display:block"></svg>
+        <div class="metric-flow">
+          <span class="metric-flow-label">Current Vanna Flow</span>
+          <span class="metric-flow-value pos" id="vannaFlow">+POS · IV ↓ → Bid</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-name">Charm Exposure</span>
+          <span class="metric-greek">∂Δ / ∂t</span>
+        </div>
+        <div class="metric-desc">
+          Delta decay over time. <strong style="color:var(--text-bright)">Drives the OPEX week run-up pattern</strong> — as expiration nears, OTM call deltas decay, forcing dealers to unwind short hedges by buying.
+        </div>
+        <svg id="charmChart" viewBox="0 0 400 120" style="width:100%;height:auto;display:block"></svg>
+        <div class="metric-flow">
+          <span class="metric-flow-label">Current Charm Flow</span>
+          <span class="metric-flow-value pos" id="charmFlow">+POS · Time Decay Bid</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================
+         DISCLAIMER
+    ============================================ -->
+    <div class="disclaimer">
+      <div class="disclaimer-title">⚠ DISCLAIMER · 重要免责声明</div>
+      数据基于 2026/05/15 GOOGL Gamma敞口截图的视觉重构估值,采用 SpotGamma 公开框架的术语和方法论(Call Wall / Put Wall / Gamma Flip / Absolute Gamma / Vanna / Charm),但<strong style="color:var(--text-bright)">非 SpotGamma 官方产品</strong>。所有数值仅供学习参考,不构成投资建议。真实交易决策应使用经过验证的实时数据源。
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // DATA — Match the previous chart's structure
+    // ============================================
+    const STRIKE_DATA = [
+      { k: 320, c: 0,     p: 0 },
+      { k: 330, c: 0,     p: 0 },
+      { k: 340, c: 0,     p: 0.005 },
+      { k: 350, c: 0.005, p: 0.01 },
+      { k: 355, c: 0.005, p: 0.015 },
+      { k: 360, c: 0.01,  p: 0.02 },
+      { k: 365, c: 0.015, p: 0.025 },
+      { k: 370, c: 0.015, p: 0.03 },
+      { k: 375, c: 0.02,  p: 0.025 },
+      { k: 380, c: 0.025, p: 0.02 },
+      { k: 383, c: 0.03,  p: 0.025 },
+      { k: 386, c: 0.04,  p: 0.03 },
+      { k: 388, c: 0.05,  p: 0.04 },
+      { k: 390, c: 0.06,  p: 0.10 },
+      { k: 392, c: 0.07,  p: 0.09 },
+      { k: 393, c: 0.07,  p: 0.13 },
+      { k: 394, c: 0.10,  p: 0.08 },
+      { k: 395, c: 0.25,  p: 1.05 },  // Put Wall
+      { k: 396, c: 0.15,  p: 0.10 },
+      { k: 397, c: 0.20,  p: 0.08 },
+      { k: 398, c: 0.30,  p: 0.05 },
+      { k: 399, c: 0.20,  p: 0.05 },
+      { k: 400, c: 1.65,  p: 0.15 },  // Call Wall
+      { k: 402, c: 0.30,  p: 0.05 },
+      { k: 404, c: 0.32,  p: 0.04 },
+      { k: 406, c: 0.25,  p: 0.03 },
+      { k: 408, c: 0.22,  p: 0.02 },
+      { k: 410, c: 0.15,  p: 0.02 },
+      { k: 412, c: 0.10,  p: 0.01 },
+      { k: 415, c: 0.08,  p: 0.01 },
+      { k: 420, c: 0.05,  p: 0.005 },
+      { k: 425, c: 0.03,  p: 0.005 },
+      { k: 430, c: 0.02,  p: 0 },
+      { k: 440, c: 0.015, p: 0 },
+      { k: 450, c: 0.01,  p: 0 },
+    ];
+
+    const GEX_CURVE = [
+      { p: 320, v: -0.20 },
+      { p: 340, v: -0.18 },
+      { p: 360, v: -0.10 },
+      { p: 371.24, v: 0 },
+      { p: 380, v: 0.15 },
+      { p: 388, v: 0.40 },
+      { p: 392, v: 0.80 },
+      { p: 395, v: 1.20 },
+      { p: 396, v: 1.65 },
+      { p: 398, v: 2.80 },
+      { p: 400, v: 4.00 },
+      { p: 402, v: 4.50 },
+      { p: 405, v: 4.55 },
+      { p: 408, v: 4.30 },
+      { p: 410, v: 3.90 },
+      { p: 415, v: 3.10 },
+      { p: 420, v: 2.30 },
+      { p: 425, v: 1.70 },
+      { p: 430, v: 1.20 },
+      { p: 440, v: 0.65 },
+      { p: 450, v: 0.40 },
+    ];
+
+    // Vanna data — peaks near ATM, drops at extremes
+    const VANNA_DATA = STRIKE_DATA.map(d => {
+      const dist = Math.abs(d.k - 396);
+      const intensity = Math.exp(-dist * dist / 200) * (d.c + d.p);
+      return { k: d.k, v: intensity * (d.k < 396 ? -1 : 1) * 0.8 };
+    });
+
+    // Charm data — peaks at ATM, sign depends on moneyness
+    const CHARM_DATA = STRIKE_DATA.map(d => {
+      const dist = d.k - 396;
+      const intensity = Math.exp(-Math.abs(dist) / 8) * (d.c + d.p);
+      return { k: d.k, v: -dist * 0.05 * intensity };
+    });
+
+    const ZERO_GAMMA = 371.24;
+    const CURRENT_PRICE = 396.015;
+    const CALL_WALL = 400;
+    const PUT_WALL = 395;
+    const IMPLIED_DAILY_MOVE = 3.2;
+
+    // Chart dimensions
+    const W = 900;
+    const H = 480;
+    const M = { top: 40, right: 70, bottom: 60, left: 80 };
+    const cw = W - M.left - M.right;
+    const ch = H - M.top - M.bottom;
+    const ZERO_Y = M.top + ch * 0.55;  // Zero line slightly below center
+
+    // X scale: 350-430
+    const xMin = 350, xMax = 430;
+    const xScale = (x) => M.left + ((x - xMin) / (xMax - xMin)) * cw;
+    const xInverse = (px) => xMin + ((px - M.left) / cw) * (xMax - xMin);
+
+    // Y scales
+    const Y_MAX_POS = 1.8;  // Positive gamma scale (上方)
+    const Y_MAX_NEG = 1.2;  // Negative gamma scale (下方)
+    const Y_MAX_GEX = 5.5;  // GEX scale (right axis)
+
+    const yScaleBar = (v) => {
+      if (v >= 0) return ZERO_Y - (v / Y_MAX_POS) * (ZERO_Y - M.top);
+      return ZERO_Y + (Math.abs(v) / Y_MAX_NEG) * (M.top + ch - ZERO_Y);
+    };
+
+    const yScaleGex = (v) => {
+      if (v >= 0) return ZERO_Y - (v / Y_MAX_GEX) * (ZERO_Y - M.top);
+      return ZERO_Y + (Math.abs(v) / Y_MAX_GEX) * (M.top + ch - ZERO_Y);
+    };
+
+    // Layer visibility
+    const layers = {
+      'bars-pos': true,
+      'bars-neg': true,
+      'gex': true,
+      'walls': true,
+      'flip': true,
+      'price': true,
+    };
+
+    // ============================================
+    // RENDER MAIN CHART
+    // ============================================
+    const svg = document.getElementById('chart');
+
+    function el(tag, attrs = {}, children = []) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const e = document.createElementNS(ns, tag);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+      if (typeof children === 'string') e.textContent = children;
+      else if (Array.isArray(children)) children.forEach(c => c && e.appendChild(c));
+      return e;
+    }
+
+    function renderChart() {
+      svg.innerHTML = '';
+
+      // ===== Background zones (regime tinting) =====
+      const flipX = xScale(ZERO_GAMMA);
+
+      // Below flip: negative gamma zone (red tint)
+      if (flipX > M.left) {
+        svg.appendChild(el('rect', {
+          x: M.left, y: M.top,
+          width: Math.min(flipX - M.left, cw),
+          height: ch,
+          fill: 'rgba(248,81,73,0.04)',
+          'pointer-events': 'none'
+        }));
+      }
+      // Above flip: positive gamma zone (green tint)
+      if (flipX < M.left + cw) {
+        svg.appendChild(el('rect', {
+          x: Math.max(flipX, M.left),
+          y: M.top,
+          width: M.left + cw - Math.max(flipX, M.left),
+          height: ch,
+          fill: 'rgba(63,185,80,0.04)',
+          'pointer-events': 'none'
+        }));
+      }
+
+      // ===== Horizontal gridlines =====
+      [0.5, 1.0, 1.5, -0.5, -1.0].forEach(v => {
+        const y = yScaleBar(v);
+        if (y > M.top && y < M.top + ch) {
+          svg.appendChild(el('line', {
+            x1: M.left, x2: M.left + cw,
+            y1: y, y2: y,
+            stroke: 'var(--border)', 'stroke-width': 0.5,
+            'stroke-dasharray': '2 4', opacity: 0.5
+          }));
+        }
+      });
+
+      // Zero baseline
+      svg.appendChild(el('line', {
+        x1: M.left, x2: M.left + cw,
+        y1: ZERO_Y, y2: ZERO_Y,
+        stroke: 'var(--text-subtle)', 'stroke-width': 1, opacity: 0.7
+      }));
+
+      // ===== Net Gamma Bars =====
+      const barWidth = 12;
+      STRIKE_DATA.forEach((d) => {
+        if (d.k < xMin - 2 || d.k > xMax + 2) return;
+        const x = xScale(d.k);
+        const net = d.c - d.p;
+        if (Math.abs(net) < 0.001) return;
+
+        const isPositive = net > 0;
+        const visible = isPositive ? layers['bars-pos'] : layers['bars-neg'];
+        if (!visible) return;
+
+        const yTop = isPositive ? yScaleBar(net) : ZERO_Y;
+        const barH = isPositive ? (ZERO_Y - yScaleBar(net)) : (yScaleBar(net) - ZERO_Y);
+
+        const bar = el('rect', {
+          x: x - barWidth / 2,
+          y: yTop,
+          width: barWidth,
+          height: Math.max(1, barH),
+          fill: isPositive ? 'var(--positive)' : 'var(--negative)',
+          opacity: 0.85,
+          class: 'bar',
+          'data-strike': d.k,
+          'data-call': d.c.toFixed(3),
+          'data-put': d.p.toFixed(3),
+          'data-net': net.toFixed(3)
+        });
+        svg.appendChild(bar);
+      });
+
+      // ===== GEX curve =====
+      if (layers['gex']) {
+        const pts = GEX_CURVE.filter(d => d.p >= xMin - 5 && d.p <= xMax + 5);
+        let pathD = '';
+        pts.forEach((d, i) => {
+          const x = xScale(d.p);
+          const y = yScaleGex(d.v);
+          if (i === 0) pathD = `M ${x} ${y}`;
+          else {
+            const prev = pts[i - 1];
+            const px = xScale(prev.p);
+            const py = yScaleGex(prev.v);
+            const mx = (px + x) / 2;
+            pathD += ` C ${mx} ${py}, ${mx} ${y}, ${x} ${y}`;
+          }
+        });
+
+        // Glow
+        svg.appendChild(el('path', {
+          d: pathD,
+          fill: 'none',
+          stroke: 'var(--gex-curve)',
+          'stroke-width': 4,
+          opacity: 0.25,
+          'pointer-events': 'none'
+        }));
+        svg.appendChild(el('path', {
+          d: pathD,
+          fill: 'none',
+          stroke: 'var(--gex-curve)',
+          'stroke-width': 2,
+          'pointer-events': 'none'
+        }));
+      }
+
+      // ===== Wall labels =====
+      if (layers['walls']) {
+        // Call Wall vertical line + label
+        const cwX = xScale(CALL_WALL);
+        svg.appendChild(el('line', {
+          x1: cwX, x2: cwX,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--call-wall)',
+          'stroke-width': 1,
+          'stroke-dasharray': '4 3',
+          opacity: 0.4
+        }));
+        svg.appendChild(el('rect', {
+          x: cwX - 38, y: M.top + 4,
+          width: 76, height: 18,
+          fill: 'var(--call-wall)',
+          opacity: 0.95,
+          rx: 2
+        }));
+        svg.appendChild(el('text', {
+          x: cwX, y: M.top + 16,
+          'text-anchor': 'middle',
+          fill: '#1a0e00',
+          'font-size': 11,
+          'font-weight': 600,
+          'font-family': 'JetBrains Mono, monospace'
+        }, `CALL WALL $${CALL_WALL}`));
+
+        // Put Wall vertical line + label
+        const pwX = xScale(PUT_WALL);
+        svg.appendChild(el('line', {
+          x1: pwX, x2: pwX,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--put-wall)',
+          'stroke-width': 1,
+          'stroke-dasharray': '4 3',
+          opacity: 0.4
+        }));
+        svg.appendChild(el('rect', {
+          x: pwX - 38, y: M.top + ch - 22,
+          width: 76, height: 18,
+          fill: 'var(--put-wall)',
+          opacity: 0.95,
+          rx: 2
+        }));
+        svg.appendChild(el('text', {
+          x: pwX, y: M.top + ch - 9,
+          'text-anchor': 'middle',
+          fill: '#1a0e00',
+          'font-size': 11,
+          'font-weight': 600,
+          'font-family': 'JetBrains Mono, monospace'
+        }, `PUT WALL $${PUT_WALL}`));
+      }
+
+      // ===== Gamma Flip (HVL) line =====
+      if (layers['flip']) {
+        const flipX = xScale(ZERO_GAMMA);
+        svg.appendChild(el('line', {
+          x1: flipX, x2: flipX,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--flip)',
+          'stroke-width': 1.8
+        }));
+        svg.appendChild(el('rect', {
+          x: flipX - 50, y: M.top + ch / 2 - 10,
+          width: 100, height: 20,
+          fill: 'var(--flip)',
+          opacity: 0.95,
+          rx: 2
+        }));
+        svg.appendChild(el('text', {
+          x: flipX, y: M.top + ch / 2 + 4,
+          'text-anchor': 'middle',
+          fill: '#0a0420',
+          'font-size': 11,
+          'font-weight': 600,
+          'font-family': 'JetBrains Mono, monospace'
+        }, `γ FLIP $${ZERO_GAMMA}`));
+      }
+
+      // ===== Current simulated price line =====
+      if (layers['price']) {
+        const priceVal = parseFloat(document.getElementById('priceSlider').value);
+        const px = xScale(priceVal);
+        svg.appendChild(el('line', {
+          x1: px, x2: px,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--price-line)',
+          'stroke-width': 1.5,
+          'stroke-dasharray': '6 4',
+          opacity: 0.9
+        }));
+        svg.appendChild(el('circle', {
+          cx: px, cy: M.top - 6,
+          r: 5,
+          fill: 'var(--price-line)'
+        }));
+        svg.appendChild(el('text', {
+          x: px, y: M.top + ch + 24,
+          'text-anchor': 'middle',
+          fill: 'var(--price-line)',
+          'font-size': 11,
+          'font-family': 'JetBrains Mono, monospace',
+          'font-weight': 600
+        }, `$${priceVal.toFixed(2)}`));
+      }
+
+      // ===== X-axis ticks =====
+      const xTicks = [350, 360, 370, 380, 390, 400, 410, 420, 430];
+      xTicks.forEach(t => {
+        if (t < xMin || t > xMax) return;
+        const x = xScale(t);
+        svg.appendChild(el('line', {
+          x1: x, x2: x,
+          y1: M.top + ch, y2: M.top + ch + 4,
+          stroke: 'var(--text-subtle)', 'stroke-width': 0.5
+        }));
+        if (![CALL_WALL, PUT_WALL].includes(t)) {
+          svg.appendChild(el('text', {
+            x: x, y: M.top + ch + 16,
+            'text-anchor': 'middle',
+            fill: 'var(--text-subtle)',
+            'font-size': 10,
+            'font-family': 'JetBrains Mono, monospace'
+          }, t.toString()));
+        }
+      });
+      svg.appendChild(el('text', {
+        x: M.left + cw / 2, y: H - 8,
+        'text-anchor': 'middle',
+        fill: 'var(--text-muted)',
+        'font-size': 11
+      }, 'Strike Price ($)'));
+
+      // ===== Y-axis left (Net Gamma) =====
+      [1.5, 1.0, 0.5, 0, -0.5, -1.0].forEach(v => {
+        if (v > Y_MAX_POS || v < -Y_MAX_NEG) return;
+        const y = yScaleBar(v);
+        svg.appendChild(el('text', {
+          x: M.left - 10, y: y + 4,
+          'text-anchor': 'end',
+          fill: 'var(--text-subtle)',
+          'font-size': 10,
+          'font-family': 'JetBrains Mono, monospace'
+        }, (v >= 0 ? '+' : '') + v.toFixed(1) + 'B'));
+      });
+      svg.appendChild(el('text', {
+        x: 20, y: M.top + ch / 2,
+        'text-anchor': 'middle',
+        fill: 'var(--text-muted)',
+        'font-size': 10,
+        transform: `rotate(-90, 20, ${M.top + ch / 2})`
+      }, 'Net Gamma ($B)'));
+
+      // ===== Y-axis right (Total GEX) =====
+      [5, 3, 1, 0, -1].forEach(v => {
+        if (v > Y_MAX_GEX || v < -Y_MAX_GEX) return;
+        const y = yScaleGex(v);
+        svg.appendChild(el('text', {
+          x: M.left + cw + 10, y: y + 4,
+          'text-anchor': 'start',
+          fill: 'var(--gex-curve)',
+          'font-size': 10,
+          'font-family': 'JetBrains Mono, monospace'
+        }, (v >= 0 ? '+' : '') + v.toFixed(0) + 'B'));
+      });
+      svg.appendChild(el('text', {
+        x: W - 22, y: M.top + ch / 2,
+        'text-anchor': 'middle',
+        fill: 'var(--gex-curve)',
+        'font-size': 10,
+        transform: `rotate(90, ${W - 22}, ${M.top + ch / 2})`
+      }, 'Total GEX ($B)'));
+    }
+
+    // ============================================
+    // SECONDARY CHARTS (Vanna, Charm)
+    // ============================================
+    function renderSubChart(svgId, data, color, peakLabel) {
+      const subSvg = document.getElementById(svgId);
+      subSvg.innerHTML = '';
+
+      const sW = 400, sH = 120;
+      const sM = { top: 12, right: 20, bottom: 28, left: 30 };
+      const scw = sW - sM.left - sM.right;
+      const sch = sH - sM.top - sM.bottom;
+      const sZeroY = sM.top + sch / 2;
+
+      const xSub = (x) => sM.left + ((x - xMin) / (xMax - xMin)) * scw;
+      const maxV = Math.max(...data.map(d => Math.abs(d.v)));
+      const ySub = (v) => sZeroY - (v / maxV) * (sch / 2 - 4);
+
+      // Zero line
+      const ns = 'http://www.w3.org/2000/svg';
+      function se(tag, attrs, text) {
+        const e = document.createElementNS(ns, tag);
+        for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+        if (text) e.textContent = text;
+        return e;
+      }
+
+      subSvg.appendChild(se('line', {
+        x1: sM.left, x2: sM.left + scw,
+        y1: sZeroY, y2: sZeroY,
+        stroke: 'var(--border)', 'stroke-width': 0.5, opacity: 0.6
+      }));
+
+      // Current price line
+      const px = xSub(CURRENT_PRICE);
+      subSvg.appendChild(se('line', {
+        x1: px, x2: px,
+        y1: sM.top, y2: sM.top + sch,
+        stroke: 'var(--text-muted)',
+        'stroke-width': 1,
+        'stroke-dasharray': '3 2',
+        opacity: 0.6
+      }));
+
+      // Bars
+      const barW = 6;
+      data.forEach(d => {
+        if (d.k < xMin || d.k > xMax || Math.abs(d.v) < maxV * 0.02) return;
+        const x = xSub(d.k);
+        const y = d.v >= 0 ? ySub(d.v) : sZeroY;
+        const h = Math.abs(ySub(d.v) - sZeroY);
+        subSvg.appendChild(se('rect', {
+          x: x - barW / 2,
+          y, width: barW, height: Math.max(1, h),
+          fill: d.v >= 0 ? 'var(--positive)' : 'var(--negative)',
+          opacity: 0.85
+        }));
+      });
+
+      // X labels
+      [360, 380, 400, 420].forEach(t => {
+        const x = xSub(t);
+        subSvg.appendChild(se('text', {
+          x, y: sM.top + sch + 14,
+          'text-anchor': 'middle',
+          fill: 'var(--text-subtle)',
+          'font-size': 9,
+          'font-family': 'JetBrains Mono, monospace'
+        }, '$' + t));
+      });
+
+      // Y labels
+      subSvg.appendChild(se('text', {
+        x: sM.left - 4, y: sM.top + 8,
+        'text-anchor': 'end',
+        fill: 'var(--text-subtle)',
+        'font-size': 9,
+        'font-family': 'JetBrains Mono, monospace'
+      }, '+'));
+      subSvg.appendChild(se('text', {
+        x: sM.left - 4, y: sM.top + sch - 2,
+        'text-anchor': 'end',
+        fill: 'var(--text-subtle)',
+        'font-size': 9,
+        'font-family': 'JetBrains Mono, monospace'
+      }, '−'));
+    }
+
+    // ============================================
+    // INTERPOLATE GEX
+    // ============================================
+    function gexAt(price) {
+      for (let i = 0; i < GEX_CURVE.length - 1; i++) {
+        const a = GEX_CURVE[i];
+        const b = GEX_CURVE[i + 1];
+        if (price >= a.p && price <= b.p) {
+          const t = (price - a.p) / (b.p - a.p);
+          return a.v + t * (b.v - a.v);
+        }
+      }
+      if (price < GEX_CURVE[0].p) return GEX_CURVE[0].v;
+      return GEX_CURVE[GEX_CURVE.length - 1].v;
+    }
+
+    function nearestLevel(price, direction) {
+      // Returns nearest call wall or put wall
+      const candidates = [
+        { k: CALL_WALL, type: 'call' },
+        { k: PUT_WALL, type: 'put' }
+      ];
+      let best = null;
+      candidates.forEach(c => {
+        if (direction === 'up' && c.k > price) {
+          if (!best || c.k < best.k) best = c;
+        } else if (direction === 'down' && c.k < price) {
+          if (!best || c.k > best.k) best = c;
+        }
+      });
+      return best;
+    }
+
+    // ============================================
+    // UPDATE UI
+    // ============================================
+    function updateUI() {
+      const price = parseFloat(document.getElementById('priceSlider').value);
+      const gex = gexAt(price);
+      const distFlip = price - ZERO_GAMMA;
+      const isPositive = gex >= 0;
+
+      // Slider value
+      document.getElementById('priceValue').textContent = '$' + price.toFixed(2);
+
+      // Regime banner
+      const banner = document.getElementById('regimeBanner');
+      const regimeLabel = document.getElementById('regimeLabel');
+      const regimeDesc = document.getElementById('regimeDesc');
+      const distFlipEl = document.getElementById('distFlip');
+      const pinStrengthEl = document.getElementById('pinStrength');
+      const dealerFlowEl = document.getElementById('dealerFlow');
+
+      // Determine regime
+      const inFlipZone = Math.abs(distFlip) < 3;
+      banner.className = 'regime-banner ' + (inFlipZone ? 'flip-zone' : (isPositive ? 'positive' : 'negative'));
+
+      if (inFlipZone) {
+        regimeLabel.textContent = 'FLIP ZONE';
+        regimeDesc.innerHTML = '<strong>Critical regime threshold</strong> · Volatility regime unstable · Any catalyst can flip mode';
+      } else if (isPositive) {
+        regimeLabel.textContent = 'POSITIVE GAMMA';
+        regimeDesc.innerHTML = 'Dealers in <strong>mean reversion</strong> mode · Volatility suppressed · Price pinned between walls';
+      } else {
+        regimeLabel.textContent = 'NEGATIVE GAMMA';
+        regimeDesc.innerHTML = 'Dealers in <strong>momentum chase</strong> mode · Volatility amplified · Trend acceleration risk';
+      }
+
+      distFlipEl.textContent = (distFlip >= 0 ? '+' : '') + distFlip.toFixed(2);
+      distFlipEl.style.color = isPositive ? 'var(--positive)' : 'var(--negative)';
+
+      // Pin strength
+      const inWallRange = price >= PUT_WALL - 2 && price <= CALL_WALL + 2;
+      pinStrengthEl.textContent = inWallRange ? 'HIGH' : (isPositive ? 'MED' : 'LOW');
+
+      // Dealer flow
+      dealerFlowEl.textContent = isPositive ? 'SUPPRESSIVE' : 'AMPLIFICATIVE';
+      dealerFlowEl.style.color = isPositive ? 'var(--positive)' : 'var(--negative)';
+
+      // Sidebar info
+      document.getElementById('simPrice').textContent = '$' + price.toFixed(2);
+      const simRegime = document.getElementById('simRegime');
+      simRegime.textContent = isPositive ? '+γ' : '-γ';
+      simRegime.className = 'sb-value ' + (isPositive ? 'pos' : 'neg');
+
+      document.getElementById('simDistFlip').textContent = (distFlip >= 0 ? '+' : '') + distFlip.toFixed(2);
+
+      const simGex = document.getElementById('simGex');
+      simGex.textContent = (gex >= 0 ? '+' : '') + '$' + Math.abs(gex).toFixed(2) + 'B';
+      simGex.className = 'sb-value ' + (isPositive ? 'pos' : 'neg');
+
+      // Hedging flow card
+      const hedgingFlow = document.getElementById('hedgingFlow');
+      const hedgeUp = document.getElementById('hedgeUp');
+      const hedgeDown = document.getElementById('hedgeDown');
+      const hedgeNote = document.getElementById('hedgeNote');
+
+      const force = Math.min(Math.abs(gex), 4) * 2.5;
+
+      if (isPositive) {
+        hedgingFlow.className = 'hedging-flow';
+        hedgeUp.textContent = `Sell ${force.toFixed(1)}K shares`;
+        hedgeUp.style.color = 'var(--negative)';
+        hedgeDown.textContent = `Buy ${force.toFixed(1)}K shares`;
+        hedgeDown.style.color = 'var(--positive)';
+        hedgeNote.innerHTML = 'MM is <strong style="color:var(--text-bright)">short γ (always)</strong>. In +γ zone, hedging <strong style="color:var(--positive)">compresses moves</strong> — price gets pinned toward $397.5 between walls.';
+      } else {
+        hedgingFlow.className = 'hedging-flow negative';
+        hedgeUp.textContent = `Buy ${force.toFixed(1)}K shares`;
+        hedgeUp.style.color = 'var(--positive)';
+        hedgeDown.textContent = `Sell ${force.toFixed(1)}K shares`;
+        hedgeDown.style.color = 'var(--negative)';
+        hedgeNote.innerHTML = 'MM is <strong style="color:var(--text-bright)">short γ (always)</strong>. In -γ zone, hedging <strong style="color:var(--negative)">amplifies moves</strong> — feedback loop drives trend acceleration.';
+      }
+
+      // Nearest levels
+      const up = nearestLevel(price, 'up');
+      const down = nearestLevel(price, 'down');
+      const nearestUpEl = document.getElementById('nearestUp');
+      const nearestDownEl = document.getElementById('nearestDown');
+
+      if (up) {
+        nearestUpEl.textContent = `${up.type === 'call' ? 'Call Wall' : 'Put Wall'} $${up.k}`;
+      } else {
+        nearestUpEl.textContent = 'None';
+      }
+
+      if (down) {
+        nearestDownEl.textContent = `${down.type === 'call' ? 'Call Wall' : 'Put Wall'} $${down.k}`;
+      } else {
+        nearestDownEl.textContent = 'None';
+      }
+
+      const range = up && down ? (up.k - down.k) : null;
+      document.getElementById('rangeWidth').textContent = range ? `$${range.toFixed(2)}` : 'N/A';
+    }
+
+    // ============================================
+    // INTERACTIONS
+    // ============================================
+    document.getElementById('priceSlider').addEventListener('input', () => {
+      renderChart();
+      updateUI();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('priceSlider').value = CURRENT_PRICE;
+      renderChart();
+      updateUI();
+    });
+
+    // Click on chart to set price
+    svg.addEventListener('click', (e) => {
+      const rect = svg.getBoundingClientRect();
+      const scale = W / rect.width;
+      const vbX = (e.clientX - rect.left) * scale;
+      if (vbX < M.left || vbX > M.left + cw) return;
+      const price = xInverse(vbX);
+      if (price < 350 || price > 430) return;
+      document.getElementById('priceSlider').value = price.toFixed(2);
+      renderChart();
+      updateUI();
+    });
+
+    // Tooltip
+    const tooltip = document.getElementById('tooltip');
+    svg.addEventListener('mousemove', (e) => {
+      if (e.target.classList && e.target.classList.contains('bar')) {
+        const t = e.target;
+        const k = t.dataset.strike;
+        const c = parseFloat(t.dataset.call);
+        const p = parseFloat(t.dataset.put);
+        const net = parseFloat(t.dataset.net);
+        tooltip.innerHTML = `
+          <div class="tooltip-strike">Strike $${k}</div>
+          <div class="tooltip-row"><span class="label">Call γ:</span><span style="color:var(--positive)">+${c.toFixed(2)}B</span></div>
+          <div class="tooltip-row"><span class="label">Put γ:</span><span style="color:var(--negative)">-${p.toFixed(2)}B</span></div>
+          <div class="tooltip-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><span class="label">Net:</span><span style="color:${net >= 0 ? 'var(--positive)' : 'var(--negative)'}">${net >= 0 ? '+' : ''}${net.toFixed(2)}B</span></div>
+        `;
+        const rect = svg.getBoundingClientRect();
+        const parentRect = svg.parentElement.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - parentRect.left) + 'px';
+        tooltip.style.top = (e.clientY - parentRect.top) + 'px';
+        tooltip.classList.add('visible');
+      } else {
+        tooltip.classList.remove('visible');
+      }
+    });
+
+    svg.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+
+    // Legend toggles
+    document.querySelectorAll('.legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const layer = item.dataset.layer;
+        layers[layer] = !layers[layer];
+        item.classList.toggle('disabled', !layers[layer]);
+        renderChart();
+      });
+    });
+
+    // ============================================
+    // PINNING ANIMATION
+    // ============================================
+    let animationId = null;
+    let animPrice = CURRENT_PRICE;
+    let animVelocity = 0;
+
+    document.getElementById('playBtn').addEventListener('click', function () {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        this.textContent = '▶ Pinning Sim';
+        return;
+      }
+      this.textContent = '⏸ Stop';
+      animPrice = parseFloat(document.getElementById('priceSlider').value);
+      animVelocity = (Math.random() - 0.5) * 0.5;
+      runAnimation();
+    });
+
+    function runAnimation() {
+      const gex = gexAt(animPrice);
+      let pullForce = 0;
+      if (gex > 0) {
+        const target = (CALL_WALL + PUT_WALL) / 2;
+        const dist = target - animPrice;
+        pullForce = dist * 0.015 * Math.min(gex / 3, 1.5);
+      } else {
+        pullForce = animVelocity * 0.05;
+      }
+      const noise = (Math.random() - 0.5) * 0.4;
+      animVelocity = animVelocity * 0.92 + pullForce + noise * 0.3;
+      animVelocity = Math.max(-1.5, Math.min(1.5, animVelocity));
+      animPrice += animVelocity * 0.25;
+      animPrice = Math.max(350, Math.min(430, animPrice));
+
+      document.getElementById('priceSlider').value = animPrice.toFixed(2);
+      renderChart();
+      updateUI();
+      animationId = requestAnimationFrame(runAnimation);
+    }
+
+    // ============================================
+    // INIT
+    // ============================================
+    renderChart();
+    renderSubChart('vannaChart', VANNA_DATA, 'var(--positive)');
+    renderSubChart('charmChart', CHARM_DATA, 'var(--positive)');
+    updateUI();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        renderChart();
+        renderSubChart('vannaChart', VANNA_DATA, 'var(--positive)');
+        renderSubChart('charmChart', CHARM_DATA, 'var(--positive)');
+      }, 100);
+    });
+  </script>
+</body>
+</html>

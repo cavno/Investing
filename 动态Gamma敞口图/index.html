@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOOGL Gamma敞口 · 动态交互图 (2026/05/15)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #14141a;
+      --surface-2: #1c1c24;
+      --border: #2a2a32;
+      --text: #ebe9e3;
+      --text-muted: #94928c;
+      --text-subtle: #5e5d59;
+      --accent: #e8a84a;
+      --accent-soft: rgba(232,168,74,0.12);
+      --call: #e35858;
+      --call-soft: rgba(227,88,88,0.15);
+      --put: #8dc15a;
+      --put-soft: rgba(141,193,90,0.15);
+      --gex: #5da3d9;
+      --price-line: #ebe9e3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans SC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* ===== Header ===== */
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ticker-block {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ticker {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .ticker-name {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--put);
+    }
+
+    .change {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--put);
+    }
+
+    .meta-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+
+    /* ===== Layout ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr 320px;
+      }
+    }
+
+    /* ===== Main Chart ===== */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+      position: relative;
+    }
+
+    .chart-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .chart-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .chart-subtitle span {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* ===== Controls ===== */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      min-width: 80px;
+    }
+
+    .slider-wrap {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: grab;
+      border: 2px solid var(--surface);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: grab;
+      border: 2px solid var(--surface);
+    }
+
+    .slider-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+      min-width: 70px;
+      text-align: right;
+    }
+
+    button {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 2px;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    button.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== Info Panel ===== */
+    .info-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+    }
+
+    .info-card-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+      font-size: 13px;
+    }
+
+    .info-row + .info-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .info-label {
+      color: var(--text-muted);
+    }
+
+    .info-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    .info-value.pos { color: var(--call); }
+    .info-value.neg { color: var(--put); }
+    .info-value.accent { color: var(--accent); }
+
+    .dealer-action {
+      padding: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      margin-top: 12px;
+      border-radius: 2px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .dealer-action.compress {
+      border-left: 3px solid var(--put);
+    }
+
+    .dealer-action.amplify {
+      border-left: 3px solid var(--call);
+    }
+
+    .dealer-action-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    /* ===== Tooltip ===== */
+    .tooltip {
+      position: absolute;
+      background: rgba(20,20,26,0.96);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transform: translate(-50%, -100%);
+      margin-top: -8px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 10;
+      min-width: 140px;
+    }
+
+    .tooltip.visible { opacity: 1; }
+
+    .tooltip-strike {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .tooltip-row .label { color: var(--text-muted); }
+
+    /* ===== Legend ===== */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+
+    .legend-item.disabled { opacity: 0.35; }
+
+    .legend-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+    }
+
+    .legend-dot.gex {
+      width: 14px;
+      height: 2px;
+      background: var(--gex);
+    }
+
+    .legend-dot.zerog {
+      width: 2px;
+      height: 14px;
+      background: var(--accent);
+    }
+
+    .legend-dot.price-marker {
+      width: 2px;
+      height: 14px;
+      background: var(--price-line);
+      border-left: 1px dashed var(--price-line);
+    }
+
+    /* ===== Bottom panel ===== */
+    .education {
+      margin-top: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+
+    .education-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .zone-explainer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .zone-explainer { grid-template-columns: 1fr; }
+    }
+
+    .zone {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+
+    .zone.positive { border-left: 3px solid var(--put); }
+    .zone.negative { border-left: 3px solid var(--call); }
+
+    .zone-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .zone-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .zone-desc strong { color: var(--text); }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <header>
+      <div class="ticker-block">
+        <div>
+          <span class="ticker">GOOGL</span>
+          <span class="ticker-name"> · 谷歌-A</span>
+        </div>
+        <span class="price">396.015</span>
+        <span class="change">▼ -5.055  -1.26%</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="meta-tag">2026/05/15 EXPIRY</span>
+        <span class="meta-tag">行权价 320-550</span>
+        <span class="meta-tag">动态交互</span>
+      </div>
+    </header>
+
+    <!-- ===== MAIN GRID ===== -->
+    <div class="grid">
+
+      <!-- LEFT: Chart -->
+      <div class="chart-card">
+        <div class="chart-title">Gamma敞口 · 动态视图</div>
+        <div class="chart-subtitle">
+          <span>零Gamma: <strong style="color:var(--accent)">371.240</strong></span>
+          <span>看涨墙: <strong style="color:var(--call)">400</strong></span>
+          <span>看跌墙: <strong style="color:var(--put)">395</strong></span>
+          <span>总成交量: 21.78万</span>
+          <span>P/C Volume: 0.41</span>
+        </div>
+
+        <svg id="chart" class="chart-svg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet"></svg>
+
+        <!-- Tooltip -->
+        <div class="tooltip" id="tooltip"></div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <div class="control-row">
+            <span class="control-label">模拟股价</span>
+            <div class="slider-wrap">
+              <input type="range" id="priceSlider" class="slider" min="350" max="430" step="0.5" value="396.015" />
+              <span class="slider-value" id="priceValue">$396.0</span>
+            </div>
+            <button id="resetPrice">复位</button>
+            <button id="playBtn">▶ 演示Pinning</button>
+          </div>
+        </div>
+
+        <!-- Legend (clickable to toggle) -->
+        <div class="legend">
+          <div class="legend-item" data-layer="bars-call">
+            <span class="legend-dot" style="background:var(--call)"></span>看涨墙(Call净Gamma)
+          </div>
+          <div class="legend-item" data-layer="bars-put">
+            <span class="legend-dot" style="background:var(--put)"></span>看跌墙(Put净Gamma)
+          </div>
+          <div class="legend-item" data-layer="gex">
+            <span class="legend-dot gex"></span>总GEX曲线
+          </div>
+          <div class="legend-item" data-layer="zero">
+            <span class="legend-dot zerog"></span>零Gamma线
+          </div>
+          <div class="legend-item" data-layer="price">
+            <span class="legend-dot price-marker"></span>模拟股价
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Info Panel -->
+      <div class="info-panel">
+
+        <div class="info-card">
+          <div class="info-card-title">当前模拟价位</div>
+          <div class="info-row">
+            <span class="info-label">价位</span>
+            <span class="info-value accent" id="infoPrice">$396.0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">区域</span>
+            <span class="info-value" id="infoZone">正Gamma区</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">距零Gamma</span>
+            <span class="info-value" id="infoZeroDist">+24.8</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">总GEX估值</span>
+            <span class="info-value pos" id="infoGex">+2.8亿</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">做市商对冲行为</div>
+          <div id="dealerAction" class="dealer-action compress">
+            <div class="dealer-action-title">压制波动模式</div>
+            <div id="dealerText"></div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">最近的墙</div>
+          <div class="info-row">
+            <span class="info-label">向上</span>
+            <span class="info-value pos" id="infoUpWall">看涨墙 400 (+4.0)</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">向下</span>
+            <span class="info-value neg" id="infoDownWall">看跌墙 395 (-1.0)</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== EDUCATION PANEL ===== -->
+    <div class="education">
+      <div class="education-title">如何读懂这张图 · 一图四元素</div>
+      <div class="zone-explainer">
+        <div class="zone positive">
+          <div class="zone-name">正Gamma区 (零Gamma右侧)</div>
+          <div class="zone-desc">
+            做市商账户里<strong>仍是负Gamma(始终如此)</strong>,但在这区域的对冲行为<strong>压制波动</strong>:股价涨向Call墙时卖正股,跌向Put墙时买正股 — 形成<strong>Pinning效应</strong>。
+          </div>
+        </div>
+        <div class="zone negative">
+          <div class="zone-name">负Gamma区 (零Gamma左侧)</div>
+          <div class="zone-desc">
+            做市商账户Gamma仍是负的,但在这区域被迫<strong>追涨杀跌</strong>:股价上涨时买入(放大涨势),股价下跌时卖出(加速下跌) — 形成<strong>波动放大</strong>。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      数据基于2026/05/15 GOOGL期权链快照 · 数值为视觉重构估计 · 仅供学习参考 · 不构成投资建议
+    </footer>
+
+  </div>
+
+  <script>
+    // ============================================
+    // DATA
+    // ============================================
+    // Each strike's Call/Put net Gamma in units of 亿 (100M)
+    // Estimated visually from the screenshot
+    const STRIKE_DATA = [
+      // strike, call, put (in 亿 - hundreds of millions)
+      { k: 320, c: 0,    p: 0 },
+      { k: 330, c: 0,    p: 0 },
+      { k: 340, c: 0,    p: 0.005 },
+      { k: 350, c: 0.005,p: 0.01 },
+      { k: 355, c: 0.005,p: 0.015 },
+      { k: 360, c: 0.01, p: 0.02 },
+      { k: 365, c: 0.015,p: 0.025 },
+      { k: 370, c: 0.015,p: 0.03 },
+      { k: 375, c: 0.02, p: 0.025 },
+      { k: 380, c: 0.025,p: 0.02 },
+      { k: 383, c: 0.03, p: 0.025 },
+      { k: 386, c: 0.04, p: 0.03 },
+      { k: 388, c: 0.05, p: 0.04 },
+      { k: 390, c: 0.06, p: 0.10 },
+      { k: 392, c: 0.07, p: 0.09 },
+      { k: 393, c: 0.07, p: 0.13 },
+      { k: 394, c: 0.10, p: 0.08 },
+      { k: 395, c: 0.25, p: 1.05 },  // The Put wall (净 -0.80)
+      { k: 396, c: 0.15, p: 0.10 },
+      { k: 397, c: 0.20, p: 0.08 },
+      { k: 398, c: 0.30, p: 0.05 },
+      { k: 399, c: 0.20, p: 0.05 },
+      { k: 400, c: 1.65, p: 0.15 },  // The Call wall (净 +1.50)
+      { k: 402, c: 0.30, p: 0.05 },
+      { k: 404, c: 0.32, p: 0.04 },
+      { k: 406, c: 0.25, p: 0.03 },
+      { k: 408, c: 0.22, p: 0.02 },
+      { k: 410, c: 0.15, p: 0.02 },
+      { k: 412, c: 0.10, p: 0.01 },
+      { k: 415, c: 0.08, p: 0.01 },
+      { k: 420, c: 0.05, p: 0.005 },
+      { k: 425, c: 0.03, p: 0.005 },
+      { k: 430, c: 0.02, p: 0 },
+      { k: 440, c: 0.015,p: 0 },
+      { k: 450, c: 0.01, p: 0 },
+      { k: 470, c: 0.005,p: 0 },
+      { k: 500, c: 0.003,p: 0 },
+      { k: 550, c: 0,    p: 0 },
+    ];
+
+    // GEX curve (cumulative effect at each "if price were X" point)
+    // In units of 亿 — these values are illustrative, scaled to match the screenshot
+    const GEX_CURVE = [
+      { p: 320, v: -0.20 },
+      { p: 340, v: -0.18 },
+      { p: 360, v: -0.10 },
+      { p: 371.24, v: 0 },  // Zero Gamma crossing
+      { p: 380, v: 0.15 },
+      { p: 388, v: 0.40 },
+      { p: 392, v: 0.80 },
+      { p: 395, v: 1.20 },
+      { p: 396, v: 1.65 },
+      { p: 398, v: 2.80 },
+      { p: 400, v: 4.00 },
+      { p: 402, v: 4.50 },
+      { p: 405, v: 4.55 },
+      { p: 408, v: 4.30 },
+      { p: 410, v: 3.90 },
+      { p: 415, v: 3.10 },
+      { p: 420, v: 2.30 },
+      { p: 425, v: 1.70 },
+      { p: 430, v: 1.20 },
+      { p: 440, v: 0.65 },
+      { p: 450, v: 0.40 },
+      { p: 470, v: 0.20 },
+      { p: 500, v: 0.10 },
+      { p: 550, v: 0.05 },
+    ];
+
+    const ZERO_GAMMA = 371.24;
+    const CURRENT_PRICE = 396.015;
+    const CALL_WALL = 400;
+    const PUT_WALL = 395;
+
+    // Chart dimensions
+    const W = 900;
+    const H = 460;
+    const M = { top: 30, right: 70, bottom: 50, left: 70 };
+    const cw = W - M.left - M.right;
+    const ch = H - M.top - M.bottom;
+    const ZERO_Y = M.top + ch / 2;
+
+    // Scales
+    const xMin = 350, xMax = 430;  // Display range (matches screenshot more or less)
+    const xScale = (x) => M.left + ((x - xMin) / (xMax - xMin)) * cw;
+    const xInverse = (px) => xMin + ((px - M.left) / cw) * (xMax - xMin);
+
+    const Y_MAX_BAR = 2.85;  // Bar axis: ±2.85亿
+    const Y_MAX_GEX = 9.24;  // GEX axis: ±9.24亿
+    // Both use same physical Y but different scale
+    const yScaleBar = (v) => ZERO_Y - (v / Y_MAX_BAR) * (ch / 2);
+    const yScaleGex = (v) => ZERO_Y - (v / Y_MAX_GEX) * (ch / 2);
+
+    // Layer visibility state
+    const layers = {
+      'bars-call': true,
+      'bars-put': true,
+      'gex': true,
+      'zero': true,
+      'price': true,
+    };
+
+    // ============================================
+    // RENDER
+    // ============================================
+    const svg = document.getElementById('chart');
+
+    function el(tag, attrs = {}, children = []) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const e = document.createElementNS(ns, tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        e.setAttribute(k, v);
+      }
+      if (typeof children === 'string') {
+        e.textContent = children;
+      } else if (Array.isArray(children)) {
+        children.forEach(c => c && e.appendChild(c));
+      }
+      return e;
+    }
+
+    function renderChart() {
+      svg.innerHTML = '';
+
+      // Background
+      svg.appendChild(el('rect', {
+        x: M.left, y: M.top, width: cw, height: ch,
+        fill: 'transparent'
+      }));
+
+      // Background tint zones based on zero Gamma
+      const zeroGX = xScale(ZERO_GAMMA);
+      svg.appendChild(el('rect', {
+        x: M.left, y: M.top, width: Math.max(0, zeroGX - M.left), height: ch,
+        fill: 'rgba(227, 88, 88, 0.03)', 'pointer-events': 'none'
+      }));
+      svg.appendChild(el('rect', {
+        x: zeroGX, y: M.top, width: Math.max(0, M.left + cw - zeroGX), height: ch,
+        fill: 'rgba(141, 193, 90, 0.03)', 'pointer-events': 'none'
+      }));
+
+      // Horizontal grid (subtle)
+      [Y_MAX_BAR * 0.5, -Y_MAX_BAR * 0.5].forEach(v => {
+        svg.appendChild(el('line', {
+          x1: M.left, x2: M.left + cw,
+          y1: yScaleBar(v), y2: yScaleBar(v),
+          stroke: 'var(--border)', 'stroke-width': 0.5,
+          'stroke-dasharray': '2 4', opacity: 0.6
+        }));
+      });
+
+      // Zero baseline (strong)
+      svg.appendChild(el('line', {
+        x1: M.left, x2: M.left + cw,
+        y1: ZERO_Y, y2: ZERO_Y,
+        stroke: 'var(--text-subtle)', 'stroke-width': 1, opacity: 0.7
+      }));
+
+      // ============== Bars ==============
+      const barWidth = 14;
+      STRIKE_DATA.forEach((d) => {
+        if (d.k < xMin - 2 || d.k > xMax + 2) return;
+        const x = xScale(d.k);
+        const net = d.c - d.p;
+
+        // Stack: call on top of zero (positive), put below (negative)
+        // But each can be split: total bar is from -put to +call
+        const callTop = yScaleBar(d.c);
+        const putBot = yScaleBar(-d.p);
+
+        if (layers['bars-call'] && d.c > 0.001) {
+          const bar = el('rect', {
+            x: x - barWidth/2,
+            y: callTop,
+            width: barWidth,
+            height: ZERO_Y - callTop,
+            fill: 'var(--call)',
+            opacity: 0.85,
+            class: 'bar-call',
+            'data-strike': d.k,
+            'data-call': d.c.toFixed(3),
+            'data-put': d.p.toFixed(3),
+            'data-net': net.toFixed(3)
+          });
+          svg.appendChild(bar);
+        }
+
+        if (layers['bars-put'] && d.p > 0.001) {
+          const bar = el('rect', {
+            x: x - barWidth/2,
+            y: ZERO_Y,
+            width: barWidth,
+            height: putBot - ZERO_Y,
+            fill: 'var(--put)',
+            opacity: 0.85,
+            class: 'bar-put',
+            'data-strike': d.k,
+            'data-call': d.c.toFixed(3),
+            'data-put': d.p.toFixed(3),
+            'data-net': net.toFixed(3)
+          });
+          svg.appendChild(bar);
+        }
+      });
+
+      // ============== GEX Curve ==============
+      if (layers['gex']) {
+        // Build smooth path with cardinal spline
+        const pts = GEX_CURVE.filter(d => d.p >= xMin - 5 && d.p <= xMax + 5);
+        let pathD = '';
+        pts.forEach((d, i) => {
+          const x = xScale(d.p);
+          const y = yScaleGex(d.v);
+          if (i === 0) pathD += `M ${x} ${y}`;
+          else {
+            // Smooth curve - use quadratic for simplicity
+            const prev = pts[i-1];
+            const px = xScale(prev.p);
+            const py = yScaleGex(prev.v);
+            const cx = (px + x) / 2;
+            pathD += ` Q ${cx} ${py} ${cx} ${(py+y)/2} T ${x} ${y}`;
+          }
+        });
+        // Simpler: just use cubic bezier smoothing
+        pathD = '';
+        pts.forEach((d, i) => {
+          const x = xScale(d.p);
+          const y = yScaleGex(d.v);
+          if (i === 0) {
+            pathD = `M ${x} ${y}`;
+          } else {
+            const prev = pts[i-1];
+            const px = xScale(prev.p);
+            const py = yScaleGex(prev.v);
+            const mx = (px + x) / 2;
+            pathD += ` C ${mx} ${py}, ${mx} ${y}, ${x} ${y}`;
+          }
+        });
+
+        svg.appendChild(el('path', {
+          d: pathD,
+          fill: 'none',
+          stroke: 'var(--gex)',
+          'stroke-width': 2.2,
+          'pointer-events': 'none'
+        }));
+      }
+
+      // ============== Zero Gamma vertical line ==============
+      if (layers['zero']) {
+        const zX = xScale(ZERO_GAMMA);
+        svg.appendChild(el('line', {
+          x1: zX, x2: zX,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--accent)',
+          'stroke-width': 1.5,
+          'pointer-events': 'none'
+        }));
+        svg.appendChild(el('text', {
+          x: zX,
+          y: M.top - 8,
+          'text-anchor': 'middle',
+          fill: 'var(--accent)',
+          'font-size': 12,
+          'font-family': 'JetBrains Mono, monospace',
+          'font-weight': 500
+        }, '371.24'));
+      }
+
+      // ============== Wall labels ==============
+      // Call wall at 400
+      const cwX = xScale(CALL_WALL);
+      const cwY = yScaleBar(STRIKE_DATA.find(d => d.k === 400).c) - 12;
+      svg.appendChild(el('text', {
+        x: cwX, y: cwY,
+        'text-anchor': 'middle',
+        fill: 'var(--call)',
+        'font-size': 11,
+        'font-weight': 500
+      }, '看涨墙 400'));
+      svg.appendChild(el('polygon', {
+        points: `${cwX-4},${cwY+4} ${cwX+4},${cwY+4} ${cwX},${cwY+10}`,
+        fill: 'var(--call)'
+      }));
+
+      // Put wall at 395
+      const pwX = xScale(PUT_WALL);
+      const pwY = yScaleBar(-STRIKE_DATA.find(d => d.k === 395).p) + 22;
+      svg.appendChild(el('text', {
+        x: pwX, y: pwY,
+        'text-anchor': 'middle',
+        fill: 'var(--put)',
+        'font-size': 11,
+        'font-weight': 500
+      }, '看跌墙 395'));
+      svg.appendChild(el('polygon', {
+        points: `${pwX-4},${pwY-14} ${pwX+4},${pwY-14} ${pwX},${pwY-8}`,
+        fill: 'var(--put)'
+      }));
+
+      // ============== Current price line (movable) ==============
+      if (layers['price']) {
+        const priceVal = parseFloat(document.getElementById('priceSlider').value);
+        const px = xScale(priceVal);
+        svg.appendChild(el('line', {
+          x1: px, x2: px,
+          y1: M.top, y2: M.top + ch,
+          stroke: 'var(--price-line)',
+          'stroke-width': 1,
+          'stroke-dasharray': '5 4',
+          opacity: 0.85,
+          id: 'priceLine'
+        }));
+        svg.appendChild(el('text', {
+          x: px, y: M.top + ch + 16,
+          'text-anchor': 'middle',
+          fill: 'var(--price-line)',
+          'font-size': 11,
+          'font-family': 'JetBrains Mono, monospace',
+          'font-weight': 500
+        }, '$' + priceVal.toFixed(1)));
+        // Small handle indicator at top
+        svg.appendChild(el('circle', {
+          cx: px, cy: M.top - 4,
+          r: 4,
+          fill: 'var(--price-line)'
+        }));
+      }
+
+      // ============== Axes ==============
+      // X axis ticks
+      const xTicks = [350, 360, 370, 380, 390, 395, 400, 405, 410, 420, 430];
+      xTicks.forEach(t => {
+        if (t < xMin || t > xMax) return;
+        const x = xScale(t);
+        svg.appendChild(el('line', {
+          x1: x, x2: x,
+          y1: M.top + ch, y2: M.top + ch + 4,
+          stroke: 'var(--text-subtle)', 'stroke-width': 0.5
+        }));
+        if (![395, 400, 405].includes(t)) {  // Don't double up with walls
+          svg.appendChild(el('text', {
+            x: x, y: M.top + ch + 18,
+            'text-anchor': 'middle',
+            fill: 'var(--text-subtle)',
+            'font-size': 10,
+            'font-family': 'JetBrains Mono, monospace'
+          }, t.toString()));
+        }
+      });
+      // X axis label
+      svg.appendChild(el('text', {
+        x: M.left + cw / 2, y: H - 5,
+        'text-anchor': 'middle',
+        fill: 'var(--text-muted)',
+        'font-size': 11
+      }, '行权价 (Strike)'));
+
+      // Y axis left (bars)
+      [Y_MAX_BAR, 0, -Y_MAX_BAR].forEach(v => {
+        const y = yScaleBar(v);
+        svg.appendChild(el('text', {
+          x: M.left - 8, y: y + 4,
+          'text-anchor': 'end',
+          fill: 'var(--text-subtle)',
+          'font-size': 10,
+          'font-family': 'JetBrains Mono, monospace'
+        }, (v >= 0 ? '' : '-') + Math.abs(v).toFixed(2) + '亿'));
+      });
+      svg.appendChild(el('text', {
+        x: 14, y: M.top + ch / 2,
+        'text-anchor': 'middle',
+        fill: 'var(--text-muted)',
+        'font-size': 10,
+        transform: `rotate(-90, 14, ${M.top + ch / 2})`
+      }, '净Gamma (亿)'));
+
+      // Y axis right (GEX)
+      [Y_MAX_GEX, 0, -Y_MAX_GEX].forEach(v => {
+        const y = yScaleGex(v);
+        svg.appendChild(el('text', {
+          x: M.left + cw + 8, y: y + 4,
+          'text-anchor': 'start',
+          fill: 'var(--gex)',
+          'font-size': 10,
+          'font-family': 'JetBrains Mono, monospace'
+        }, (v >= 0 ? '' : '-') + Math.abs(v).toFixed(2) + '亿'));
+      });
+      svg.appendChild(el('text', {
+        x: W - 14, y: M.top + ch / 2,
+        'text-anchor': 'middle',
+        fill: 'var(--gex)',
+        'font-size': 10,
+        transform: `rotate(90, ${W - 14}, ${M.top + ch / 2})`
+      }, '总GEX (亿)'));
+    }
+
+    // ============================================
+    // INTERPOLATE GEX VALUE
+    // ============================================
+    function gexAt(price) {
+      // Linear interpolation between curve points
+      for (let i = 0; i < GEX_CURVE.length - 1; i++) {
+        const a = GEX_CURVE[i];
+        const b = GEX_CURVE[i + 1];
+        if (price >= a.p && price <= b.p) {
+          const t = (price - a.p) / (b.p - a.p);
+          return a.v + t * (b.v - a.v);
+        }
+      }
+      if (price < GEX_CURVE[0].p) return GEX_CURVE[0].v;
+      return GEX_CURVE[GEX_CURVE.length - 1].v;
+    }
+
+    function nearestWall(price, direction) {
+      // direction: 'up' or 'down'
+      let best = null;
+      STRIKE_DATA.forEach(d => {
+        const net = d.c - d.p;
+        const strength = Math.abs(net);
+        if (strength < 0.5) return;  // Only consider significant walls
+        if (direction === 'up' && d.k > price) {
+          if (!best || d.k < best.k) best = { k: d.k, net };
+        } else if (direction === 'down' && d.k < price) {
+          if (!best || d.k > best.k) best = { k: d.k, net };
+        }
+      });
+      return best;
+    }
+
+    // ============================================
+    // UPDATE INFO PANEL
+    // ============================================
+    function updateInfo() {
+      const price = parseFloat(document.getElementById('priceSlider').value);
+      document.getElementById('priceValue').textContent = '$' + price.toFixed(1);
+
+      const gex = gexAt(price);
+      const zoneDist = price - ZERO_GAMMA;
+
+      document.getElementById('infoPrice').textContent = '$' + price.toFixed(2);
+      document.getElementById('infoZone').textContent = gex >= 0 ? '正Gamma区(压制)' : '负Gamma区(放大)';
+      document.getElementById('infoZone').className = 'info-value ' + (gex >= 0 ? 'neg' : 'pos');
+      document.getElementById('infoZeroDist').textContent = (zoneDist >= 0 ? '+' : '') + zoneDist.toFixed(2);
+      document.getElementById('infoGex').textContent = (gex >= 0 ? '+' : '') + gex.toFixed(2) + '亿';
+      document.getElementById('infoGex').className = 'info-value ' + (gex >= 0 ? 'pos' : 'neg');
+
+      // Dealer action panel
+      const dealerEl = document.getElementById('dealerAction');
+      const dealerText = document.getElementById('dealerText');
+      if (gex >= 0) {
+        dealerEl.className = 'dealer-action compress';
+        dealerEl.querySelector('.dealer-action-title').textContent = '✓ 压制波动模式';
+        const force = Math.min(Math.abs(gex), 5);
+        dealerText.innerHTML = `
+          做市商账户:<strong style="color:var(--text)"> 仍是负Gamma</strong><br>
+          股价 <span style="color:var(--call)">↑</span> → 卖出 <strong>${(force * 2.5).toFixed(1)}万股</strong>/$1<br>
+          股价 <span style="color:var(--put)">↓</span> → 买入 <strong>${(force * 2.5).toFixed(1)}万股</strong>/$1<br>
+          <span style="color:var(--text-muted);font-size:11px;display:inline-block;margin-top:6px;">→ 价格被夹向最近的墙之间</span>
+        `;
+      } else {
+        dealerEl.className = 'dealer-action amplify';
+        dealerEl.querySelector('.dealer-action-title').textContent = '⚠ 放大波动模式';
+        const force = Math.min(Math.abs(gex), 5);
+        dealerText.innerHTML = `
+          做市商账户: <strong style="color:var(--text)">仍是负Gamma</strong><br>
+          股价 <span style="color:var(--call)">↑</span> → 追买 <strong>${(force * 2.5).toFixed(1)}万股</strong>/$1<br>
+          股价 <span style="color:var(--put)">↓</span> → 追卖 <strong>${(force * 2.5).toFixed(1)}万股</strong>/$1<br>
+          <span style="color:var(--text-muted);font-size:11px;display:inline-block;margin-top:6px;">⚡ 正反馈循环 → 暴涨/暴跌风险</span>
+        `;
+      }
+
+      // Nearest walls
+      const upWall = nearestWall(price, 'up');
+      const downWall = nearestWall(price, 'down');
+      document.getElementById('infoUpWall').textContent = upWall
+        ? `${upWall.net > 0 ? '看涨墙' : '看跌墙'} ${upWall.k} (${upWall.net > 0 ? '+' : ''}${upWall.net.toFixed(2)})`
+        : '无';
+      document.getElementById('infoDownWall').textContent = downWall
+        ? `${downWall.net > 0 ? '看涨墙' : '看跌墙'} ${downWall.k} (${downWall.net > 0 ? '+' : ''}${downWall.net.toFixed(2)})`
+        : '无';
+    }
+
+    // ============================================
+    // INTERACTIONS
+    // ============================================
+
+    // Slider
+    document.getElementById('priceSlider').addEventListener('input', () => {
+      renderChart();
+      updateInfo();
+    });
+
+    // Reset
+    document.getElementById('resetPrice').addEventListener('click', () => {
+      document.getElementById('priceSlider').value = CURRENT_PRICE;
+      renderChart();
+      updateInfo();
+    });
+
+    // Click on chart to set price
+    svg.addEventListener('click', (e) => {
+      const rect = svg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      // Scale to viewBox
+      const scale = W / rect.width;
+      const vbX = x * scale;
+      if (vbX < M.left || vbX > M.left + cw) return;
+      const price = xInverse(vbX);
+      if (price < 350 || price > 430) return;
+      document.getElementById('priceSlider').value = price.toFixed(1);
+      renderChart();
+      updateInfo();
+    });
+
+    // Hover tooltip on bars
+    const tooltip = document.getElementById('tooltip');
+    svg.addEventListener('mousemove', (e) => {
+      if (e.target.classList.contains('bar-call') || e.target.classList.contains('bar-put')) {
+        const t = e.target;
+        const k = t.dataset.strike;
+        const c = parseFloat(t.dataset.call);
+        const p = parseFloat(t.dataset.put);
+        const net = parseFloat(t.dataset.net);
+        tooltip.innerHTML = `
+          <div class="tooltip-strike">行权价 $${k}</div>
+          <div class="tooltip-row"><span class="label">Call净Gamma:</span><span style="color:var(--call)">${c.toFixed(2)}亿</span></div>
+          <div class="tooltip-row"><span class="label">Put净Gamma:</span><span style="color:var(--put)">${p.toFixed(2)}亿</span></div>
+          <div class="tooltip-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><span class="label">净值:</span><span style="color:${net >= 0 ? 'var(--call)' : 'var(--put)'}">${net >= 0 ? '+' : ''}${net.toFixed(2)}亿</span></div>
+        `;
+        const rect = svg.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - rect.left + svg.parentElement.offsetLeft - 16) + 'px';
+        tooltip.style.top = (e.clientY - rect.top + svg.parentElement.offsetTop) + 'px';
+        tooltip.classList.add('visible');
+      } else {
+        tooltip.classList.remove('visible');
+      }
+    });
+
+    svg.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+
+    // Legend toggles
+    document.querySelectorAll('.legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const layer = item.dataset.layer;
+        layers[layer] = !layers[layer];
+        item.classList.toggle('disabled', !layers[layer]);
+        renderChart();
+      });
+    });
+
+    // ============================================
+    // ANIMATION: Pinning demo
+    // ============================================
+    let animationId = null;
+    let animPrice = CURRENT_PRICE;
+    let animVelocity = 0;
+
+    document.getElementById('playBtn').addEventListener('click', function() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        this.textContent = '▶ 演示Pinning';
+        return;
+      }
+      this.textContent = '⏸ 停止演示';
+      animPrice = parseFloat(document.getElementById('priceSlider').value);
+      animVelocity = (Math.random() - 0.5) * 0.5;
+      runAnimation();
+    });
+
+    function runAnimation() {
+      // Simulate Pinning physics:
+      // In positive GEX area, force pulls toward the "neutral" between walls (~397.5)
+      // Random walk component
+      const gex = gexAt(animPrice);
+
+      // Pinning force (toward midpoint between walls when in positive GEX)
+      let pullForce = 0;
+      if (gex > 0) {
+        // Attract toward (Call wall + Put wall) / 2 with strength proportional to GEX
+        const target = (CALL_WALL + PUT_WALL) / 2;  // 397.5
+        const dist = target - animPrice;
+        pullForce = dist * 0.015 * Math.min(gex / 3, 1.5);
+      } else {
+        // Negative gamma: amplify motion (positive feedback)
+        pullForce = animVelocity * 0.05;
+      }
+
+      // Random walk noise
+      const noise = (Math.random() - 0.5) * 0.4;
+
+      // Velocity update
+      animVelocity = animVelocity * 0.92 + pullForce + noise * 0.3;
+      animVelocity = Math.max(-1.5, Math.min(1.5, animVelocity));
+
+      // Position update
+      animPrice += animVelocity * 0.25;
+      animPrice = Math.max(350, Math.min(430, animPrice));
+
+      // Update UI
+      document.getElementById('priceSlider').value = animPrice.toFixed(2);
+      renderChart();
+      updateInfo();
+
+      animationId = requestAnimationFrame(runAnimation);
+    }
+
+    // ============================================
+    // INIT
+    // ============================================
+    renderChart();
+    updateInfo();
+
+    // Re-render on resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => renderChart(), 100);
+    });
+  </script>
+</body>
+</html>
