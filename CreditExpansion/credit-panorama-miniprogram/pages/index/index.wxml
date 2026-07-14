@@ -1,0 +1,89 @@
+<view class="wrap">
+  <view class="rule"></view>
+  <view class="h1">信用扩张场景全景图</view>
+  <view class="dek">家庭 · 民间金融 · 公司 · 银行 · 金融市场 · 国家六个领域，五十二个典型场景。轻点节点看机制与极端案例；越往上、越红，越接近庞氏那一端。</view>
+
+  <view class="controls">
+    <view class="ctl">
+      <text class="lab">纵轴</text>
+      <view class="seg">
+        <view class="seg-btn {{ydim==='frag'?'on':''}}" data-v="frag" bindtap="onYdim">脆弱度</view>
+        <view class="seg-btn {{ydim==='lv'?'on':''}}" data-v="lv" bindtap="onYdim">杠杆</view>
+        <view class="seg-btn {{ydim==='rf'?'on':''}}" data-v="rf" bindtap="onYdim">反身性</view>
+        <view class="seg-btn {{ydim==='ci'?'on':''}}" data-v="ci" bindtap="onYdim">抵押品薄弱</view>
+      </view>
+    </view>
+    <scroll-view scroll-x="true" class="chips" show-scrollbar="false">
+      <view class="chip {{item.on?'':'off'}}" wx:for="{{layerList}}" wx:key="name" data-l="{{item.name}}" bindtap="onLayer">
+        <view class="cdot" style="background:{{item.color}}"></view>{{item.name}}
+      </view>
+    </scroll-view>
+    <view class="seg seg-view">
+      <view class="seg-btn {{view==='plot'?'on':''}}" data-v="plot" bindtap="onView">全景图</view>
+      <view class="seg-btn {{view==='table'?'on':''}}" data-v="table" bindtap="onView">排行榜</view>
+    </view>
+  </view>
+
+  <view class="stage" hidden="{{view!=='plot'}}">
+    <canvas type="2d" id="plot" class="plot-canvas" style="height:{{canvasH}}px" bindtouchstart="onTapPlot"></canvas>
+    <view class="legend">
+      <view class="lg"><view class="sw" style="background:#BC4B33"></view>庞氏 {{counts.ponzi}}</view>
+      <view class="lg"><view class="sw" style="background:#C8923D"></view>投机 {{counts.spec}}</view>
+      <view class="lg"><view class="sw" style="background:#5E8C61"></view>对冲 {{counts.hedge}}</view>
+      <view class="lg"><view class="ring"></view>机制/政策</view>
+      <view class="lg">○ 大小=杠杆</view>
+    </view>
+    <view class="hint">轻点圆点查看该场景的三轴坐标、脆弱度与极端案例</view>
+  </view>
+
+  <view class="tbl" hidden="{{view!=='table'}}">
+    <view class="trow thead">
+      <text class="rank">#</text>
+      <view class="tname"><text>场景</text></view>
+      <text class="tlayer">领域</text>
+      <text class="tfrag">脆弱度</text>
+    </view>
+    <view class="trow" wx:for="{{ranked}}" wx:key="n" data-i="{{index}}" bindtap="onRow">
+      <text class="rank">{{index+1}}</text>
+      <view class="tname"><view class="tdot" style="background:{{item.bc}}"></view><text>{{item.n}}</text></view>
+      <text class="tlayer">{{item.L}}</text>
+      <text class="tfrag" style="color:{{item.bc}}">{{item.ff}}</text>
+    </view>
+  </view>
+
+  <view class="method">
+    <view class="method-sum" bindtap="toggleMethod">{{methodOpen?'▾':'▸'}} 读图说明 &amp; 方法论边界</view>
+    <view class="method-body" wx:if="{{methodOpen}}">
+      <view class="mp">三轴均为 1–5 的序数判断：抵押品强度越高越安全；杠杆、反身性越高越险。脆弱度 =（杠杆 + 反身性 +（6 − 抵押品））/ 3，&gt; 3.5 庞氏、2.5–3.5 投机、&lt; 2.5 对冲。</view>
+      <view class="mp">这三轴刻画的是结构脆弱度，是明斯基谱系的代理而非定义——最终归类取决于经营/收入现金流能否覆盖本息。空心菱形为机制／政策，非借款人头寸，不与脆弱度直接比较。</view>
+      <view class="mp">视角全球，含「民间金融」：温州帮、潮汕帮所代表的互保联保、标会/抬会、地下钱庄、民间集资、炒房团。每则案例刻意选取把该场景顶层设计推到极端一元的样本，并点明其结构设计——中国场景配中国案例，普适场景配最著名的全球案例。</view>
+    </view>
+  </view>
+
+  <view class="foot">一条铁律贯穿六个领域：我的负债 = 你的资产。脆弱与稳健的尺子，是现金流能否自偿。</view>
+</view>
+
+<view class="sheet-mask {{sel?'show':''}}" bindtap="closeSheet"></view>
+<view class="sheet {{sel?'show':''}}">
+  <view wx:if="{{sel}}" class="sheet-inner">
+    <view class="grip"></view>
+    <view class="dt-head">
+      <text class="dt-name">{{sel.n}}</text>
+      <text class="lchip" style="background:{{selColor}}">{{sel.L}}</text>
+      <text class="kind">{{sel.k==='m'?'机制·政策':'杠杆头寸'}}</text>
+    </view>
+    <view class="scores">
+      <view class="srow"><text class="sl">抵押品强度</text><view class="bar"><view class="bar-i" style="width:{{sel.c*20}}%;background:#3F7E6B"></view></view><text class="sv">{{sel.c}}</text></view>
+      <view class="srow"><text class="sl">杠杆</text><view class="bar"><view class="bar-i" style="width:{{sel.lv*20}}%;background:#BC4B33"></view></view><text class="sv">{{sel.lv}}</text></view>
+      <view class="srow"><text class="sl">反身性</text><view class="bar"><view class="bar-i" style="width:{{sel.rf*20}}%;background:#B07D2B"></view></view><text class="sv">{{sel.rf}}</text></view>
+    </view>
+    <view class="frag-box">
+      <view class="frag-row"><text class="frag-num" style="color:{{bandColor}}">{{selFrag}}</text><text class="frag-band" style="background:{{bandColor}}">{{bandName}}融资</text></view>
+      <view class="frag-cap">脆弱度 =（杠杆 {{sel.lv}} + 反身性 {{sel.rf}} +（6 − 抵押品 {{sel.c}}））/ 3</view>
+    </view>
+    <view class="note">{{sel.note}}</view>
+    <view class="case"><text class="ck">真实案例 · 极端样本</text>{{sel.case}}</view>
+    <view class="axes">{{caveat}}</view>
+    <view class="sheet-close" bindtap="closeSheet">关闭</view>
+  </view>
+</view>

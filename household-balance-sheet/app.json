@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "家庭资产负债表",
+    "navigationBarBackgroundColor": "#F3EAD3",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F3EAD3",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

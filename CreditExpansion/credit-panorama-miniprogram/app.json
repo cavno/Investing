@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/index/index"],
+  "window": {
+    "navigationBarTitleText": "信用扩张场景全景图",
+    "navigationBarBackgroundColor": "#F3EAD3",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F3EAD3"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,202 @@
+<view class="wrap">
+
+  <!-- 报头 -->
+  <view class="masthead">
+    <view class="rule"></view>
+    <view class="title">家庭资产负债表</view>
+    <view class="identity">资产　=　负债　+　净资产</view>
+    <view class="sub">单位：万元 · 数据仅存在本机</view>
+  </view>
+
+  <!-- 净资产 · 恒等式可视化 -->
+  <view class="card hero">
+    <view class="hero-top">
+      <view class="hero-label">净资产 · 你的真实身家</view>
+      <view class="hero-net {{insolvent ? 'neg' : ''}}">{{netWorth}}<text class="unit">万</text></view>
+    </view>
+
+    <view class="bars">
+      <view class="bar-col">
+        <view class="bar-cap">资产</view>
+        <view class="track">
+          <view class="seg seg-illiquid" style="height:{{bar.illiquidH}}rpx">
+            <text wx:if="{{bar.illiquidPct > 12}}" class="seg-t">非流动 {{bar.illiquidPct}}%</text>
+          </view>
+          <view class="seg seg-liquid" style="height:{{bar.liquidH}}rpx">
+            <text wx:if="{{bar.liquidPct > 12}}" class="seg-t">流动 {{bar.liquidPct}}%</text>
+          </view>
+        </view>
+        <view class="bar-foot">{{totalAsset}}万</view>
+      </view>
+
+      <view class="eq">=</view>
+
+      <view class="bar-col">
+        <view class="bar-cap">负债 + 净资产</view>
+        <view class="track">
+          <view class="seg seg-liab" style="height:{{bar.liabH}}rpx">
+            <text wx:if="{{bar.liabPct > 12}}" class="seg-t">负债 {{bar.liabPct}}%</text>
+          </view>
+          <view class="seg seg-net" style="height:{{bar.netH}}rpx">
+            <text wx:if="{{bar.netPct > 12}}" class="seg-t">净资产 {{bar.netPct}}%</text>
+          </view>
+        </view>
+        <view class="bar-foot">{{totalLiab}} + {{netWorth}}</view>
+      </view>
+    </view>
+
+    <view class="legend">
+      <view class="lg"><view class="dot d-liquid"></view>流动资产</view>
+      <view class="lg"><view class="dot d-illiquid"></view>非流动资产</view>
+      <view class="lg"><view class="dot d-liab"></view>负债</view>
+      <view class="lg"><view class="dot d-net"></view>净资产</view>
+    </view>
+  </view>
+
+  <!-- 四个关键比率 -->
+  <view class="card">
+    <view class="card-title">体检 · 四个比率</view>
+
+    <view class="metric">
+      <view class="m-main">
+        <view class="m-label">资产负债率</view>
+        <view class="m-note">负债 ÷ 资产，借来的钱占了多少</view>
+      </view>
+      <view class="m-val">{{debtRatio}}</view>
+      <view class="tag {{debtTag.cls}}">{{debtTag.text}}</view>
+    </view>
+
+    <view class="metric">
+      <view class="m-main">
+        <view class="m-label">杠杆率（权益乘数）</view>
+        <view class="m-note">资产 ÷ 净资产，净资产被放大的倍数</view>
+      </view>
+      <view class="m-val">{{leverage}}</view>
+      <view class="tag {{levTag.cls}}">{{levTag.text}}</view>
+    </view>
+
+    <view class="metric">
+      <view class="m-main">
+        <view class="m-label">偿债收入比</view>
+        <view class="m-note">月供 ÷ 月收入，收入能否覆盖还本付息</view>
+      </view>
+      <view class="m-val">{{dti}}</view>
+      <view class="tag {{dtiTag.cls}}">{{dtiTag.text}}</view>
+    </view>
+
+    <view class="metric last">
+      <view class="m-main">
+        <view class="m-label">应急储备</view>
+        <view class="m-note">流动资产能撑几个月月供</view>
+      </view>
+      <view class="m-val">{{reserve}}</view>
+    </view>
+  </view>
+
+  <!-- 压力测试 · 杠杆支点（核心特色） -->
+  <view class="card stress">
+    <view class="card-title">压力测试 · 房价这根杠杆</view>
+    <view class="stress-intro">房贷固定不动，房价的涨跌会原封不动地砸到净资产上。拖一拖，看杠杆怎么把房价的小波动放大成净资产的大波动。</view>
+
+    <view class="stress-readout">
+      <text class="ro-house {{stress.gain ? 'up' : 'down'}}">房价 {{stressPct > 0 ? '+' : ''}}{{stressPct}}%</text>
+      <text class="ro-arrow">→</text>
+      <text class="ro-net {{stress.gain ? 'up' : 'down'}}">净资产 {{stress.changePct}}</text>
+    </view>
+
+    <slider class="slider" min="-50" max="50" step="1" value="{{stressPct}}"
+            activeColor="#BC4B33" backgroundColor="#E3D7BC" block-size="22" block-color="#BC4B33"
+            bindchange="onStress" bindchanging="onStress" />
+    <view class="ticks"><text>-50%</text><text>0</text><text>+50%</text></view>
+
+    <view class="stress-bars" wx:if="{{stress.hasNet}}">
+      <view class="sb-col">
+        <view class="sb-track"><view class="sb-seg now" style="height:{{stress.origH}}rpx"></view></view>
+        <view class="sb-cap">现在</view>
+        <view class="sb-val">{{netWorth}}万</view>
+      </view>
+      <view class="sb-col">
+        <view class="sb-track"><view class="sb-seg {{stress.gain ? 'aft-up' : 'aft-down'}}" style="height:{{stress.newH}}rpx"></view></view>
+        <view class="sb-cap">压力后</view>
+        <view class="sb-val">{{stress.newNet}}万</view>
+      </view>
+    </view>
+
+    <view class="stress-facts" wx:if="{{stress.hasNet && stress.hasHouse}}">
+      <view class="fact">
+        <text class="f-k">放大倍数</text>
+        <text class="f-v">{{stress.amp}}</text>
+        <text class="f-d">房产现值 ÷ 净资产</text>
+      </view>
+      <view class="fact">
+        <text class="f-k">归零点</text>
+        <text class="f-v warnv">↓{{stress.zeroPct}}</text>
+        <text class="f-d">房价跌到这个幅度，净资产清零</text>
+      </view>
+    </view>
+    <view class="stress-warn" wx:if="{{!stress.hasNet}}">当前净资产已为零或为负，杠杆已无安全垫，先补充净资产再谈放大。</view>
+  </view>
+
+  <!-- 资产录入 -->
+  <view class="card">
+    <view class="card-title">资产 · 你拥有什么</view>
+    <view class="in-row {{index === assetRows.length - 1 ? 'last' : ''}}" wx:for="{{assetRows}}" wx:key="key">
+      <view class="in-label">
+        {{item.label}}
+        <text wx:if="{{item.hint}}" class="in-hint">{{item.hint}}</text>
+      </view>
+      <view class="in-field">
+        <input class="in-input" type="digit" value="{{item.value}}" placeholder="0"
+               data-index="{{index}}" bindinput="onAssetInput" />
+        <text class="in-unit">万</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 负债录入 -->
+  <view class="card">
+    <view class="card-title coral">负债 · 你欠了什么</view>
+    <view class="in-row {{index === liabRows.length - 1 ? 'last' : ''}}" wx:for="{{liabRows}}" wx:key="key">
+      <view class="in-label">
+        {{item.label}}
+        <text wx:if="{{item.hint}}" class="in-hint">{{item.hint}}</text>
+      </view>
+      <view class="in-field">
+        <input class="in-input" type="digit" value="{{item.value}}" placeholder="0"
+               data-index="{{index}}" bindinput="onLiabInput" />
+        <text class="in-unit">万</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 现金流 -->
+  <view class="card">
+    <view class="card-title">现金流 · 偿债能力</view>
+    <view class="in-row">
+      <view class="in-label">家庭月收入</view>
+      <view class="in-field">
+        <input class="in-input" type="digit" value="{{income}}" placeholder="0" bindinput="onIncomeInput" />
+        <text class="in-unit">元/月</text>
+      </view>
+    </view>
+    <view class="in-row last">
+      <view class="in-label">每月还款合计<text class="in-hint">各类贷款月供之和</text></view>
+      <view class="in-field">
+        <input class="in-input" type="digit" value="{{pay}}" placeholder="0" bindinput="onPayInput" />
+        <text class="in-unit">元/月</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作 -->
+  <view class="actions">
+    <button class="btn ghost" bindtap="clearAll">清空录入</button>
+    <button class="btn" bindtap="resetExample">恢复示例</button>
+  </view>
+
+  <!-- 脚注 -->
+  <view class="foot">
+    一条铁律：你的负债，永远是别人的资产。杠杆把回报和风险一并放大——资产端涨 10%，净资产可能涨 30%，反过来同样成立。<text class="foot-dim">本工具仅作教育与自查，不构成任何投资或财务建议。</text>
+  </view>
+
+</view>

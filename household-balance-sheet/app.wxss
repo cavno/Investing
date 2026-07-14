@@ -1,0 +1,27 @@
+/* ===== 设计令牌 · 羊皮纸 / 墨 / 赤陶 ===== */
+page {
+  --paper:      #F3EAD3;  /* 羊皮纸底 */
+  --paper-deep: #ECE0C3;  /* 略深的纸，用于分隔 */
+  --card:       #FBF7EC;  /* 卡片纸面 */
+  --ink:        #2E2925;  /* 墨（正文） */
+  --ink-soft:   #7C7263;  /* 淡墨（次要文字） */
+  --line:       rgba(46, 41, 37, 0.12);
+  --line-soft:  rgba(46, 41, 37, 0.07);
+
+  --teal:       #3F7E6B;  /* 资产（非流动） */
+  --teal-soft:  #6FA292;  /* 流动资产 */
+  --coral:      #BC4B33;  /* 负债 · 赤陶 */
+  --blue:       #3A6491;  /* 净资产 */
+  --amber:      #B07D2B;  /* 警示 · 高亮 */
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  font-size: 28rpx;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+view, text, input, button {
+  box-sizing: border-box;
+}
