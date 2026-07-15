@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期权最大痛点 · 持仓地形 — Max Pain Terrain</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EAD3; --paper-deep:#EBDFC0; --card:#FBF6E8;
+  --ink:#2A241B; --ink-2:#5C5240; --ink-3:#8A7C61;
+  --hair:#D8C8A2; --hair-soft:#E7DCBD;
+  --teal:#1E6E68; --teal-deep:#155450;
+  --terra:#BE4E37; --terra-deep:#9E4029;
+  --plum:#6E4B80; --gold:#A9821F; --gold-deep:#8A6A16;
+  --grid:rgba(42,36,27,.11);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Serif SC','Songti SC','STSong','SimSun',serif;
+  font-size:15px; line-height:1.9;
+  -webkit-font-smoothing:antialiased;
+}
+.mono,.mono b{font-family:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+
+/* ============ 页眉 ============ */
+header{padding:52px 0 30px;border-bottom:1px solid var(--hair)}
+.eyebrow{font-size:12px;letter-spacing:.34em;color:var(--terra);font-weight:600;text-transform:uppercase}
+h1{font-size:42px;font-weight:900;letter-spacing:.06em;margin:10px 0 6px;line-height:1.25}
+.subtitle{font-size:16.5px;color:var(--ink-2);letter-spacing:.02em}
+.subtitle .g{color:var(--gold-deep);font-weight:700}
+.meta{margin-top:14px;font-size:12.5px;color:var(--ink-3);display:flex;gap:1.4em;flex-wrap:wrap}
+.meta span::before{content:"·";margin-right:1.4em;color:var(--hair)}
+.meta span:first-child::before{content:""}
+
+/* ============ 控制台（吸顶） ============ */
+#console{
+  position:sticky;top:0;z-index:60;
+  background:rgba(243,234,211,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hair);
+  box-shadow:0 3px 14px rgba(42,36,27,.06);
+}
+.console-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 0 8px}
+.ctl{display:flex;flex-direction:column;gap:2px;min-width:170px}
+.ctl label{font-size:12px;color:var(--ink-2);display:flex;justify-content:space-between;align-items:baseline}
+.ctl label b{font-size:13px;color:var(--ink);font-weight:700;font-family:ui-monospace,Menlo,Consolas,monospace}
+.ctl input[type=range]{width:100%;accent-color:var(--teal);height:20px;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--hair);border-radius:3px;overflow:hidden}
+.seg button{font-family:inherit;font-size:12.5px;padding:5px 13px;border:none;background:var(--paper);color:var(--ink-2);cursor:pointer;font-weight:600}
+.seg button.on{background:var(--teal);color:var(--card)}
+.console-btns{display:flex;gap:12px;align-items:center;margin-left:auto;flex-wrap:wrap}
+#ds-chip{font-size:12px;color:var(--gold-deep);border:1px dashed var(--gold);padding:2px 10px;border-radius:2px;font-weight:600}
+.console-note{font-size:11.5px;color:var(--ink-3);padding:0 0 9px}
+
+/* ============ 导语 ============ */
+.thesis{
+  margin:34px 0 8px;padding:22px 26px;
+  background:var(--card);border:1px solid var(--hair);
+  border-left:4px solid var(--terra);
+  font-size:15.5px;text-align:justify;
+}
+.thesis .lab{font-size:12px;letter-spacing:.3em;color:var(--terra);font-weight:700;display:block;margin-bottom:8px}
+.thesis b{color:var(--ink)}
+.howto{margin:14px 2px 0;font-size:12.5px;color:var(--ink-3)}
+
+/* ============ 图卡 ============ */
+main{padding:26px 0 0}
+.card{
+  background:var(--card);border:1px solid var(--hair);
+  margin:30px 0;padding:24px 26px 20px;
+  position:relative;
+}
+.card::before{content:"";position:absolute;inset:5px;border:1px solid var(--hair-soft);pointer-events:none}
+.card-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:8px;position:relative;z-index:1}
+.glyph{
+  flex:0 0 auto;width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--terra);color:var(--terra);
+  font-size:17px;font-weight:900;line-height:1;font-family:ui-monospace,Menlo,monospace;
+}
+.card-title{flex:1 1 auto;min-width:220px}
+.card-title h2{font-size:21px;font-weight:800;letter-spacing:.03em;line-height:1.4}
+.card-title .en{font-size:12px;color:var(--ink-3);letter-spacing:.18em;text-transform:uppercase}
+.formula{
+  align-self:center;font-size:12.5px;color:var(--teal-deep);
+  border:1px solid var(--hair);background:var(--paper);
+  padding:4px 12px;border-radius:2px;white-space:nowrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 4px;position:relative;z-index:1}
+.lchip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2)}
+.lline{display:inline-block;width:26px;height:0}
+.lswatch{display:inline-block;width:14px;height:11px;border:1px solid var(--hair)}
+.readout{
+  margin:6px 0 10px;padding:7px 12px;min-height:34px;
+  background:var(--paper-deep);border:1px solid var(--hair-soft);
+  font-size:12.5px;color:var(--ink-2);line-height:1.7;
+  position:relative;z-index:1;
+}
+.readout b{color:var(--ink);font-weight:600}
+.plot{position:relative;z-index:1}
+.plot svg{width:100%;height:auto;display:block;cursor:crosshair}
+svg text{font-family:'Noto Serif SC','Songti SC',serif}
+svg .tick{font-size:11px;fill:var(--ink-3);font-family:ui-monospace,Menlo,monospace}
+svg .axis{font-size:12.5px;fill:var(--ink-2);letter-spacing:.06em}
+svg .reflab{font-size:10.5px;fill:var(--ink-2)}
+svg .anno{font-size:11px;fill:var(--ink-2)}
+svg .grid{stroke:var(--grid);stroke-width:1;stroke-dasharray:2 4}
+svg .ref0{stroke:var(--ink);stroke-width:.9;opacity:.65}
+svg .refpin{stroke:var(--gold);stroke-width:1.6;stroke-dasharray:2 4;opacity:.95}
+svg .refspot{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:6 4;opacity:.6}
+svg .refnew{stroke:var(--terra);stroke-width:1.5;stroke-dasharray:4 4;opacity:.95}
+svg .xline{stroke:var(--gold);stroke-width:1.1;stroke-dasharray:3 3}
+.prose{margin-top:14px;text-align:justify;color:var(--ink-2);position:relative;z-index:1}
+.prose b{color:var(--ink)}
+.prose .lead{color:var(--ink);font-weight:700}
+.prose .bridge{display:block;margin-top:8px;color:var(--terra);font-size:13.5px}
+.src{margin-top:12px;font-size:11px;color:var(--ink-3);border-top:1px dashed var(--hair);padding-top:8px;position:relative;z-index:1}
+
+/* ============ 统计条 ============ */
+.dash{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:10px 0 6px;position:relative;z-index:1}
+.tile{background:var(--paper);border:1px solid var(--hair-soft);padding:8px 11px 6px}
+.tile .tl{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.tile .tv{font-size:16px;font-weight:700;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;margin-top:1px}
+.tile .tv.gold{color:var(--gold-deep)}
+.tile .tv.teal{color:var(--teal-deep)}
+.tile .tv.terra{color:var(--terra-deep)}
+.tile .ts{font-size:10.5px;color:var(--ink-3)}
+
+/* ============ 磁吸实验控件 ============ */
+.wf{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 4px;position:relative;z-index:1}
+.wf .fld{display:flex;flex-direction:column;gap:3px}
+.wf .fld>span{font-size:12px;color:var(--ink-2)}
+.wf select{
+  font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:6px 8px;
+  border:1px solid var(--hair);background:var(--paper);color:var(--ink);min-width:190px;
+}
+.wf input[type=range]{width:230px;accent-color:var(--terra);height:20px;cursor:pointer}
+.wf .val{font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:var(--ink)}
+button.btn{
+  font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.04em;
+  padding:7px 15px;border-radius:3px;cursor:pointer;transition:all .18s;
+  border:1.5px solid var(--terra);background:var(--terra);color:var(--card);
+}
+button.btn:hover{background:var(--terra-deep);border-color:var(--terra-deep)}
+button.btn.ghost{background:transparent;color:var(--ink-2);border-color:var(--hair)}
+button.btn.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.wf-result{
+  margin-top:8px;padding:8px 12px;border-left:3px solid var(--gold);
+  background:var(--paper);font-size:13px;position:relative;z-index:1;
+}
+.wf-result b{color:var(--ink)}
+
+/* ============ 数据入口 ============ */
+textarea{
+  width:100%;min-height:150px;resize:vertical;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;
+  background:var(--paper);border:1px solid var(--hair);color:var(--ink);
+  padding:10px 12px;position:relative;z-index:1;
+}
+textarea:focus{outline:1.5px solid var(--teal)}
+.io-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px;position:relative;z-index:1}
+.io-status{font-size:12.5px;color:var(--gold-deep);font-weight:600;position:relative;z-index:1;margin-top:6px}
+.gen{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;padding-top:12px;border-top:1px dashed var(--hair);position:relative;z-index:1}
+.gen .ctl{min-width:150px}
+
+/* ============ 段落头 / 复刻 / 页脚 ============ */
+#crit{background:var(--paper-deep);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin-top:46px;padding:40px 0 30px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sec-head .num{font-size:13px;letter-spacing:.3em;color:var(--terra);font-weight:700}
+.sec-head h2{font-size:26px;font-weight:900;letter-spacing:.05em}
+.sec-sub{color:var(--ink-2);margin-bottom:6px}
+#crit .card{background:var(--card)}
+#recon{padding:40px 0 20px}
+.recon-table{width:100%;border-collapse:collapse;font-size:12.8px;margin-top:14px}
+.recon-table th{background:var(--paper-deep);border:1px solid var(--hair);padding:8px 10px;text-align:left;font-weight:700;letter-spacing:.04em}
+.recon-table td{border:1px solid var(--hair);padding:8px 10px;color:var(--ink-2);vertical-align:top}
+.recon-table td:first-child{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;white-space:nowrap}
+footer{padding:34px 0 60px;text-align:center;border-top:1px solid var(--hair);margin-top:44px}
+.seal{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:64px;height:64px;border:2.5px solid var(--terra);color:var(--terra);
+  font-size:13px;font-weight:900;font-family:ui-monospace,Menlo,monospace;margin-bottom:12px;
+}
+footer p{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+
+@media (max-width:760px){
+  h1{font-size:30px}
+  .console-inner{gap:12px}
+  .ctl{min-width:130px;flex:1 1 44%}
+  .console-btns{margin-left:0;width:100%;justify-content:flex-start}
+  .card{padding:18px 14px 16px}
+  .formula{white-space:normal}
+  .dash{grid-template-columns:repeat(3,1fr)}
+  .wf input[type=range]{width:170px}
+}
+</style>
+</head>
+<body>
+<!-- ==================== 页眉 ==================== -->
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Option Market Structure · Max Pain</div>
+    <h1>期权最大痛点 · 持仓地形</h1>
+    <div class="subtitle">GOOGL 2025-10-17 真实持仓 · 痛点曲线 · <span class="g">磁吸实验</span> —— 把一条实时管道铸成一张静态地形图</div>
+    <div class="meta">
+      <span>算法逐式复刻</span><span>内置数据由痛点表反演（残差 = 0）</span><span>粘贴任意期权链</span><span>复刻自 maxpain 工程（2025-10）</span>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== 全局控制台 ==================== -->
+<div id="console">
+  <div class="wrap">
+    <div class="console-inner">
+      <div class="ctl"><label>现价 S₀（示意可调） <b id="b-S0">$245</b></label>
+        <input type="range" id="in-S0" min="100" max="400" step="0.5" value="245"></div>
+      <div class="ctl" style="min-width:auto"><label style="margin-bottom:3px">金额口径</label>
+        <span class="seg" id="seg-mult">
+          <button data-m="1" class="on">张 × 每股$</button>
+          <button data-m="100">名义 $（×100）</button>
+        </span></div>
+      <div class="ctl" style="min-width:auto"><label style="margin-bottom:3px">视域</label>
+        <span class="seg" id="seg-focus">
+          <button data-f="1" class="on">活跃谷区</button>
+          <button data-f="0">全部行权价</button>
+        </span></div>
+      <div class="console-btns">
+        <span id="ds-chip">数据源：GOOGL 2025-10-17 缓存 · 73 档</span>
+        <button class="btn ghost" id="btn-reset">复位</button>
+      </div>
+    </div>
+    <div class="console-note mono">TotalPain(p) = Σ_call OI·(p−K)⁺ + Σ_put OI·(K−p)⁺　·　最大痛点 = argmin TotalPain　·　评估点 = 行权价集合（凸性保证无损，见壹）</div>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ==================== 导语 ==================== -->
+<div class="thesis">
+  <span class="lab">导 语</span>
+  <b>前两份作品画了"场"（Greeks 曲面）与"个体"（单腿持仓），这一份画"群体"：全市场未平仓合约在到期日的利益地形。</b>原程序是一条实时管道——富途 OpenAPI 拉取期权链与持仓量、双重循环求总内在价值最小点、win32com 回写 Excel 三表。网页无法连接行情网关，于是把管道拆成三段可移植之物：<b>算法逐式复刻</b>（同一评估集、同一取最小规则、同一 OI→Volume 回退）；<b>真实数据内置</b>——工作簿缓存的 GOOGL 2025-10-17 痛点表被反演回 OI 阶梯（分段线性函数的二阶差分），正向复算与缓存逐分不差；<b>数据入口通用化</b>——任何券商导出的期权链，粘贴即算。最大痛点 = $250，与工作簿 B4 单元格所记一致。
+  <div class="howto">操作：悬停壹、贰图沿价格轴联动｜点击贰图任意持仓柱选中该行权价，在叁进行 OI 注入实验｜口径切换在"张×每股$"与"名义美元（×100 乘数）"之间换算｜伍可粘贴自己的期权链或生成合成链。</div>
+</div>
+
+<!-- ==================== 壹 · 痛点曲线 ==================== -->
+<section class="card" id="card-pain">
+  <div class="card-head">
+    <span class="glyph">Σ(·)⁺</span>
+    <div class="card-title">
+      <div class="en">壹 · Pain Curve</div>
+      <h2>总痛函数 —— 凸谷的底就是大头针</h2>
+    </div>
+    <span class="formula">Pain(p) = Σc OI·(p−K)⁺ + Σp OI·(K−p)⁺</span>
+  </div>
+  <div class="dash" id="dash"></div>
+  <div class="legend" id="lg-pain"></div>
+  <div class="readout mono" id="ro-pain"></div>
+  <div class="plot"><svg id="svg-pain" viewBox="0 0 720 430" role="img" aria-label="最大痛点总痛曲线"></svg></div>
+  <div class="prose">
+    <span class="lead">"最大痛点"这个名字取的是持有者视角（总内在价值最小 = 买方最痛），会计上等价于卖方视角的最省：若股价恰好收在此处，期权卖方需要支付的清算转移最少。</span>
+    两个技术事实值得写明。其一，<b>只在行权价上取值不是近似</b>：每一项 (p−K)⁺ 与 (K−p)⁺ 都是凸函数，非负加权和仍凸，且分段线性——凸的分段线性函数的最小值必落在折点上，而折点恰是行权价集合，原程序的评估网格因此天然无损。其二，原码注释里留着一次方向自纠（"修正：最大痛点应该是 total_loss 的最小值"）——这个概念的确容易把"谁的最大"绕晕，本页统一用<b>卖方最省 / 买方最痛</b>双口径标注。GOOGL 这条谷相当陡峭：谷底 $250 处总痛约 29 万（张·股），两侧一档即跳升 17–71%，说明持仓高度聚集。
+    <span class="bridge">↓ 谷形由谁塑造——看第贰图的持仓双墙。</span>
+  </div>
+  <div class="src">源：max_pain.py · calculate_max_pain()（双重循环逐式对应；取最小时遇平局取首个，与 pandas idxmin 语义一致）· 谷区邻域数据与缓存"痛点分析"表逐分核对</div>
+</section>
+
+<!-- ==================== 贰 · OI 地形 ==================== -->
+<section class="card" id="card-oi">
+  <div class="card-head">
+    <span class="glyph">OI</span>
+    <div class="card-title">
+      <div class="en">贰 · Open-Interest Terrain</div>
+      <h2>持仓双墙 —— Call 朝上、Put 朝下的城防图</h2>
+    </div>
+    <span class="formula">点击任意柱 → 选中行权价进入磁吸实验</span>
+  </div>
+  <div class="legend" id="lg-oi"></div>
+  <div class="readout mono" id="ro-oi"></div>
+  <div class="plot"><svg id="svg-oi" viewBox="0 0 720 400" role="img" aria-label="未平仓合约地形图"></svg></div>
+  <div class="prose">
+    <span class="lead">大头针不是钉在算式里，是钉在墙上：$252.5 一档挂着 30,689 张 Call、$250 挂着 22,280 张 Put——痛点被两侧最重的持仓夹在中间。</span>
+    机制的直觉版本：收盘价每向上穿过一堵 Call 墙，卖方就要按墙的厚度线性加付；向下穿过 Put 墙同理。于是总痛曲线的斜率在每根柱处折一次，谷底出现在"上方 Call 累计厚度 ≈ 下方 Put 累计厚度"的平衡点。这也解释了为什么痛点几乎总在 OI 最密的区域内部，而不在两翼。GOOGL 的 PCR（Put/Call OI 比）只有 0.761，Call 侧明显更重——若临近到期股价高于 $255，上方三堵 Call 墙的对冲平仓与展期行为，理论上会形成温和的下拉力。<b>注意"理论上"三个字</b>：OI 是双边持仓的张数，不是净裸卖方寸头，肆节展开这份诚实。
+    <span class="bridge">↓ 墙可以加厚——第叁图给你一台注入 OI 的手术台。</span>
+  </div>
+  <div class="src">数据：由缓存"痛点分析"表二阶差分反演的 OI 阶梯（全部为非负整数，正向复算残差 = 0）· 最高档与次高档同缓存运行时的实际持仓一致</div>
+</section>
+
+<!-- ==================== 叁 · 磁吸实验 ==================== -->
+<section class="card" id="card-wf">
+  <div class="card-head">
+    <span class="glyph">ΔOI</span>
+    <div class="card-title">
+      <div class="en">叁 · Magnet Experiment</div>
+      <h2>磁吸实验 —— 注入多少持仓才能搬动大头针</h2>
+    </div>
+    <span class="formula">Pain′(p) = Pain(p) + ΔOI·payoff(p; K*, side)</span>
+  </div>
+  <div class="wf">
+    <div class="fld"><span>方向</span>
+      <span class="seg" id="wf-side"><button data-s="C" class="on">Call</button><button data-s="P">Put</button></span></div>
+    <div class="fld"><span>行权价 K*（或点击贰图持仓柱）</span>
+      <select id="wf-k"></select></div>
+    <div class="fld"><span>注入 ΔOI（张，可为负）</span>
+      <input type="range" id="wf-d" min="-30000" max="80000" step="500" value="0"></div>
+    <div class="fld"><span>当前注入</span><span class="val" id="wf-dv">0 张</span></div>
+    <button class="btn ghost" id="wf-clear">清除实验</button>
+  </div>
+  <div class="wf-result mono" id="wf-result">尚未注入 —— 选择行权价并拖动滑杆，壹图将叠加实验后的总痛曲线（赤陶虚线）与新痛点位置。</div>
+  <div class="prose" style="margin-top:12px">
+    <span class="lead">凸函数的谷底附近是平的，所以针在谷区内搬动很便宜、搬出谷区极其昂贵——这就是"磁吸"的数学本体。</span>
+    默认地形下试两组数：在 $255 注入约两万张 Put 即可把痛点拉高一档到 $252.5；但想把针从 $250 拽到 $230，需要的注入量会大一个数量级——谷壁的斜率（两侧累计 OI 之差）就是搬运单价。反向读法同样有用：到期周里若某一档 OI 突然增厚数万张，用本表即可在秒级判断它是否足以移动磁点，而不必等第三方网站刷新。
+  </div>
+  <div class="src">本卡为整合新增 · 负注入自动截断于该档现有 OI（持仓不可为负）· 实验不写回数据集，清除即还原</div>
+</section>
+
+</main>
+
+<!-- ==================== 肆 · 口径·证据·批评 ==================== -->
+<div id="crit">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">肆 · EPISTEMICS</span><h2>口径、证据与批评：把地形图当地形图用</h2></div>
+    <p class="sec-sub">最大痛点是个流行到几乎被用坏的概念——下面是它经得起与经不起的部分。</p>
+    <section class="card">
+      <div class="card-head">
+        <span class="glyph">辨</span>
+        <div class="card-title"><div class="en">4.1 · What It Is / Is Not</div><h2>静力学，不是导航仪</h2></div>
+      </div>
+      <div class="prose" style="margin-top:2px">
+        <span class="lead">最大痛点度量的是"清算转移支付的静力学"，不是价格预测；它与 Gamma 敞口（GEX）常指向相邻磁点，但因果链完全不同。</span>
+        经得起的部分：到期日收盘价向行权价<b>聚集（pinning/clustering）</b>是被文献记录的现象——Ni、Pearson 与 Poteshman（2005）对美股期权到期日的研究发现，有期权挂牌的股票收盘价显著更频繁地落在行权价附近，机制归因于做市商 Delta 对冲的收敛效应与部分主动行为。经不起的部分有三。<b>其一，OI ≠ 净裸卖方头寸</b>：未平仓量是双边合约张数，持有者与卖出者各站一边，"卖方集体希望"这一拟人化叙事没有账户级数据支撑。<b>其二，对冲力学与本算式无关</b>：真正产生日内买卖压力的是做市商的 Gamma 对冲流（他此前 gamma-atlas 处理的对象），max pain 只是内在价值的会计极小点——两者在月度 OPEX 常常相邻，是因为持仓密集区同时决定两个量，相关而非因果。<b>其三，0DTE 时代口径稀释</b>：当近半成交集中在当日到期合约，月度 OI 地形对周中价格的解释力进一步下降。诚实的用法：把它当作<b>持仓密度的地形图与磁力先验</b>——在到期周提供"阻力最小的收敛区间"，而非目标价。
+      </div>
+      <div class="src">Ni, Pearson &amp; Poteshman (2005), "Stock Price Clustering on Option Expiration Dates", Journal of Financial Economics · 效应量温和且随做市结构演变减弱</div>
+    </section>
+  </div>
+</div>
+
+<main class="wrap">
+<!-- ==================== 伍 · 数据入口 ==================== -->
+<section class="card" id="card-io">
+  <div class="card-head">
+    <span class="glyph">入</span>
+    <div class="card-title">
+      <div class="en">伍 · Data Intake</div>
+      <h2>数据入口 —— 原管道的富途接口，换成任何人都有的剪贴板</h2>
+    </div>
+    <span class="formula">每行：行权价, Call OI, Put OI [, Call Vol, Put Vol]</span>
+  </div>
+  <textarea id="io-text" spellcheck="false" placeholder="示例（逗号 / 制表符 / 空格均可，带表头自动跳过）：
+strike, call_oi, put_oi
+240, 5200, 8100
+245, 4066, 9942
+250, 18002, 22280
+252.5, 30689, 11844
+255, 29648, 2015"></textarea>
+  <div class="io-row">
+    <button class="btn" id="io-apply">应用粘贴数据</button>
+    <button class="btn ghost" id="io-restore">恢复 GOOGL 缓存</button>
+  </div>
+  <div class="io-status" id="io-status"></div>
+  <div class="gen">
+    <div class="ctl"><label>合成链：现价锚 <b id="b-gS">$200</b></label>
+      <input type="range" id="g-S" min="50" max="500" step="5" value="200"></div>
+    <div class="ctl"><label>持仓规模 <b id="b-gA">2 万张级</b></label>
+      <input type="range" id="g-A" min="1" max="5" step="1" value="2"></div>
+    <div class="ctl"><label>Put 偏斜 <b id="b-gW">1.0×</b></label>
+      <input type="range" id="g-W" min="0.4" max="2.5" step="0.1" value="1.0"></div>
+    <button class="btn ghost" id="g-go">生成合成链</button>
+  </div>
+  <div class="prose" style="margin-top:12px">
+    <span class="lead">原程序最脆弱的一环是行情网关（FutuOpenD 必须本机在线），最通用的一环是算法本身——本页把前者换成剪贴板，把后者原封不动搬进浏览器。</span>
+    解析器保留原程序的回退规则：某档 OI 为 0 或缺失时，以成交量（第 4/5 列，若提供）代入——对应 max_pain.py 中 "oi = option.get('volume', 0)" 的分支。合成链按"ATM 附近指数衰减 + 随机厚墙 + Put 偏斜"生成，用于体感不同地形下谷形与磁吸成本的变化；种子递增，连点即得新地形。
+  </div>
+  <div class="src">对应原件：get_option_chain_complete()（富途拉链 + 分批快照 + left join 补 OI）→ 本卡；check_dates.py（到期日查询辅助脚本）与 run_max_pain.bat（chcp 65001 启动器）职能由静态页面天然豁免</div>
+</section>
+</main>
+
+<!-- ==================== 复刻说明 ==================== -->
+<div id="recon" class="wrap">
+  <div class="sec-head"><span class="num">附 · PROVENANCE</span><h2>复刻说明</h2></div>
+  <table class="recon-table">
+    <tr><th>原件</th><th>对应处理</th><th>说明</th></tr>
+    <tr><td>calculate_max_pain()</td><td>壹 · computePain()</td><td>逐式对应：评估点 = 行权价集合；(p−K)⁺/(K−p)⁺ × OI 求和；最小值取首个（idxmin 语义）；控制台注明凸性保证评估网格无损</td></tr>
+    <tr><td>get_option_chain_complete()</td><td>伍 · 数据入口</td><td>网页无法连接 FutuOpenD 网关；富途拉链 + 分批快照 + left join 补 OI 的管道，替换为粘贴解析 + 合成生成；OI→Volume 回退规则保留</td></tr>
+    <tr><td>期权最大痛点.xlsm · 控制面板</td><td>控制台</td><td>B1:B3（GOOGL / 到期日 / US）化为数据源芯片；B4 = 250 为本页回归锚点；B2 停留在一次未完成运行的 10-10，而链数据与痛点表均为 10-17 月度合约——以数据为准</td></tr>
+    <tr><td>期权最大痛点.xlsm · 期权数据</td><td>—（诊断记载）</td><td>该表 146 份合约的 OI 列全为 0（对应控制面板冻结在"正在获取期权链..."的中断运行），不可用作数据源</td></tr>
+    <tr><td>期权最大痛点.xlsm · 痛点分析</td><td>壹图数据 + 内置数据集</td><td>73 档损益曲线经二阶差分反演出 OI 阶梯（全部非负整数）；正向复算与缓存逐分不差（max|diff| = 0）；顶部持仓墙 $252.5 = 30,689C / $250 = 22,280P</td></tr>
+    <tr><td>控制台 top-10 打印表</td><td>壹 · 悬停读数 + 谷区邻域</td><td>原程序打印总痛最小的 10 档；本页以悬停读数与谷区聚焦视域承接同一信息</td></tr>
+    <tr><td>—（原件无）</td><td>贰 OI 地形 · 叁 磁吸实验 · 肆 批评 · 统计条</td><td>整合新增：原程序无任何图形输出，仅控制台文本与 Excel 表</td></tr>
+  </table>
+</div>
+
+<footer>
+  <div class="seal">argmin</div>
+  <p>一口凸谷 · 两堵持仓墙　｜　单文件 · 零构建 · 零依赖（字体除外）　｜　地形图，不是导航仪 · 非实盘建议　｜　2026 · 07</p>
+</footer>
+<script>
+const GOOGL_ROWS=[[70,0,0],[75,0,0],[80,0,0],[85,0,0],[90,0,0],[95,0,0],[100,0,0],[105,0,0],[110,0,0],[115,0,0],[120,0,0],[125,0,0],[130,0,0],[135,9,0],[140,79,0],[145,45,0],[150,5,0],[155,31,113],[160,65,3],[165,17,34],[170,18,5],[175,118,2],[180,72,2],[185,49,2],[190,237,2],[195,210,8],[200,357,18],[205,259,18],[207.5,2,0],[210,328,2906],[212.5,10,476],[215,335,47],[217.5,5,40],[220,289,176],[222.5,8,371],[225,428,486],[227.5,31,420],[230,1433,1592],[232.5,82,656],[235,1089,2817],[237.5,186,7730],[240,1157,2042],[242.5,1362,3866],[245,4066,9942],[247.5,3817,15729],[250,18002,22280],[252.5,30689,11844],[255,29648,2015],[257.5,2675,214],[260,8817,55],[262.5,413,5],[265,922,12],[267.5,231,4],[270,1211,45],[272.5,3145,0],[275,920,4],[277.5,17,30],[280,69,0],[282.5,1,0],[285,14,0],[290,5,0],[295,4,0],[300,0,0],[305,0,0],[310,0,0],[315,0,0],[320,0,0],[325,0,0],[330,0,0],[335,0,0],[340,0,0],[345,0,0],[350,0,2]];'use strict';
+/* ================= 1. 最大痛点算法核（与 max_pain.py 逐式对应） ================= */
+function painAt(p, rows){ let c=0,q=0;
+  for(const r of rows){ c+=r.c*Math.max(0,p-r.k); q+=r.p*Math.max(0,r.k-p); }
+  return {c,q,t:c+q};
+}
+function computePain(rows){
+  const ks=rows.map(r=>r.k);
+  const CL=[],PL=[],TL=[]; let mi=0;
+  for(let j=0;j<ks.length;j++){
+    const {c,q,t}=painAt(ks[j],rows);
+    CL.push(c); PL.push(q); TL.push(t);
+    if(t<TL[mi]) mi=j;                 /* 平局取首个 = pandas idxmin 语义 */
+  }
+  return {ks,CL,PL,TL,i:mi,pain:ks[mi],minLoss:TL[mi]};
+}
+
+/* ================= 2. 状态 · 工具 ================= */
+const state={ S0:245, mult:1, focus:true,
+  ds:{name:'GOOGL 2025-10-17 缓存', rows:GOOGL_ROWS.map(r=>({k:r[0],c:r[1],p:r[2]}))},
+  wf:{side:'C', k:null, d:0} };
+const $=id=>document.getElementById(id);
+const tho=v=>Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
+function fmtBig(v){ const a=Math.abs(v);
+  if(a>=1e9) return (v/1e9).toFixed(1)+'B';
+  if(a>=1e6) return (v/1e6).toFixed(1)+'M';
+  if(a>=1e3) return (v/1e3).toFixed(0)+'k';
+  return String(Math.round(v)); }
+const kfmt=k=>'$'+(Number.isInteger(k)?k:k.toFixed(1).replace(/\.0$/,''));
+const unitName=()=>state.mult===100?'$（名义）':'张·股';
+function niceTicks(min,max,n){
+  if(!(isFinite(min)&&isFinite(max))) return [];
+  if(min===max){min-=1;max+=1;}
+  const span=max-min, step0=span/Math.max(1,n);
+  const mag=Math.pow(10,Math.floor(Math.log10(step0)));
+  const norm=step0/mag;
+  const step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag;
+  const lo=Math.ceil(min/step)*step, ts=[];
+  for(let v=lo; v<=max+step*1e-6; v+=step) ts.push(Math.abs(v)<step*1e-6?0:v);
+  return ts;
+}
+function interp(pts,x){
+  if(x<pts[0][0]||x>pts[pts.length-1][0]) return null;
+  let lo=0,hi=pts.length-1;
+  while(hi-lo>1){ const m=(lo+hi)>>1; if(pts[m][0]<=x) lo=m; else hi=m; }
+  const a=pts[lo],b=pts[hi],t=(x-a[0])/((b[0]-a[0])||1);
+  return a[1]+(b[1]-a[1])*t;
+}
+const C={teal:'#1E6E68',terra:'#BE4E37',gold:'#A9821F',ink:'#2A241B'};
+
+/* 数据派生量（每次 renderAll 重算并缓存） */
+let PB=null, PW=null, DEFF=0;
+function wfRows(){
+  const w=state.wf;
+  if(w.k==null) return null;
+  const row=state.ds.rows.find(r=>r.k===w.k); if(!row) return null;
+  const cur=(w.side==='C'?row.c:row.p);
+  DEFF=Math.max(w.d, -cur);
+  if(DEFF===0) return null;
+  return state.ds.rows.map(r=>{
+    if(r.k!==w.k) return r;
+    return {k:r.k, c:r.c+(w.side==='C'?DEFF:0), p:r.p+(w.side==='P'?DEFF:0)};
+  });
+}
+function recompute(){
+  PB=computePain(state.ds.rows);
+  const wr=wfRows();
+  PW=wr?computePain(wr):null;
+}
+function viewDomain(){
+  const rows=state.ds.rows, ks=rows.map(r=>r.k);
+  let lo=ks[0], hi=ks[ks.length-1];
+  if(state.focus){
+    const act=rows.filter(r=>r.c+r.p>0);
+    if(act.length>=2){ lo=act[0].k; hi=act[act.length-1].k; }
+  }
+  const pad=(hi-lo)/ks.length*1.6+ (hi-lo)*0.015;
+  return [lo-pad, hi+pad];
+}
+
+/* ================= 3. SVG 图表引擎（bars + onClick 扩展版） ================= */
+const W=720, M={l:64,r:16,t:16,b:46};
+const charts=[]; let hover={x:null};
+function makeChart(cfg){
+  const svg=$(cfg.svg), ro=$(cfg.ro), lg=cfg.lg?$(cfg.lg):null;
+  const H=cfg.h||400;
+  const ch={cfg,svg,ro,lg,H,sx:null,sy:null,x0:0,x1:1,series:[]};
+
+  ch.update=function(){
+    const dom=cfg.domain(state); ch.x0=dom[0]; ch.x1=dom[1];
+    const S=cfg.series?cfg.series(state):[]; ch.series=S;
+    const B=cfg.bars?cfg.bars(state):[];
+    let ymin=cfg.yMin!=null?cfg.yMin(state):null, ymax=cfg.yMax!=null?cfg.yMax(state):null;
+    if(ymin==null||ymax==null){
+      let lo=Infinity,hi=-Infinity;
+      S.forEach(s=>s.pts.forEach(p=>{ if(p[0]<ch.x0||p[0]>ch.x1)return; if(p[1]<lo)lo=p[1]; if(p[1]>hi)hi=p[1]; }));
+      B.forEach(b=>{ if(b.x<ch.x0||b.x>ch.x1)return; lo=Math.min(lo,b.y0,b.y1); hi=Math.max(hi,b.y0,b.y1); });
+      if(cfg.zeroBase){ lo=Math.min(lo,0); hi=Math.max(hi,0); }
+      const pad=((hi-lo)||1)*0.08;
+      if(ymin==null) ymin=lo-(cfg.zeroBase&&lo>=0?0:pad);
+      if(ymax==null) ymax=hi+pad;
+    }
+    const sx=x=>M.l+(x-ch.x0)/(ch.x1-ch.x0)*(W-M.l-M.r);
+    const sy=y=>H-M.b-(y-ymin)/(ymax-ymin)*(H-M.t-M.b);
+    ch.sx=sx; ch.sy=sy;
+    let g='';
+    niceTicks(ymin,ymax,5).forEach(v=>{ const y=sy(v);
+      g+='<line class="grid" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+      g+='<text class="tick" x="'+(M.l-8)+'" y="'+(y+3.6).toFixed(1)+'" text-anchor="end">'+cfg.yFmt(v)+'</text>'; });
+    niceTicks(ch.x0,ch.x1,6).forEach(v=>{ const x=sx(v);
+      g+='<line class="grid" y1="'+M.t+'" y2="'+(H-M.b)+'" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'"/>';
+      g+='<text class="tick" y="'+(H-M.b+17)+'" x="'+x.toFixed(1)+'" text-anchor="middle">'+(cfg.xFmt?cfg.xFmt(v):Math.round(v))+'</text>'; });
+    B.forEach(b=>{ if(b.x+b.w/2<ch.x0||b.x-b.w/2>ch.x1) return;
+      const x=sx(b.x-b.w/2), wpx=Math.max(1.2, sx(b.x+b.w/2)-sx(b.x-b.w/2));
+      const y1=sy(b.y0), y2=sy(b.y1), yy=Math.min(y1,y2), hh=Math.max(0.8,Math.abs(y1-y2));
+      g+='<rect x="'+x.toFixed(1)+'" y="'+yy.toFixed(1)+'" width="'+wpx.toFixed(1)+'" height="'+hh.toFixed(1)
+        +'" fill="'+b.fill+'"'+(b.stroke?' stroke="'+b.stroke+'" stroke-width="1.4"':'')
+        +(b.dash?' stroke-dasharray="3 3" fill-opacity="0"':'')+'/>'; });
+    (cfg.refs?cfg.refs(state):[]).forEach(rf=>{
+      if(rf.type==='v'){ if(rf.x<ch.x0||rf.x>ch.x1) return; const x=sx(rf.x);
+        g+='<line class="'+(rf.cls||'refpin')+'" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+M.t+'" y2="'+(H-M.b)+'"/>';
+        if(rf.label){ const flip=x>W-110;
+          g+='<text class="reflab" x="'+(flip?x-5:x+5).toFixed(1)+'" y="'+(M.t+12+(rf.dy||0))+'"'+(flip?' text-anchor="end"':'')+'>'+rf.label+'</text>'; }
+      } else { const y=sy(rf.y);
+        g+='<line class="'+(rf.cls||'ref0')+'" x1="'+M.l+'" x2="'+(W-M.r)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>'; }
+    });
+    S.forEach(s=>{
+      let d=''; let started=false;
+      s.pts.forEach(p=>{ const X=sx(p[0]), Y=sy(p[1]);
+        d+=(started?'L':'M')+X.toFixed(2)+' '+Y.toFixed(2); started=true; });
+      g+='<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="'+(s.w||2.3)+'"'
+        +(s.dash?' stroke-dasharray="'+s.dash+'"':'')+' opacity="'+(s.alpha!=null?s.alpha:1)+'"/>';
+    });
+    if(cfg.extras) g+=cfg.extras(state,{sx,sy,x0:ch.x0,x1:ch.x1,H});
+    g+='<text class="axis" x="'+((M.l+W-M.r)/2)+'" y="'+(H-8)+'" text-anchor="middle">'+cfg.xLabel+'</text>';
+    g+='<text class="axis" transform="translate(15 '+((M.t+H-M.b)/2)+') rotate(-90)" text-anchor="middle">'+cfg.yLabel(state)+'</text>';
+    svg.innerHTML='<g class="plot">'+g+'</g><g class="cross"></g>';
+    if(lg&&cfg.legend){
+      lg.innerHTML=cfg.legend(state).map(it=>{
+        if(it.swatch) return '<span class="lchip"><span class="lswatch" style="background:'+it.swatch+'"></span>'+it.label+'</span>';
+        const style='border-top:2.6px '+(it.dot?'dotted':it.dash?'dashed':'solid')+' '+it.color+';'+(it.alpha?'opacity:'+it.alpha+';':'');
+        return '<span class="lchip"><span class="lline" style="'+style+'"></span>'+it.label+'</span>';
+      }).join('');
+    }
+    ch.setDefaultReadout();
+    if(hover.x!=null && cfg.group) ch.drawCross(hover.x);
+  };
+  ch.setDefaultReadout=function(){ if(cfg.readout&&ro) ro.innerHTML=cfg.readout(state,null); };
+  ch.drawCross=function(xv){
+    const cg=svg.querySelector('.cross'); if(!cg) return;
+    if(xv<ch.x0||xv>ch.x1){ cg.innerHTML=''; ch.setDefaultReadout(); return; }
+    const x=ch.sx(xv);
+    let h='<line class="xline" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+M.t+'" y2="'+(H-M.b)+'"/>';
+    ch.series.forEach(s=>{ const yv=interp(s.pts,xv); if(yv==null) return;
+      h+='<circle cx="'+x.toFixed(1)+'" cy="'+ch.sy(yv).toFixed(1)+'" r="3.4" fill="'+s.color+'" stroke="#FBF6E8" stroke-width="1.4"/>'; });
+    cg.innerHTML=h;
+    if(cfg.readout&&ro) ro.innerHTML=cfg.readout(state,xv);
+  };
+  svg.addEventListener('pointermove',e=>{
+    const r=svg.getBoundingClientRect(); if(!r.width) return;
+    const px=(e.clientX-r.left)/r.width*W;
+    let xv=ch.x0+(px-M.l)/(W-M.l-M.r)*(ch.x1-ch.x0);
+    xv=Math.min(Math.max(xv,ch.x0),ch.x1);
+    if(cfg.group){ hover.x=xv; broadcast(); }
+    else ch.drawCross(xv);
+  });
+  svg.addEventListener('pointerleave',()=>{
+    if(cfg.group){ hover.x=null; broadcast(); }
+    else { const cg=svg.querySelector('.cross'); if(cg)cg.innerHTML=''; ch.setDefaultReadout(); }
+  });
+  if(cfg.onClick) svg.addEventListener('click',e=>{
+    const r=svg.getBoundingClientRect(); if(!r.width) return;
+    const px=(e.clientX-r.left)/r.width*W;
+    const xv=ch.x0+(px-M.l)/(W-M.l-M.r)*(ch.x1-ch.x0);
+    cfg.onClick(xv,state);
+  });
+  charts.push(ch); return ch;
+}
+function broadcast(){
+  charts.forEach(c=>{ if(!c.cfg.group) return;
+    if(hover.x==null){ const cg=c.svg.querySelector('.cross'); if(cg)cg.innerHTML=''; c.setDefaultReadout(); }
+    else c.drawCross(hover.x);
+  });
+}
+
+/* ================= 4. 壹 · 痛点曲线 ================= */
+makeChart({ svg:'svg-pain', ro:'ro-pain', lg:'lg-pain', group:'px', h:430,
+  xLabel:'假想结算价 p', yLabel:st=>'期权总内在价值（'+unitName()+'）', zeroBase:true,
+  yFmt:fmtBig, xFmt:v=>'$'+Math.round(v),
+  domain:viewDomain,
+  series:st=>{ const m=st.mult, out=[
+      {color:C.teal, w:1.7, alpha:.85, pts:PB.ks.map((k,j)=>[k,PB.CL[j]*m])},
+      {color:C.terra, w:1.7, alpha:.85, pts:PB.ks.map((k,j)=>[k,PB.PL[j]*m])},
+      {color:C.gold, w:2.7, pts:PB.ks.map((k,j)=>[k,PB.TL[j]*m])}];
+    if(PW) out.push({color:C.terra, w:2.1, dash:'7 5', pts:PW.ks.map((k,j)=>[k,PW.TL[j]*m])});
+    return out; },
+  refs:st=>{ const r=[
+      {type:'v', x:PB.pain, cls:'refpin', label:'痛点 '+kfmt(PB.pain)},
+      {type:'v', x:st.S0, cls:'refspot', label:'S₀ '+kfmt(st.S0), dy:16},
+      {type:'h', y:0, cls:'ref0'}];
+    if(PW && PW.pain!==PB.pain) r.push({type:'v', x:PW.pain, cls:'refnew', label:'新痛点 '+kfmt(PW.pain), dy:32});
+    return r; },
+  extras:(st,h)=>{ const m=st.mult;
+    let g='<circle cx="'+h.sx(PB.pain).toFixed(1)+'" cy="'+h.sy(PB.minLoss*m).toFixed(1)+'" r="5" fill="'+C.gold+'" stroke="#FBF6E8" stroke-width="1.6"/>';
+    if(PW && PW.pain!==PB.pain) g+='<circle cx="'+h.sx(PW.pain).toFixed(1)+'" cy="'+h.sy(PW.minLoss*m).toFixed(1)+'" r="4.4" fill="'+C.terra+'" stroke="#FBF6E8" stroke-width="1.4"/>';
+    return g; },
+  legend:st=>{ const l=[
+      {color:C.gold, label:'总痛 Pain(p)'},
+      {color:C.teal, label:'Call 侧内在价值'},
+      {color:C.terra, label:'Put 侧内在价值'},
+      {color:C.ink, dash:1, label:'S₀（示意）'}];
+    if(PW) l.push({color:C.terra, dash:1, label:'实验后总痛（叁）'});
+    return l; },
+  readout:(st,p)=>{ const m=st.mult;
+    if(p==null){
+      return '最大痛点 <b>'+kfmt(PB.pain)+'</b>（卖方最省 / 买方最痛）· 谷值 <b>'+tho(PB.minLoss*m)+'</b> '+unitName()
+        +'　｜　Call <b>'+tho(PB.CL[PB.i]*m)+'</b> · Put <b>'+tho(PB.PL[PB.i]*m)+'</b>';
+    }
+    const {c,q,t}=painAt(p,state.ds.rows);
+    const pct=PB.minLoss>0?((t/PB.minLoss-1)*100):0;
+    return '若结算于 <b>$'+p.toFixed(1)+'</b>：卖方共付 <b>'+tho(t*m)+'</b> '+unitName()
+      +'（Call '+tho(c*m)+' · Put '+tho(q*m)+'）· 高于谷值 <b>+'+pct.toFixed(0)+'%</b>'; }
+});
+
+/* ================= 5. 贰 · OI 地形 ================= */
+function barW(rows,j){
+  const ks=rows.map(r=>r.k);
+  const gl=j>0?ks[j]-ks[j-1]:(ks[1]-ks[0]);
+  const gr=j<ks.length-1?ks[j+1]-ks[j]:(ks[ks.length-1]-ks[ks.length-2]);
+  return 0.72*Math.min(gl,gr);
+}
+function nearestStrike(xv){
+  let best=null,bd=Infinity;
+  state.ds.rows.forEach(r=>{ const d=Math.abs(r.k-xv); if(d<bd){bd=d;best=r.k;} });
+  return best;
+}
+makeChart({ svg:'svg-oi', ro:'ro-oi', lg:'lg-oi', group:'px',
+  xLabel:'行权价 K', yLabel:st=>'未平仓量 OI（张）　Call ↑ / Put ↓',
+  yMin:st=>{ const mx=Math.max(...state.ds.rows.map(r=>Math.max(r.c,r.p)),1); return -mx*1.12; },
+  yMax:st=>{ const mx=Math.max(...state.ds.rows.map(r=>Math.max(r.c,r.p)),1); return mx*1.12; },
+  yFmt:v=>fmtBig(Math.abs(v)), xFmt:v=>'$'+Math.round(v),
+  domain:viewDomain,
+  bars:st=>{ const out=[];
+    st.ds.rows.forEach((r,j)=>{ const w=barW(st.ds.rows,j), sel=(st.wf.k===r.k);
+      if(r.c>0||sel) out.push({x:r.k,w,y0:0,y1:r.c, fill:'rgba(30,110,104,.62)', stroke:sel?C.ink:null});
+      if(r.p>0||sel) out.push({x:r.k,w,y0:0,y1:-r.p, fill:'rgba(190,78,55,.62)', stroke:sel?C.ink:null});
+    });
+    return out; },
+  refs:st=>{ const r=[
+      {type:'v', x:PB.pain, cls:'refpin', label:'痛点 '+kfmt(PB.pain)},
+      {type:'v', x:st.S0, cls:'refspot', label:'S₀', dy:16},
+      {type:'h', y:0, cls:'ref0'}];
+    if(PW && PW.pain!==PB.pain) r.push({type:'v', x:PW.pain, cls:'refnew', label:'新痛点', dy:32});
+    return r; },
+  extras:(st,h)=>{ /* 注入幽灵柱 */
+    if(st.wf.k==null||DEFF===0||!PW) return '';
+    const row=st.ds.rows.find(r=>r.k===st.wf.k); if(!row) return '';
+    const j=st.ds.rows.indexOf(row), w=barW(st.ds.rows,j);
+    const cur=st.wf.side==='C'?row.c:row.p, nv=cur+DEFF;
+    const sgn=st.wf.side==='C'?1:-1;
+    const y1=h.sy(sgn*cur), y2=h.sy(sgn*nv);
+    const x=h.sx(st.wf.k-w/2), wpx=h.sx(st.wf.k+w/2)-h.sx(st.wf.k-w/2);
+    return '<rect x="'+x.toFixed(1)+'" y="'+Math.min(y1,y2).toFixed(1)+'" width="'+wpx.toFixed(1)
+      +'" height="'+Math.max(1,Math.abs(y1-y2)).toFixed(1)+'" fill="none" stroke="'
+      +(st.wf.side==='C'?C.teal:C.terra)+'" stroke-width="1.6" stroke-dasharray="4 3"/>'; },
+  legend:st=>[
+    {swatch:'rgba(30,110,104,.62)', label:'Call OI（上）'},
+    {swatch:'rgba(190,78,55,.62)', label:'Put OI（下）'},
+    {color:C.gold, dash:1, label:'最大痛点'},
+    {color:C.ink, dash:1, label:'S₀（示意）'}],
+  readout:(st,xv)=>{ if(xv==null){
+      const tc=st.ds.rows.reduce((a,r)=>a+r.c,0), tp=st.ds.rows.reduce((a,r)=>a+r.p,0);
+      return 'ΣCall OI <b>'+tho(tc)+'</b> 张 · ΣPut OI <b>'+tho(tp)+'</b> 张 · PCR <b>'+(tc>0?(tp/tc).toFixed(3):'—')+'</b>　｜　点击持仓柱选中行权价 → 叁 · 磁吸实验'; }
+    const k=nearestStrike(xv), row=st.ds.rows.find(r=>r.k===k);
+    return 'K = <b>'+kfmt(k)+'</b>　｜　Call OI <b>'+tho(row.c)+'</b> · Put OI <b>'+tho(row.p)+'</b>'
+      +(st.wf.k===k?'　（已选中）':'　｜　点击选中 → 磁吸实验'); },
+  onClick:(xv,st)=>{ const k=nearestStrike(xv);
+    st.wf.k=k; $('wf-k').value=String(k); renderAll(); }
+});
+
+/* ================= 6. 统计条 · 磁吸实验 ================= */
+function tile(l,v,cls,s){ return '<div class="tile"><div class="tl">'+l+'</div><div class="tv'+(cls?' '+cls:'')+'">'+v+'</div>'+(s?'<div class="ts">'+s+'</div>':'')+'</div>'; }
+function dashUpdate(){
+  const m=state.mult;
+  const tc=state.ds.rows.reduce((a,r)=>a+r.c,0), tp=state.ds.rows.reduce((a,r)=>a+r.p,0);
+  const dist=state.S0-PB.pain, distPct=PB.pain>0?dist/PB.pain*100:0;
+  $('dash').innerHTML=
+    tile('最大痛点', kfmt(PB.pain), 'gold', '卖方最省点')
+    +tile('谷值总痛', tho(PB.minLoss*m), '', unitName())
+    +tile('ΣCall OI', tho(tc), 'teal', '张')
+    +tile('ΣPut OI', tho(tp), 'terra', '张')
+    +tile('PCR', tc>0?(tp/tc).toFixed(3):'—', '', 'Put / Call')
+    +tile('S₀ → 痛点', (dist>=0?'+':'−')+'$'+Math.abs(dist).toFixed(1), dist>=0?'teal':'terra',
+      (distPct>=0?'+':'')+distPct.toFixed(1)+'%（示意）');
+}
+function wfSelectFill(){
+  const sel=$('wf-k');
+  const opts=['<option value="">—— 未选择 ——</option>'].concat(
+    state.ds.rows.map(r=>'<option value="'+r.k+'">'+kfmt(r.k)+' —— C '+tho(r.c)+' / P '+tho(r.p)+'</option>'));
+  sel.innerHTML=opts.join('');
+  sel.value=state.wf.k==null?'':String(state.wf.k);
+}
+function wfResultUpdate(){
+  const el=$('wf-result'), w=state.wf;
+  $('wf-dv').textContent=(w.d>=0?'+':'−')+tho(Math.abs(w.d))+' 张';
+  if(w.k==null){ el.innerHTML='尚未注入 —— 选择行权价并拖动滑杆，壹图将叠加实验后的总痛曲线（赤陶虚线）与新痛点位置。'; return; }
+  const row=state.ds.rows.find(r=>r.k===w.k), cur=(w.side==='C'?row.c:row.p);
+  if(!PW){ el.innerHTML='已选中 <b>'+kfmt(w.k)+'</b>（现有 C '+tho(row.c)+' / P '+tho(row.p)+' 张）—— 拖动滑杆注入 '+(w.side==='C'?'Call':'Put')+' OI。'; return; }
+  const clamp=(DEFF!==w.d)?'（负注入截断于现有 '+tho(cur)+' 张）':'';
+  const moved=PW.pain-PB.pain;
+  const steps=Math.abs(PB.ks.indexOf(PW.pain)-PB.ks.indexOf(PB.pain));
+  el.innerHTML='在 <b>'+kfmt(w.k)+'</b> 注入 <b>'+(DEFF>=0?'+':'−')+tho(Math.abs(DEFF))+'</b> 张 '+(w.side==='C'?'Call':'Put')+' OI '+clamp
+    +' → 痛点 <b>'+kfmt(PB.pain)+' → '+kfmt(PW.pain)+'</b>'
+    +(moved===0?'（未移动——注入量不足以翻越谷壁）':'（移动 '+(moved>0?'+':'−')+'$'+Math.abs(moved)+' / '+steps+' 档）')
+    +' · 新谷值 <b>'+tho(PW.minLoss*state.mult)+'</b> '+unitName();
+}
+
+/* ================= 7. 数据入口：解析 · 合成 · 恢复 ================= */
+function parseChain(text){
+  const rows={}; let n=0;
+  text.split(/\r?\n/).forEach(line=>{
+    const t=line.trim(); if(!t) return;
+    const tok=t.split(/[\s,;，、\t]+/).filter(x=>x!=='');
+    if(!tok.length||!isFinite(parseFloat(tok[0]))) return; /* 表头/杂行跳过 */
+    const k=parseFloat(tok[0]);
+    let c=parseFloat(tok[1]||'0')||0, p=parseFloat(tok[2]||'0')||0;
+    const cv=parseFloat(tok[3]||'0')||0, pv=parseFloat(tok[4]||'0')||0;
+    if(c<=0) c=cv;  /* 原程序回退规则：OI 缺失以成交量代入 */
+    if(p<=0) p=pv;
+    if(!(k>0)) return;
+    if(!rows[k]) rows[k]={k,c:0,p:0};
+    rows[k].c+=Math.max(0,c); rows[k].p+=Math.max(0,p); n++;
+  });
+  const arr=Object.values(rows).sort((a,b)=>a.k-b.k);
+  if(arr.length<2) throw '至少需要 2 个不同行权价（解析到 '+arr.length+' 个）';
+  if(arr.reduce((s,r)=>s+r.c+r.p,0)<=0) throw '所有 OI/Volume 均为 0，无法计算';
+  return arr;
+}
+function adoptDataset(rows,name){
+  state.ds={name,rows};
+  state.wf={side:state.wf.side,k:null,d:0}; $('wf-d').value=0;
+  const p0=computePain(rows).pain;
+  const lo=rows[0].k, hi=rows[rows.length-1].k;
+  const s=$('in-S0'); s.min=Math.floor(lo*0.9); s.max=Math.ceil(hi*1.1);
+  s.step=(hi-lo)>800?5:0.5; state.S0=p0; s.value=p0;
+  $('ds-chip').textContent='数据源：'+name+' · '+rows.length+' 档';
+  wfSelectFill(); renderAll();
+}
+$('io-apply').addEventListener('click',()=>{
+  try{
+    const rows=parseChain($('io-text').value);
+    adoptDataset(rows,'自定义粘贴');
+    $('io-status').textContent='✓ 已应用：'+rows.length+' 档行权价 · 痛点 '+kfmt(PB.pain);
+  }catch(e){ $('io-status').textContent='✗ 解析失败：'+e; }
+});
+$('io-restore').addEventListener('click',()=>{
+  adoptDataset(GOOGL_ROWS.map(r=>({k:r[0],c:r[1],p:r[2]})),'GOOGL 2025-10-17 缓存');
+  state.S0=245; $('in-S0').value=245;
+  $('io-status').textContent='✓ 已恢复 GOOGL 缓存数据集（痛点 $250，与工作簿 B4 一致）';
+  renderAll();
+});
+/* 合成链 */
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0;
+  let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t;
+  return ((t^(t>>>14))>>>0)/4294967296; }; }
+let genSeed=7;
+$('g-go').addEventListener('click',()=>{
+  const rnd=mulberry32(genSeed++);
+  const spot=parseFloat($('g-S').value);
+  const A=[0,5e3,2e4,5e4,1.2e5,3e5][parseInt($('g-A').value)];
+  const skew=parseFloat($('g-W').value);
+  const step=spot<=120?2.5:spot<=300?5:10;
+  const lo=Math.max(step, Math.round(spot*0.65/step)*step), hi=Math.round(spot*1.35/step)*step;
+  const rows=[];
+  for(let k=lo;k<=hi+1e-9;k+=step){
+    const dC=Math.exp(-Math.abs(k-spot*1.02)/(0.10*spot));
+    const dP=Math.exp(-Math.abs(k-spot*0.97)/(0.12*spot));
+    rows.push({k:+k.toFixed(1),
+      c:Math.round(A*dC*(0.35+1.3*rnd())),
+      p:Math.round(A*dP*skew*(0.35+1.3*rnd()))});
+  }
+  for(let i=0;i<2;i++){ const j=Math.floor(rnd()*rows.length);
+    rows[j].c=Math.round(rows[j].c*(2.4+2*rnd()));
+    const j2=Math.floor(rnd()*rows.length);
+    rows[j2].p=Math.round(rows[j2].p*(2.4+2*rnd())); }
+  adoptDataset(rows,'合成链 · seed '+(genSeed-1));
+  $('io-status').textContent='✓ 已生成合成链：'+rows.length+' 档 · 痛点 '+kfmt(PB.pain)+'（连点可换地形）';
+});
+['g-S','g-A','g-W'].forEach(id=>$(id).addEventListener('input',()=>{
+  $('b-gS').textContent='$'+$('g-S').value;
+  $('b-gA').textContent=['','5 千张级','2 万张级','5 万张级','12 万张级','30 万张级'][parseInt($('g-A').value)];
+  $('b-gW').textContent=parseFloat($('g-W').value).toFixed(1)+'×';
+}));
+
+/* ================= 8. 控制台 · 磁吸控件绑定 ================= */
+function syncBadges(){ $('b-S0').textContent=kfmt(state.S0); }
+function renderAll(){ recompute(); charts.forEach(c=>c.update()); dashUpdate(); wfResultUpdate(); syncBadges(); }
+
+$('in-S0').addEventListener('input',e=>{ state.S0=parseFloat(e.target.value); renderAll(); });
+document.querySelectorAll('#seg-mult button').forEach(b=>b.addEventListener('click',()=>{
+  state.mult=parseInt(b.dataset.m);
+  document.querySelectorAll('#seg-mult button').forEach(x=>x.classList.toggle('on',x===b));
+  renderAll(); }));
+document.querySelectorAll('#seg-focus button').forEach(b=>b.addEventListener('click',()=>{
+  state.focus=b.dataset.f==='1';
+  document.querySelectorAll('#seg-focus button').forEach(x=>x.classList.toggle('on',x===b));
+  renderAll(); }));
+document.querySelectorAll('#wf-side button').forEach(b=>b.addEventListener('click',()=>{
+  state.wf.side=b.dataset.s;
+  document.querySelectorAll('#wf-side button').forEach(x=>x.classList.toggle('on',x===b));
+  renderAll(); }));
+$('wf-k').addEventListener('change',e=>{
+  state.wf.k=e.target.value===''?null:parseFloat(e.target.value); renderAll(); });
+$('wf-d').addEventListener('input',e=>{ state.wf.d=parseInt(e.target.value); renderAll(); });
+$('wf-clear').addEventListener('click',()=>{
+  state.wf={side:'C',k:null,d:0}; $('wf-d').value=0; $('wf-k').value='';
+  document.querySelectorAll('#wf-side button').forEach(x=>x.classList.toggle('on',x.dataset.s==='C'));
+  renderAll(); });
+$('btn-reset').addEventListener('click',()=>{
+  state.mult=1; state.focus=true;
+  document.querySelectorAll('#seg-mult button').forEach(x=>x.classList.toggle('on',x.dataset.m==='1'));
+  document.querySelectorAll('#seg-focus button').forEach(x=>x.classList.toggle('on',x.dataset.f==='1'));
+  state.wf={side:'C',k:null,d:0}; $('wf-d').value=0;
+  document.querySelectorAll('#wf-side button').forEach(x=>x.classList.toggle('on',x.dataset.s==='C'));
+  adoptDataset(GOOGL_ROWS.map(r=>({k:r[0],c:r[1],p:r[2]})),'GOOGL 2025-10-17 缓存');
+  state.S0=245; $('in-S0').value=245; $('io-status').textContent='';
+  renderAll(); });
+
+/* ================= 9. 启动 ================= */
+wfSelectFill(); renderAll();
+</script>
+</body>
+</html>
