@@ -4,7 +4,8 @@
 
 | 内容 | 访问链接 |
 | --- | --- |
-| GOOGL Gamma Profile（SpotGamma 框架） | https://cavno.github.io/Investing/ |
+| 投资研究 · 综合工作台（总入口） | https://cavno.github.io/Investing/ |
+| GOOGL Gamma Profile · SpotGamma 框架 | https://cavno.github.io/Investing/gamma-profile/ |
 | GOOGL Gamma 敞口 · 动态交互图 | https://cavno.github.io/Investing/%E5%8A%A8%E6%80%81Gamma%E6%95%9E%E5%8F%A3%E5%9B%BE/ |
 | Gamma 敞口结构图谱 · 14 种典型市场博弈格局 | https://cavno.github.io/Investing/gamma-atlas/ |
 | Gamma & Delta Squeeze 动态演示 | https://cavno.github.io/Investing/options/ |
