@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态对冲 · 核心概念与内在逻辑 — 互动导读</title>
+<style>
+/* ============ 羊皮卷主题(参照 cavno/Investing 风格;分类色已过双模校验) ============ */
+:root{
+  color-scheme: light;
+  --page:#F3EAD3; --surface:#FBF6E8; --surface-2:#EFE5CC;
+  --ink:#2A241B; --ink-2:#5C5240; --muted:#8A7C61;
+  --grid:#E2D5B3; --axis:#C9B88E; --border:#D8C8A2; --border-soft:#E7DCBD;
+  --g1:#0B8A6E; --g2:#BE4E37; --g3:#8A3FA4; --g4:#A9821F; --g5:#3A63B8; --g6:#6A802D;
+  --teal:#1E6E68; --teal-deep:#155450; --terra:#BE4E37; --terra-deep:#9E4029;
+  --gold:#A9821F; --gold-deep:#8A6A16;
+  --accent:var(--teal); --accent-ink:var(--teal-deep);
+  --mark:#EFDFA6; --onaccent:#FBF6E8;
+  --shadow:0 10px 26px rgba(42,36,27,.12);
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#161210; --surface:#211B15; --surface-2:#2B231B;
+  --ink:#F0E7D3; --ink-2:#CBBEA1; --muted:#98896D;
+  --grid:#3A3126; --axis:#4C4030; --border:#463A2A; --border-soft:#352C20;
+  --g1:#23998B; --g2:#D4684A; --g3:#9C63C4; --g4:#BC8B22; --g5:#6386D0; --g6:#829739;
+  --teal:#3E9C93; --teal-deep:#6FBFB5; --terra:#C96047; --terra-deep:#E08066;
+  --gold:#BC8B22; --gold-deep:#D2A63C;
+  --accent:var(--teal); --accent-ink:var(--teal-deep);
+  --mark:#5A4A1E; --onaccent:#F7F0DD;
+  --shadow:0 10px 26px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Serif SC','Songti SC','STSong','SimSun',Georgia,'Times New Roman',serif;
+  background:var(--page); color:var(--ink); font-size:15px; line-height:1.9;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:14px;color:var(--ink)}
+::selection{background:var(--teal-deep);color:#FBF6E8}
+
+/* —— 双框卡片:外 1px 发丝线 + 内 1px 柔线,直角 —— */
+.card,.tile,.quotebox,.map-detail,.rule,.qface,.step .box,.map-stage{position:relative;border-radius:0}
+.card::before,.tile::before,.quotebox::before,.map-detail::before,.rule::before,.qface::before{
+  content:"";position:absolute;inset:5px;border:1px solid var(--border-soft);pointer-events:none;
+}
+
+/* ============ 顶栏 ============ */
+header{
+  position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--page) 92%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+}
+.hd{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:14px;height:58px}
+.brand{display:flex;align-items:baseline;gap:9px;white-space:nowrap}
+.brand b{font-size:17px;letter-spacing:.08em;font-weight:900}
+.brand span{font-size:12px;color:var(--muted);letter-spacing:.06em}
+nav{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:center}
+nav::-webkit-scrollbar{display:none}
+.tab{
+  padding:7px 13px;border-radius:3px;font-size:13.5px;color:var(--ink-2);white-space:nowrap;
+  letter-spacing:.04em;transition:background .15s,color .15s;
+}
+.tab:hover{background:var(--surface-2)}
+.tab.on{background:var(--ink);color:var(--surface);font-weight:700}
+.hd-right{display:flex;gap:6px;align-items:center}
+.icon-btn{
+  width:32px;height:32px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-2);
+}
+.icon-btn:hover{background:var(--surface-2)}
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--gold-deep);width:0;z-index:60;transition:width .1s}
+
+/* ============ 布局 ============ */
+main{max-width:1280px;margin:0 auto;padding:26px 20px 80px}
+.view{display:none}
+.view.on{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.22em;color:var(--gold-deep);margin-bottom:6px}
+h1.pg{font-size:26px;line-height:1.45;letter-spacing:.03em;font-weight:900}
+.sub{color:var(--ink-2);font-size:14px;margin-top:6px;max-width:760px}
+.card{background:var(--surface);border:1px solid var(--border);padding:22px 24px}
+.hint{font-size:12.5px;color:var(--muted)}
+
+/* ============ 总览 ============ */
+.hero{padding:34px 0 6px}
+.hero h1{font-size:clamp(26px,3.8vw,36px);line-height:1.5;font-weight:900;letter-spacing:.05em;max-width:900px}
+.hero h1 em{font-style:normal;color:var(--terra-deep)}
+.hero p{margin-top:14px;max-width:780px;color:var(--ink-2)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:26px 0}
+.tile{background:var(--surface);border:1px solid var(--border);padding:16px 18px}
+.tile .v{font-size:29px;font-weight:900;line-height:1.25;letter-spacing:.02em}
+.tile .l{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+.tile .n{font-size:11.5px;color:var(--muted);margin-top:2px}
+.ov-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;align-items:start}
+@media(max-width:900px){.ov-grid{grid-template-columns:1fr}}
+.thesis{border-left:3px solid var(--gold);padding-left:16px;margin:15px 0}
+.thesis b{display:block;font-size:14.5px}
+.thesis span{font-size:13.5px;color:var(--ink-2)}
+.quotebox{background:var(--surface);border:1px solid var(--border);padding:24px}
+.quotebox blockquote{font-size:16px;line-height:2;font-weight:600;min-height:120px}
+.quotebox blockquote::before{content:"「";color:var(--gold-deep)}
+.quotebox blockquote::after{content:"」";color:var(--gold-deep)}
+.quotebox .src{margin-top:10px;font-size:12.5px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{padding:6px 12px;border-radius:3px;font-size:13px;color:var(--ink-2)}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:inset 0 0 0 1px var(--border)}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:700px){.duel{grid-template-columns:1fr}}
+.duel .side{border:1px solid var(--border);padding:15px 17px;background:var(--surface)}
+.duel .side h4{font-size:13.5px;margin-bottom:8px;display:flex;align-items:center;gap:7px;letter-spacing:.05em}
+.duel .side ul{list-style:none}
+.duel .side li{font-size:13px;color:var(--ink-2);padding:5px 0;border-top:1px dashed var(--grid)}
+.duel .side li:first-child{border-top:none}
+.dot{width:9px;height:9px;border-radius:2px;display:inline-block;flex:none}
+.jump{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--teal-deep);font-weight:700;margin-top:10px;letter-spacing:.03em}
+.jump:hover{text-decoration:underline;text-underline-offset:4px}
+
+/* ============ 逻辑主线 ============ */
+.chain{max-width:860px;margin:24px auto 0;position:relative}
+.chain::before{content:"";position:absolute;left:23px;top:20px;bottom:20px;width:2px;background:var(--grid)}
+.step{position:relative;padding:0 0 14px 64px}
+.step .num{
+  position:absolute;left:0;top:0;width:48px;height:48px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--axis);display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:15px;color:var(--ink-2);z-index:1;transition:all .2s;
+}
+.step .box{background:var(--surface);border:1px solid var(--border);overflow:hidden}
+.step .head{width:100%;text-align:left;padding:14px 18px;display:flex;align-items:center;gap:10px}
+.step .head:hover{background:var(--surface-2)}
+.step .head .kk{font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--gold-deep);display:block}
+.step .head .tt{font-size:15.5px;font-weight:700;display:block;margin-top:2px}
+.step .head .ar{margin-left:auto;color:var(--muted);transition:transform .25s;flex:none}
+.step.open .ar{transform:rotate(90deg)}
+.step .bd{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.step.open .bd{max-height:1200px}
+.step .bd-in{padding:2px 18px 16px;font-size:14px;color:var(--ink-2)}
+.step .bd-in b{color:var(--ink)}
+.step .bd-in .q{margin-top:10px;border-left:3px solid var(--gold);padding:7px 13px;background:var(--surface-2);font-size:13px}
+.step.open .num{border-color:var(--terra);color:var(--terra-deep);box-shadow:0 0 0 4px color-mix(in srgb,var(--terra) 14%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.chip{padding:6px 12px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface);font-size:12.5px;color:var(--ink-2);transition:all .15s}
+.chip:hover{border-color:var(--gold-deep)}
+.chip.on{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:700}
+#chipDetail{font-size:13px;padding:10px 13px;background:var(--surface-2);border-left:3px solid var(--gold);margin-top:8px;min-height:44px}
+
+/* ============ 概念地图 ============ */
+.map-wrap{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-top:16px;align-items:start}
+@media(max-width:1000px){.map-wrap{grid-template-columns:1fr}}
+.map-stage{background:var(--surface);border:1px solid var(--border);overflow:auto}
+#mapsvg{display:block;min-width:840px}
+.gnode{cursor:pointer}
+.gnode rect{transition:filter .15s, stroke-width .15s}
+.gnode:hover rect{filter:brightness(1.05)}
+.gnode.sel rect{stroke-width:2.5px}
+.gnode.dim{opacity:.28}
+.hub-label{font-weight:900}
+#maptip{
+  position:fixed;z-index:99;pointer-events:none;max-width:280px;background:var(--ink);color:var(--surface);
+  border-radius:3px;padding:9px 12px;font-size:12.5px;line-height:1.7;opacity:0;transition:opacity .12s;
+  box-shadow:var(--shadow);
+}
+#maptip b{display:block;font-size:13px}
+.map-side{position:sticky;top:72px}
+.map-detail{background:var(--surface);border:1px solid var(--border);padding:20px;min-height:280px}
+.map-detail .grp{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-2);border:1px solid var(--border);padding:3px 9px;border-radius:3px;margin-bottom:10px}
+.map-detail h3{font-size:18px;line-height:1.5;font-weight:900}
+.map-detail .en{font-size:12px;color:var(--muted);margin:3px 0 10px}
+.map-detail .blurb{font-size:13.5px;color:var(--ink-2)}
+.map-detail .rel{margin-top:14px}
+.map-detail .rel .lb{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.14em;margin-bottom:6px}
+.rel-pill{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border-radius:3px;border:1px solid var(--border);font-size:12px;color:var(--ink-2)}
+.rel-pill:hover{border-color:var(--teal);color:var(--teal-deep)}
+.map-tools{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.map-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--ink-2)}
+.map-legend span{display:inline-flex;align-items:center;gap:5px}
+table.cmap{width:100%;border-collapse:collapse;font-size:13px}
+table.cmap th{text-align:left;font-size:11.5px;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--axis);padding:8px 10px}
+table.cmap td{border-bottom:1px solid var(--grid);padding:9px 10px;vertical-align:top}
+table.cmap tr:hover td{background:var(--surface-2)}
+
+/* ============ 精读 ============ */
+.reader{display:grid;grid-template-columns:260px minmax(0,1fr);gap:26px;margin-top:14px}
+@media(max-width:900px){.reader{grid-template-columns:1fr}.rtoc{position:static !important;max-height:none !important}}
+.rtoc{position:sticky;top:72px;max-height:calc(100vh - 92px);overflow:auto;padding-right:6px}
+.rtoc .search{display:flex;gap:6px;margin-bottom:10px}
+.rtoc input{flex:1;padding:8px 11px;border-radius:3px;border:1px solid var(--border);background:var(--surface);outline:none}
+.rtoc input:focus{border-color:var(--teal)}
+.rtoc a{display:block;padding:7px 10px;font-size:13px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent}
+.rtoc a:hover{background:var(--surface-2)}
+.rtoc a.on{color:var(--teal-deep);font-weight:700;border-left-color:var(--terra);background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.rtoc .cnt{font-size:11px;color:var(--muted)}
+.rbody{background:var(--surface);border:1px solid var(--border);padding:clamp(20px,4vw,48px);max-width:860px}
+.rbody section{scroll-margin-top:82px}
+.rbody h2{font-size:22px;line-height:1.55;margin:46px 0 14px;padding-top:28px;border-top:4px double var(--axis);font-weight:900;letter-spacing:.02em}
+.rbody section:first-child h2{margin-top:0;border-top:none;padding-top:0}
+.rbody h3{font-size:17px;margin:30px 0 10px;color:var(--ink);font-weight:800}
+.rbody p{margin:13px 0;color:var(--ink-2);text-align:justify}
+.rbody strong{color:var(--ink)}
+.rbody blockquote{border-left:3px solid var(--gold);background:var(--surface-2);padding:10px 16px;margin:14px 0;font-size:13.5px;color:var(--ink-2)}
+.rbody hr{border:none;border-top:1px dashed var(--axis);margin:30px 0}
+.rbody table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;display:block;overflow-x:auto}
+.rbody th{text-align:left;font-size:12px;color:var(--muted);border-bottom:1px solid var(--axis);padding:8px 10px;white-space:nowrap}
+.rbody td{border-bottom:1px solid var(--grid);padding:8px 10px;color:var(--ink-2);min-width:120px}
+.rbody mark{background:var(--mark);color:var(--ink);padding:0 2px}
+.rtools{display:flex;gap:6px;margin-bottom:10px;align-items:center}
+.rtools .hint{margin-left:auto}
+#hitInfo{font-size:12px;color:var(--muted);margin-bottom:8px;display:none}
+
+/* ============ 规则 ============ */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 6px;align-items:center}
+.filters input,.filters select{padding:8px 11px;border-radius:3px;border:1px solid var(--border);background:var(--surface);outline:none}
+.filters input:focus{border-color:var(--teal)}
+.rulegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:14px}
+.rule{background:var(--surface);border:1px solid var(--border);padding:16px 17px;display:flex;flex-direction:column;gap:8px}
+.rule .meta{display:flex;gap:6px;align-items:center}
+.rule .src{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:2px;padding:2px 7px}
+.rule .layer{font-size:11px;font-weight:700;border-radius:2px;padding:2px 8px;color:#FBF6E8;letter-spacing:.08em}
+.rule p{font-size:13.5px;line-height:1.8;color:var(--ink-2)}
+.rule p b{color:var(--ink)}
+.count-line{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+/* ============ 术语 ============ */
+.gl-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px;background:var(--surface);border:1px solid var(--border)}
+.gl-table th{text-align:left;padding:11px 14px;font-size:11.5px;letter-spacing:.14em;color:var(--muted);border-bottom:1px solid var(--axis);background:var(--surface)}
+.gl-table td{padding:9px 14px;border-bottom:1px solid var(--grid);color:var(--ink-2)}
+.gl-table td:first-child{color:var(--ink);font-weight:700}
+.gl-table tr:last-child td{border-bottom:none}
+.gl-table tr:hover td{background:var(--surface-2)}
+
+/* ============ 自测 ============ */
+.quiz-wrap{max-width:640px;margin:26px auto 0;text-align:center}
+.qmeta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.qcard{perspective:1400px;height:340px;cursor:pointer}
+.qinner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.qcard.flip .qinner{transform:rotateY(180deg)}
+.qface{
+  position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);
+  background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;gap:12px;box-shadow:var(--shadow);
+}
+.qface.back{transform:rotateY(180deg);background:var(--surface-2)}
+.qface .tag{font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--gold-deep)}
+.qface .q{font-size:19px;font-weight:800;line-height:1.7}
+.qface .a{font-size:14.5px;line-height:1.95;color:var(--ink-2);text-align:left;overflow:auto;max-height:225px}
+.qface .flip-hint{font-size:11.5px;color:var(--muted)}
+.qbtns{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.qbtn{padding:10px 22px;border-radius:3px;font-size:14px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);letter-spacing:.04em}
+.qbtn:hover{background:var(--surface-2)}
+.qbtn.pri{background:var(--terra);color:#FBF6E8;border-color:var(--terra)}
+.qbtn.pri:hover{background:var(--terra-deep);border-color:var(--terra-deep)}
+.qbar{height:5px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-top:20px}
+.qbar i{display:block;height:100%;background:var(--teal);width:0;transition:width .3s}
+.qdone{padding:60px 0;font-size:16px;color:var(--ink-2)}
+
+footer{border-top:1px solid var(--border);margin-top:40px}
+.ft{max-width:1280px;margin:0 auto;padding:22px 20px;font-size:12px;color:var(--muted);line-height:2}
+.pill-btn{padding:7px 14px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;color:var(--ink-2)}
+.pill-btn:hover{background:var(--surface-2)}
+.pill-btn.on{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:700}
+
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header>
+  <div class="hd">
+    <div class="brand"><b>动态对冲</b><span>互动导读</span></div>
+    <nav id="nav"></nav>
+    <div class="hd-right">
+      <button class="icon-btn" id="themeBtn" title="切换 羊皮卷 / 夜读">◐</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ================= 总览 ================= -->
+  <div class="view" id="v-overview">
+    <div class="hero">
+      <div class="kicker">NASSIM TALEB《DYNAMIC HEDGING》· 依中译本文字稿整理 · 互动版</div>
+      <h1>把对冲和风险管理,<br>从科学的神坛上降级成<em>一门手艺</em>。</h1>
+      <p>本程序把《动态对冲:管理普通期权与奇异期权》的核心概念与内在逻辑做成可探索的结构:一条九环逻辑主线、四十余个互相勾连的概念、二十五条风险管理规则,以及可检索的全文精读与术语表。所有论断、引语与数字均出自原书文字稿,并经逐条对照校验。</p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="ov-grid">
+      <div class="card">
+        <div class="kicker">中心命题</div>
+        <div class="thesis"><b>期权复制不是无风险头寸。</b><span>离散对冲下损益是随机变量,分布宽度由 σ/√n 决定——Black-Scholes-Merton 值只是这个分布的中心,不是可锁定的确定价格。</span></div>
+        <div class="thesis"><b>交易成本把分布中心推向左侧。</b><span>提高对冲频率缩小方差、却抬高成本:理论价 5.00 的组合,只能预期在 4.00—6.00 之间合成。做市商永远处于"方差 vs 成本"的两难。</span></div>
+        <div class="thesis"><b>参数越多,动态对冲越困难。</b><span>真实世界不允许只对冲 Gamma:Vega 凸性、利率敞口……每个二阶敞口都昂贵而不稳定。"要考虑的参数越不稳定,计提就越多。"</span></div>
+        <div class="thesis"><b>定价问题被夸大了。</b><span>"大多数盈亏来自于市场变动,而不是错误定价";最常见的损失,源自对流动性和统计分布形态的拙劣理解。</span></div>
+        <a class="jump" href="#/logic">沿九环逻辑主线走一遍 →</a>
+      </div>
+      <div>
+        <div class="quotebox">
+          <div class="kicker">书中原声</div>
+          <blockquote id="quoteText"></blockquote>
+          <div class="src" id="quoteSrc"></div>
+          <div style="margin-top:12px"><button class="pill-btn" id="quoteNext">换一句 ↺</button></div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="kicker">如何使用</div>
+          <p style="font-size:13px;color:var(--ink-2);margin-top:6px">「逻辑主线」是全书骨架,建议先走;「概念地图」按六大体系铺开概念网;「章节精读」收录三万字全文,可搜索高亮;「规则辑录」与「术语表」可筛选;「自测」用闪卡检验理解。</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="kicker">三组贯穿性对立</div>
+      <div style="margin-top:10px" class="seg" id="duelSeg"></div>
+      <div class="duel" id="duelBody"></div>
+    </div>
+  </div>
+
+  <!-- ================= 逻辑主线 ================= -->
+  <div class="view" id="v-logic">
+    <div class="kicker">全书内在逻辑</div>
+    <h1 class="pg">一个定义、两个摩擦、一条原理,推出一整套体系</h1>
+    <p class="sub">全书可以从下面九环重构出来。点击每一环展开:它从上一环继承什么、又把什么推给下一环。第七环内嵌"修正希腊字的五步统一程序"。</p>
+    <div class="chain" id="chain"></div>
+  </div>
+
+  <!-- ================= 概念地图 ================= -->
+  <div class="view" id="v-map">
+    <div class="kicker">概念体系</div>
+    <h1 class="pg">概念地图:六大体系,四十余个概念</h1>
+    <p class="sub">悬停看一句话定义,点击看完整条目与关联概念;分组以颜色与聚簇双重标识。也可切换为表格视图。</p>
+    <div class="map-tools">
+      <button class="pill-btn on" id="mapModeGraph">图谱视图</button>
+      <button class="pill-btn" id="mapModeTable">表格视图</button>
+      <span class="hint" id="mapHint">点击节点查看详情 · 关联概念以虚线相连</span>
+    </div>
+    <div class="map-legend" id="mapLegend"></div>
+    <div class="map-wrap">
+      <div class="map-stage" id="mapStage"><svg id="mapsvg"></svg></div>
+      <aside class="map-side">
+        <div class="map-detail" id="mapDetail">
+          <div class="kicker">概念详情</div>
+          <p style="font-size:13px;color:var(--muted);margin-top:10px">在左侧图谱中点击任意概念节点,这里会显示书中的定义要点、所在章节与关联概念。</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ================= 章节精读 ================= -->
+  <div class="view" id="v-reader">
+    <div class="kicker">全文精读</div>
+    <h1 class="pg">深度整理全文(约三万字)</h1>
+    <div class="reader">
+      <div class="rtoc" id="rtoc">
+        <div class="search"><input id="rq" type="search" placeholder="全文搜索,回车高亮…"></div>
+        <div id="hitInfo"></div>
+        <div id="tocList"></div>
+      </div>
+      <div>
+        <div class="rtools">
+          <button class="pill-btn" id="fontMinus">A−</button>
+          <button class="pill-btn" id="fontPlus">A+</button>
+          <span class="hint">阅读进度显示于页面顶端细线</span>
+        </div>
+        <div class="rbody" id="rbody"><section id="sec0"><h2>导读:本文的任务与文本范围</h2><p>本文的任务,是把《动态对冲》一书的核心概念完整提炼出来,并沿着作者自己的推理路径,重构这些概念如何相互支撑、如何生成书中的各条判断与"风险管理规则",最终把全书呈现为一个自洽的思想体系。整理立场是"按书中观点呈现":文中所有论断、案例与数字均出自原书文字稿,不掺入书外知识,也不对作者观点作外部评判。</p>
+<p>关于文本范围需要先作说明:所依据的文字稿完整收录了总序、译者序、前言、《动态对冲简介》、第一部分"市场、工具及参与者"(第 1—6 章)与第二部分"期权风险测量"的第 7—13 章(第十三章至"缺失的边界"一节中途截止)。按目录,原书还有第 14—16 章、第三部分"奇异期权的交易与对冲"(第 17—23 章)及第四部分"模块 A—G",这些章节仅存目录、正文未收录。所幸全书的哲学立场、概念体系与方法论骨架恰恰集中在已收录的简介、第一部分与第二部分之中——后面各章按作者自述是这套框架在奇异期权上的应用与量化工具的补充。因此本文足以完整呈现全书的内在逻辑,凡涉及未收录章节处,仅按正文中的前向引用如实标注。</p>
+<p>全书结构按作者在前言中的交代是:第一部分(第 1—6 章)"定义了市场的微观结构和产品";第二部分(第 7—16 章)"定义了普通期权的风险基础并提供了测度工具";第三部分(第 17—23 章)"描述了奇异期权的风险";第四部分(模块 A—G)"介绍了更加量化的分析工具,并成为期权行业与期权理论之间的沟通桥梁,但是这些模块不应当被视为附录,绝大多数的内容都是本书的核心内容"。</p>
+<hr /></section>
+<section id="sec1"><h2>一、全书立场:把对冲和风险管理从科学的神坛上降级成一门手艺</h2><h3>1.1 作者的经验凭据与反科学化宣言</h3>
+<p>塔勒布在前言开篇交代了本书的经验来源:12 年中完成 20 万笔期权交易、研究 7 万份风险管理报告,然后"感到需要坐下来反思一下所犯的数千笔对冲错误",在阁楼里以每周 7 天、每天 14 小时沉浸于概率论、数值分析和博士水平的数理统计 6 个月后写成此书。这个开场本身就是全书方法论的缩影:先有海量实践,再用数学反思实践——顺序不能颠倒。</p>
+<p>由此引出全书最根本的立场声明。作者自陈与索罗斯一样,"相信更强的不确定性原理(比海森堡的要灵敏)使建立在物理类方法论上的社会科学理论变得无效,并且削弱了自然科学之外模型的概念",他在职业生涯中总是告诫培训生:<strong>"这不是物理学。"</strong> 他反对期权理论科学化的另一论据是:即便期权理论是一门"科学"(也许已在正确的发展道路上),"但它太年轻了,以致于并不可靠"。因此他要"警告公众(和监管者)不要在一个毫无经验的新领域里把一些基于错误假设的模型当作现实"。很多市场风险——例如逼仓和滚雪球般的流动性黑洞——"自罗马帝国时代就被交易员所熟知,但却没有被系统风险控制经理重新发现"。他直言"金融系统受到了风险管理顾问服务激增的威胁,这些服务都是由金融市场的科学家们所运作的",而他的想法是<strong>"先把对冲和风险管理从科学的神坛上降级成一门手艺"</strong>。</p>
+<p>这门手艺的性质,作者用了一个贯穿全书的类比:<strong>"动态对冲更像是医学而不是生物学,它要通过获得实践经验和阅读出版的研究报告来学习。"</strong> 市场的细节往往支配其他复杂问题,会让期权理论家误入歧途,"因此交易员的学问只能通过实践来传授"。与此相应,作者对既有文献的批评是双向的:一边是大量关于估值的理论文献,"为不重要的问题提供了不重要的答案"(例如探索如何用常数波动率或利率精确地为美式期权定价,"因小而失大");另一边是脱离 Black-Scholes-Merton 框架的非理论性期权文献,只讲静态风险而不讲动态风险。而本书的对象恰恰是两者都遗漏的东西:<strong>一个已经动态对冲的衍生品头寸,遵循完全不同的风险特征,并且考虑到对冲的局限,头寸会因此变得与路径相关</strong>——"路径相关"由此成为作者所说的"期权构造者的一个关键词"。</p>
+<h3>1.2 中心命题:复制不是无风险的,BSM 值只是分布的中心</h3>
+<p>全书的技术性总纲在《动态对冲简介》中一次讲清,可以拆成四层递进。</p>
+<p>第一层,<strong>动态对冲的定义</strong>:"Gamma 再平衡相当于通过买卖标的资产来复制期权的回报。"期权的价值要通过在标的资产上的连续买卖"制造"出来——本书把参与这种复制的人称为"生产者",与只关心到期价值的"用户"相对。</p>
+<p>第二层,<strong>离散性使复制损益成为随机变量</strong>。作者指出:即使交易员精确地知道未来的波动率,只要通过离散间隔的步长来自我对冲,他们还是很难预测最终损益;只有当"每百万分之一秒都能以屏幕上的市场中间价成交"时,损益才是确定的。增加调整频率会把损益分布压缩变窄,数学上"分布的形态仅取决于 σ/√n(泛函型中心极限定理)"——平均数以 1/√抽样数 的速度向均值靠拢,而<strong>这个均值就是证券的 Black-Scholes-Merton 值</strong>。换言之,在作者的世界里,BSM 值不是可锁定的确定价格,而是离散复制损益分布的中心;复制中的运气成分是真实存在的量(作者预告第 16 章将以损益跟踪展示其量级)。</p>
+<p>第三层,<strong>交易成本使分布中心左移,构成永恒的两难</strong>。提高调整频率固然缩小方差,却因交易成本把分布中心推向左侧。于是做市商永远面临两难:"一边是收益的方差(期权复制不是一个无风险头寸),另一边是交易成本。"作者给出的量级刻画是:当交易员卖出理论估值 5.00 的期权组合时,剔除交易成本后,他只能预期在 4.00—6.00 之间的某个价格把它合成出来。"需要被保护的参数越多,管理的成本就越高。"由此得到全书第一条风险管理规则:<strong>"期权交易员要考虑的参数越不稳定,对应的参数波动率与预期交易成本两者的计提就越多。"</strong></p>
+<p>第四层,<strong>从单参数推广到多参数,得到全书论点</strong>。"本书的论点是:需要考虑的参数越多(利率、波动率期限结构等),动态对冲越困难。"与 BSM 世界不同,真实交易环境不允许只对冲 Gamma——每个可能的二阶导数交易都很昂贵,因为它们不稳定,必须对冲 Vega 凸性、利率敞口等;BSM 公式的时间价值中已含 Gamma 成本,所以定价还须加入所有非线性参数的凸性("一个伊藤项");一个因 Vega 为凹(做空"波动率的波动率")而需要动态对冲来维持 Vega 中性的头寸,其价值低于 Vega 为线性、无须这种对冲的头寸。奇异期权之所以难,正因为它们的复制过程牵动更多参数、承载更多对冲成本。</p>
+<h3>1.3 风险管理的全景:微观与宏观,以及对"风险科学家"的清算</h3>
+<p>作者把本书关心的风险限定为金融工具提供者(交易公司、场内交易员、银行、交易商)的市场风险,重点是"实现风险在静态结果(企业的风险)和 Black-Scholes-Merton 世界中 Delta 中性交易员的动态结果(做市商的风险)之间的转换"。风险管理分两层:<strong>微观管理</strong>发生在产品线或交易台,要求对每种衍生品在时间与市场变化下的行为有深刻了解,是"漫长学徒期的成果";<strong>宏观管理</strong>发生在全公司层面,更量化、更理论化,职能是在产品和部门间分配风险(风险被定义为"总可能方差"),"使一个交易公司最宝贵的资源——风险——的效用最大化"。</p>
+<p>正是在宏观层面,作者发出了全书第一轮清算:"出于某些奇特的原因,各种风险相加之和并不等于总的风险。"有些头寸互相抵消,有些头寸的风险却是可叠加的;而被现代金融推崇的度量工具——多样性、相关性——"依然表现出不精确性及脆弱的预测能力,使用它们能危险地麻痹风控经理,使其产生一种统计上的虚假安全感"。"风险管理顾问"行业充斥着"风险知识很业余的人",用肤浅技巧自称风险管理却不懂概率分布,"这种虚弱和缺乏经验,从在险价值(Value at Risk)概念的风靡一时,以及从未做过一单交易的人所著风险管理书籍的流行中,可以明显地反映出来"。</p>
+<p>这一节以三句话收束,它们构成全书一切后续论证的靶心与路标:<strong>"风险管理没有捷径"</strong>;<strong>"定价的问题被夸大了,大多数盈亏来自于市场变动,而不是错误定价。通常,这是由于对冲错误导致的"</strong>;<strong>"最常见的损失源自对流动性和统计分布形态的拙劣理解。"</strong> 于是全书的写作次序就有了必然性:先讲流动性与市场生态(第一部分),再讲分布与风险测量(第二部分)——因为损失恰恰来自这两处。</p>
+<h3>1.4 写作体例中的方法论:最小可分解片段与"工具而不是结果"</h3>
+<p>前言还交代了两项体例约定,它们本身就是方法论。其一,本书不追逐"像杂志般更新的最新奇异期权交易结构",而把分析限定在<strong>不可拆分的结构(SDF,Smallest Decomposable Fragment,最小可分解片段)</strong>上:"如果一个结构是两种产品的迭加,将被排除在外。"其二,"本书的目的是给交易员和风控经理提供工具而不是结果";全书避免测度论架构,"在第 22 章之前都不会有复杂的公式",大多数数学概念通过直观文字与图形提示解释,更高级的数学被归入书末模块。为了把问题标准化,全书示例约定:波动率设为 15.7%(使 1 个标准差等于 1% 的日波动)、市场以 100 为比例缩放、远期价格等于即期价格、持有损益忽略不计、除特别说明外所有期权为欧式——"若处理一个纯粹的概念性期权问题时,则必须剥离标的资产的特性。在大多数案例中,期权性将胜出其他大多数细节上的特性。"</p>
+<p>"期权指南:文化冲击"专栏则为全书的语言风格辩护:交易员与量化分析师之间存在巨大的沟通问题——博士养成了周密详尽的习惯,而交易员没有耐心、需要简洁明了,他们"倾向于看到事件'闪过',这是一种非线性的认知方式"。一位曾是量化分析师的交易员给研究部定下三条:讨论主题前用一句话解释结论;再用一句话解释主题;做不到就放弃整个项目。作者以 Feynman 能不用公式直观讲量子物理为例:只有对主题把握自如,才能说得简单。</p>
+<hr /></section>
+<section id="sec2"><h2>二、概念体系(一):按复制成本重新切分工具世界(第 1—2 章)</h2><p>第一章不是中性的教科书式产品罗列。作者建议所有读者(包括熟悉此领域者)学习这些定义,"因为它们会提供本书所用的分析框架"——这个框架的唯一标准是:<strong>一件工具需要多少动态对冲,复制它要花多少钱。</strong></p>
+<h3>2.1 线性与非线性:能否逃脱动态对冲</h3>
+<p>作者认为"分析衍生品的最佳方式"是把它们分成线性与非线性两大类。技术判据是二阶导数:非线性衍生品对某个参数的二阶导数(或二阶偏微分)不为零。线性衍生品(远期、期货、互换)"很容易对冲完全和锁定";非线性衍生品"表现得不稳定,需要动态对冲"。线性证券"只有 Delta 而没有其他希腊字,也没有曲率",几乎不需要动态对冲——但作者随即补上一句意味深长的限定:"并不存在纯粹的线性衍生品",许多证券只是"在未受考验时"体现线性,应称为"准线性"证券。凸性会影响众多金融工具,"甚至包括很少被怀疑的那些"。</p>
+<p>与之配套的第一条工具层面的规则是:<strong>"所有非线性衍生品的价格都受时间影响。"</strong> 非线性体现为 Gamma 风险(更普遍的说法是凸性),而 Gamma 伴随时间衰减——书中称之为一种"租金"。这个"凸性—时间价值—租金"的三位一体,将在第十章以 Alpha(Gamma 租金)的形式被精确量化。</p>
+<p>观察工具的视角也被一分为二:<strong>用户与生产者的效用函数乃至结果完全不同</strong>。用户通常只关心到期价值;生产者参与动态对冲,而这会"明显改变产品"。生产者立场带来一个标志性推论:"动态对冲者不会在意他拥有的是卖权还是买权(一阶对冲会使其等价),重要的是行权价和到期日。"这是后文买卖权平价与镜像规则的心理与操作基础。</p>
+<h3>2.2 传递(凸性)原理:全书的概念引擎</h3>
+<p>作者把<strong>传递(或凸性)原理(The Contamination (or Convexity) Principle)</strong>称为"期权对冲与交易中最重要的概念""动态对冲的基本原理"。其大意是:<strong>"如果时空中存在能够带来获利的一个点,那么处在它周围的区域就应当考虑这种效应。"</strong> 作者以热传导作类比:点在热源附近,温度也会相应上升;资产价格接近使组合获利的水平,其周围区域也应存在少量获利空间。</p>
+<p>书中用四步图示论证把这个原理推演成"期权为什么有凸性":设某衍生品在某个市场事件出现时支付 100 万美元。从任一节点看,只要一个标准差的移动就能产生该回报(或其一部分),就"没有理由认为该证券在 S0 点不具有价值"——每个有经验的交易员见此收益与概率都会买入,故其价值必大于零,即存在时间价值;时间价值意味着随时间衰减(回报可能性以标准差衡量在减少);把各点价格连起来,"形成的是凸的曲线"。于是,凸性、时间价值、时间衰减三者由同一个原理生成。作为原理的拓展:<strong>"每个具有期权性的物品应以溢价交易",溢价随时间流逝而缩减(由事件的概率测度收窄引发),"则意味着每个具有期权性的物品会有时间衰减。"</strong></p>
+<p>传递原理的锋利之处在于它切断了"凸性"与"期权合约形式"的必然联系,作者用一组实例证明凸性独立存在、且总有价格:其一,FINEX 交易的美元指数因采用几何平均而带有凸性,"以高于标的证券的价格交易"——凸性让市场中性投资者能从任一方向的波动中获益,但"华尔街极少提供免费午餐,凸性本身会有一个价格"。其二,"臭名昭著的" LIBOR 平方产品:支付随利率变动平方放大,一个区域凸、另一区域凹,双方均有义务交换收入,故它不是期权;但其 Gamma 为 ±2q(x−x0),按传递原理仍须在做多 Gamma 的区域加价、做空区域减价。其三,连"线性"的期货也不例外:在逐日盯市制度下,<strong>"当融资利率 r 和期货合约 F 呈正相关时,期货将会表现出凸性,交易价格会在具有相同交割特点的远期之上;负相关时呈凹性,价格低于远期"</strong>(风险管理规则)——第十章的欧洲美元"增强"与"双重冒泡"就是这条规则的实战形态。</p>
+<p>这一节以"单元传递"收束成全书定价观的最简表述:<strong>"任何证券由套利衍生出的价格取决于其 Delta 中性的复制。"</strong> 定价问题从此被彻底还原为复制问题。</p>
+<h3>2.3 期权性、期权代数及其失效条件</h3>
+<p>期权是或有权益,"通过成为一方的潜在资产和另一方的潜在债务"而与其他产品区分;"这种价值的或然性使其遵从概率论,因而所有期权定价问题就由解决概率问题组成"。判断一件工具是否期权的最佳直观测试是:回报是否不对称、是否有行权价。买权与卖权的身份取决于计价物:马克/美元的卖权就是美元/马克的买权,收益率的卖权是债券的买权。期权也是"半个期货"——多方截取上段、空方截取下段,再加上权利金。作者甚至把期权性推广到日常生活:CEO 的奖金结构就是股东"卖给(或更确切地说是赠与)管理者"的一个期权——业绩好时截取上行,公司倒闭时最多失去工作。</p>
+<p>交易员语言中的期权性再分为两档:合约有真实行权价者为<strong>硬性期权性</strong>;有内生凸性但没有真正行权价者(类似止损单、市场上已知交易指令的情形)为<strong>软性期权性</strong>,后者代表更温和的 Gamma 与更稳定的时间特征。</p>
+<p>在此基础上,第一章建立了交易员的"期权代数":<strong>买卖权平价</strong>(+C−P=F,做多买权/做空卖权=做多远期)与<strong>镜像规则</strong>(1 单位卖权 + x% 远期 = 1 单位买权 + (100−x)% 远期)。书中用逐价位损益表证明:两笔在到期时任何价位损益均等价、且同日到期的交易,"在整个存续期间应有相同的风险和损益"。由镜像规则机械推出一系列等价:跨式组合=Delta 中性后的两个买权或卖权;蝶式卖权组合与蝶式买权组合价格相同;98-100-102 的秃鹰组合就是蝶式;而最重要的推论是:<strong>"虚值卖权的波动率应当与所对应相同行权价的实值买权完全一致。"</strong></p>
+<p>但作者立刻声明这套代数的适用边界——这正是他一贯的论证节奏:先立恒等式,再逐一破坏其成立条件。平价规则成立要求欧式期权加流动性好的远期市场;到期"尖锐风险"(第十三章)会使场内期权的平价失效;对软性美式期权平价"以较弱的形式成立",对硬性美式期权"规则变得更不可靠",作者干脆"建议非专业人士不用考虑买卖权平价关系"。还有一个系统性误导源:公式使用的应是<strong>远期 Delta</strong>,而"大多数风险管理系统只给出现货 Delta……即使权威的 Black-Scholes-Merton 公式也是如此";欧式期权本应通过远期对冲,商用系统显示即期对冲,交易员因远期流动性差而习惯用现货做短期对冲,"这个习惯让他们忘记平价规则的准确适用条件"。由此有风险管理规则:<strong>"交易员应避免抛开行权价去使用买卖权平价规则。"</strong></p>
+<h3>2.4 美式期权:提前行权是一个隐藏的复式期权</h3>
+<p>美式期权的麻烦在于"标的路径可能导致提前行权",使到期日不确定、建模困难。作者把行权决定拆成两级测试:<strong>软性美式期权</strong>(又称伪欧式期权)只从内在价值的融资成本角度考虑提前行权,总体表现与欧式相似——算例中放弃提前行权的机会成本仅 0.30 美元;<strong>硬性美式期权</strong>还要加上标的资产的持有成本——同一买权若标的是利率 20% 的外汇,提前行权可多赚 3.5 美元,量级相差十倍以上,说明持有损益主导行权决定。规则可推广至债券(正负利差)与股票(分红与融资成本之比)。作者的警告是:"不要相信现货工具的美式期权价格",因为存续期内影响远期价值的参数会变,"不幸的是,参数并不是一直不变的"。</p>
+<p>对风控系统提示的"最优行权",作者给出四条警告并以一则轶事压阵:测试必须用该行权价的微笑波动率与期限结构上可能的最高波动率;大头寸行权后会<strong>合成出一个虚值期权空头</strong>,必须先测该行权价的流动性与替代成本。轶事是:1987 年股灾前一天,欧洲美元期权做市商 X 按系统提示对深度实值风险反转组合中的卖权提前行权,留下裸露买权空头;次日开盘反弹 10 个标准差,他立刻破产。讽刺在于 X 本是"翼"的买方(总是持有虚值期权的交易员),"却最终被合成出的空头(完全是意外)所伤害"。</p>
+<p>更深一层,微笑与期限结构会把买权与卖权"彼此分离":可行权一边的期望存续期很短(应按短期低波动率交易),不能行权一边仍按合约到期日结束(应按长期高波动率交易)——同一行权价的美式买权可以合理地按 13%、美式卖权按 20% 交易。由此得到一条把美式期权重新定性的规则:<strong>"硬性美式期权比同期限的欧式期权更有价值,因为其隐含了利率或波动率的复式期权"</strong>,其溢价随"波动率的波动率"及持有损益的水平与波动率同步增加——美式期权本质上是"可延期权"。</p>
+<p>与复杂性对立的是<strong>简易规则(The Simplicity Rule)</strong>:"市场总是倾向于简化。"复杂带来更高的监控与生产成本,新奇感总会衰退,最优化的交易员会找最廉价的方法满足需要,"避免使金融中介机构更富裕"——"这事关交易所上市的金融工具的生死。"证据是:欧式期权主导外汇期权,占高利差外汇期权近 99% 的交易量。</p>
+<h3>2.5 主要风险与次要风险、流动性,以及"生成模块"路线</h3>
+<p>第一章收尾处理最基础的一对工具——远期与期货——并借此把"凸性有价"落到结算制度层面:期货的变动保证金使损益逐日兑现并生息,对冲远期须以 h=e^(−rt) 做"跟踪"调整;场外双边交易的信用敞口在解约时会倍增至四方,而交易所结构下敞口轧平;各交易所结算时间不同步,使跨所对冲者的账面损益"永远不能正确反映其所持头寸的准确清盘价值"。作者顺带指出一个行业讽刺:"欧洲美元期货是存款的远期互换,具有讽刺意味的是,远期互换经常决定现货价格(就是期货圈里经常说的'尾巴反过来摇狗')。"</p>
+<p>然后是全书的风险分层法:<strong>主要风险与次要风险</strong>。"之间的区别有时与直觉相反",有些工具和市场的<strong>次要风险比其主要敞口更危险</strong>。划分标准是头寸对几个价格作出反应:股票衍生品几乎只对一个价格反应,利率是次要的("如同被动吸烟的健康风险对已患有癌症的人来说并不十分显著一样");固定收益头寸与散布在时间轴上的一系列价格互动,故利率期限结构本身就是主要风险;外汇介于其间,在高利率波动率的欠发达市场,利差与期限结构会升格为主要风险。归纳的终点不是一个统一公式,而是一句方法论宣言:<strong>"至今试图找到风险管理通用理论的艰苦尝试都失败了,没有两种工具是一样的,因此交易员必须寻找工具的共同点。"</strong> 而在所有风险之上,作者单独供奉流动性:<strong>"流动性是交易中一切的来源和起因,应当存在于每个风险管理者的心中。"</strong></p>
+<p>建设性的方案是<strong>生成模块(building blocks)</strong>路线:"根据工具恰当地分离期权风险与残余风险","最好是将工具分解为流动性好的可交易片段"。利率互换可完全分解为流动性极好的欧洲美元迭期;指数摊销互换用美式数位期权加复式期权知识即可处理。作者批评大多数固定收益交易员"将知识局限于工具的错综复杂上而不是专注于生成模块上",并断言"生成模块的模式要比完整的 Heath-Jarrow-Morton 方法更简单"。</p>
+<h3>2.6 第二章:任何期权结构的六步骤解剖学</h3>
+<p>第二章把上述框架操作化为一张"对任何期权结构进行风险管理分类"的地图。开篇先消解普通/奇异的传统二分:CBOE 1978 年才引入卖权,当时"卖权被当做奇异期权,而买权被当做普通期权"——"除了给奇异期权定价通常被认为比较复杂之外,这些产品在功能上没有明显的区别。"真正重要的是六个维度:</p>
+<p><strong>步骤一,时间同质性</strong>:回报结构是否随时间改变(延后行权价期权在行权价确定前"没有 Delta 和 Gamma,但会有一些 Vega";窗口期权、弹性边界期权都是"切割时间"的产物)。非时间同质的结构"非常难管理"。与之配套的是"最小可分解片段"专栏:每一个结构都要分解到不能再分的单元——跨式可分解(买权加卖权),双界期权、组合资产期权、价差期权、互换期权不可分解;回望期权与二元期权"有限可分解"(可分解为无限多个无限窄的片段)。"尽管从来没有人试图去这样复制,但了解这些知识在交易和定价中还是非常有用的。"作者并提示:考虑交易成本时,"投资组合中一组最小可分解片段之和的收益与各个最小可分解片段被独立管理的收益之和明显不同"。</p>
+<p><strong>步骤二,回报的连续与离散</strong>:斜坡式(连续)与数位式(离散,"要么支付全部,要么什么都不支付……类似于两个人就某一事件的结果下注")。坏消息是"市场上几乎所有的对冲工具都是连续回报产品,因此会造成不完美或不稳定的对冲";好消息是下注期权本应被当成对赌来交易,"在这些情况下是无须动态对冲的"。作者顺带点出一个错位:"量化分析师们往往难以处理容易对冲的期权(比如美式期权),但却发现很容易处理那些难以交易的期权(比如下注和二元期权)。"</p>
+<p><strong>步骤三,边界</strong>:"边界就是市场中的一个价格水平(被称为触发点),一旦触及这个价格水平,将会显著改变结构的回报。""期权交易最有意思的地方或许就是边界了。许多交易员心惊肉跳地经历过'触发点'价格被穿越的情况。"</p>
+<p><strong>步骤四,结构维度与资产数量</strong>:"结构维度是指影响价格的变量数目再加上 1(这个 1 是时间)。"关键洞察是:交易员"有使用流动性好的工具进行对冲的习惯,这导致所有的工具成为多元资产"——卖出马克兑澳元交叉期权、拆成美元兑马克与澳元兑美元对冲,就制造出三种波动率与两种相关性;"当一个市场流动性不好的期权被一个市场流动性好的'相似'期权对冲后,'相似性'也是一种风险。"配套专栏"如何掉进了有麻烦的对冲"警告:用"高度相关"的工具对冲,风险可能不减反增,"它们像陷阱一样吸引了许多对冲者和套利者,然后迫使他们进行大幅清盘。这种效应会给那些使用'在险价值'这类指标、易上当受骗的经理带来灾难性的结果"。</p>
+<p><strong>步骤五,期权阶数</strong>:期权的期权是二阶期权,以此类推。高阶意味着"或然性的或然性":"Delta 将会变小但却非常不稳定,以至于几乎揭示不了风险",一阶希腊字意义更小,风险经理必须"求助于更高阶的导数,例如三阶矩和四阶矩"——这为第十一章"期权组合的矩"埋下伏笔。</p>
+<p><strong>步骤六,路径相关</strong>:作者的著名论断是,欧式期权的路径无关"其实是个神话,每种证券对个人都是路径相关的,包括终端使用者,他们逐日盯市计价并有权在存续期内做出决定"。合约层面再分为软性路径相关("无记忆",只取决于一条信息,如边界、极值)与硬性路径相关("强记忆","不是所有的大路都以同样的方式通往罗马",如均值期权),并以"密度"刻画记忆强度(按小时取样的亚式期权是高密度,按月取样是低密度)。</p>
+<p>这六个步骤是全书后续所有章节的公共语言:边界(步骤三)通向流动性黑洞与边界期权,维度(步骤四)通向相关性与多因子方法,阶数(步骤五)通向矩的语言,路径相关(步骤六)通向停时与奇异期权。</p>
+<hr /></section>
+<section id="sec3"><h2>三、概念体系(二):市场生态学——谁在交易、激励如何扭曲、流动性如何消失(第 3—5 章)</h2><p>如果说第一、二章回答"工具是什么",第三至五章回答"复制在什么样的市场里进行"。这三章共同论证一件事:复制的可行性与成本,由市场参与者的行为、激励结构与流动性状态决定——而这三者在关键时刻都会背叛教科书假设。</p>
+<h3>3.1 做市与随行就市:防御性、潜规则与"做空波动率"的做市商</h3>
+<p>市场参与者被分为三类:本地参与者(场内做市商,"纯粹的价格敏感者,完全由流动性驱使")、纸单参与者(终端客户)与套利参与者("做市商与终端用户的合体","把流动性从一个市场转移到另一个市场,当然要收一点费")。做市商与价格接受者的本质区别在于对价格的敏感性与攻防属性:<strong>"做市商和市场使用者之间的区别在于前者必须是防御性的,而后者仍有具备攻击的自由。"</strong> 一个把强烈市场观点贯彻到所有交易中的做市商,"他的交易量将会成为单向并导致头寸的过度积累,最终会使他的公司破产"。</p>
+<p>做市的微观经济学有三块基石。其一,Grossman-Miller 意义上的<strong>及时性</strong>:做市商的功能在于提供及时的价格,价格接受者为了减少等待时间以及与时间平方根相关的风险而付费;市场微观结构理论(Garman 1976 首创)的出发点正是"价格不会在一个很大的瓦尔拉斯式拍卖会上立刻达到均衡"。其二,<strong>价格变化的负一阶自相关</strong>:许多研究表明高频观测下价格变化呈负自相关(美元/马克在 4 分钟内相关性非常显著),"由于 4 分钟的价格波动比买卖价差要低,这种相关性是如此隐蔽,以致于只有做市商才能拥有这种优势"——只要把这种差别解释为做市商的正交易成本,它"并不违背'公平骰子'或鞅的概念";"只有做市商能够在下鞅(一个有偏好的骰子)中有限地获利。"其三,<strong>逆向选择与信号发送</strong>:如同"一个垂死的人比一个健康的人更可能买保险",交易员倾向于从市场中获得"坏的概率分布";但与保险公司不同,交易员会发现信号有价值——与央行交易的人"肯定会在这笔特定交易中亏损,但他如果用获得的信息'搭央行的便车',将最终获利"。综合的画像是:做市如同卖出期权,报价在数秒内有效,信息突至而来不及改价就会被"射中";"在市场较为平稳时,会赚取买卖价差而不必承担多少风险,从这个意义上说,做市商似乎在做空波动率。"</p>
+<p>产品沿生命周期从<strong>非标准化</strong>走向<strong>商品化</strong>("所有成功的非标准化产品会成为商品化产品"),利润空间随之塌缩("5 美分快钱好过 1 美元慢钱");与此同步的是"交易员的衰落":在盈利考核的持续压力下无暇学习,"找到自己合适的盈利点,并且一直把它(和他自己)榨干为止";"新来者代表了低成本的智慧但没有交易经验,他们会很快被依次损耗,并将被下一批新来的博士替代。"复杂产品做市还有<strong>盈利幻觉</strong>:以模型中间价计价使"大多数利润在成交后能立刻显示出来",却不计入管理头寸的未来动态对冲成本与滑点;复杂衍生品"通常都是成批出现的",潮流使增量对冲更贵——墨西哥比索区间票据的发行银行在 1995 年贬值恐慌之前,"已发现不付出极高的成本就无法买回卖权或很难对冲合成远期"。</p>
+<h3>3.2 激励的期权结构:为什么自营部门总以关门为结局</h3>
+<p>第三章中段是一段独立而完整的组织经济学论证。银行在 20 世纪 90 年代初模仿对冲基金设立自营部门,"许多这样的银行失败了"。作者的解释不诉诸能力,而诉诸报酬结构的期权性质:交易员的提成合同是一份写在其损益上的期权,而"决定期权价格的关键是波动率,而不是头寸的预期收益"——在完全随机但"公平"的损益(鞅、"公平骰子")下,"基于易于波动工具的期权更有价值"。算例:交易员获配 1000 万美元合成资本、年损益波动 25%、提成 20%、合同期内不能被开除,则"该交易员的预期收益将随着波动率的增大而增加"。</p>
+<p>由此推出一个反直觉的组织定理:分散投资这一"时髦的理念"会<strong>降低</strong>交易员期权的价值。交易经理从更大的饼里提成 10% 只是"一种能获得更多好处的幻觉",因为"所有交易员盈利的净总和,尤其当他们不那么专业时,会小于一个人的盈利";对(激励意义上的)经理而言,最优解是"不计成本地避免分散投资",必要时"确保每一个交易员都有相同的头寸,不能相互抵消"。基金经理管理三个独立基金可各提 20%,收益是三个期权之和;银行交易经理要获得等价头寸,"唯一办法是在三家不同的银行同时任职"。"这个例子揭示了为什么自营部门总以关门为结局而基金经理却日益兴旺。"</p>
+<p>顺着激励逻辑,作者给出交易策略的概率论基础(Dubins-Savage 框架):<strong>优势为正</strong>(多数做市商)时,"最佳方案总是承担最小的风险,然后让中心极限定理发挥作用,缓缓地把头寸推向盈利";<strong>优势为负</strong>时,要孤注一掷,"小的下注会符合中心极限定理,导致一个缓慢却注定的死亡";<strong>代理情形</strong>(拿别人的钱、享受利润期权)下,"最优方案总是承担尽可能大的风险——一个期权在波动率最高的时刻价值最大"。这三句话同时是对交易行为与机构治理的解释:激励在哪里,风险偏好就在哪里。</p>
+<h3>3.3 业绩评价的概率清算:猴子、反正弦法则与夏普比率</h3>
+<p>第三章的后半是对"评价交易员"这件事的系统清算,论证工具全部来自概率论。</p>
+<p><strong>打字机上的猴子</strong>(Borel-Cantelli 引理):无数只猴子敲打字机,肯定有一只打出完整的《伊利亚特》;"一旦找到这只英雄猴子后,有没有读者愿意拿出终身积蓄押注这只猴子接下来会写出《奥德赛》呢?""这条定理对交易员也同样适用。"要害在于计数:<strong>"我从来没有见过人去数猴子,同样没有人去数市场中交易员的数量,以计算在一个有限市场历史中和确定交易员数量下获得成功业绩的条件概率,而不是计算成功概率。"</strong> 历史业绩的统计学价值因此被系统性高估。</p>
+<p><strong>下注切分的反直觉算例</strong>:胜率 45%(负优势)的交易员每次下注 1 美元,30 次后仍盈利的概率至少 35%;把赌注切成 0.1 美元、次数增至十倍,最终为正的机会只剩 4.6%。"当考虑'优势'和'熟练的交易员'的概念时必须小心"——反过来,"唯一能减少负业绩频率的方法是增加交易的数量并减少每次的赌注"。监督者应当监视交易频率:"交易频率越高,交易员表现的统计显著性越高";评价非做市商交易员时,"记住他利润的很大成分来自于运气"。</p>
+<p><strong>盈亏的反正弦法则</strong>:在公平赌博中,人们以为一年里约 6 个月处于盈利状态,"在现实中,有 1 个月或 11 个月处在同一状态的概率相当高。实际上,有 6 个月处在盈利或亏损的状态反而是最低的!"该定律"表明通常采用的比较交易员累积表现的方法是不正确的,它揭示了大多数传统的评估方法有多么不公平"。</p>
+<p><strong>止损与偏度操纵</strong>:止损线 10 万与 20 万美元的两个交易员"有相同的预期盈利能力,但是止损较小的交易员会遭受更频繁的损失,他的损益会有一个很强的'正偏'"——同一预期收益可以被交易成完全不同形状的路径。与之配套的是明文规则:<strong>"不要将夏普比率(Sharpe Ratio)运用在非线性产品上,尤其是期权,或是以非线性方式交易(例如止损)的线性产品。"</strong></p>
+<p>价值交易与博傻理论的对照收束本章:价值交易流派"偏好只保留到期时能带来正预期收益的头寸",博傻流派"并不介意持有一个很昂贵的期权,只要有一个更大的傻瓜愿意从他这里接手";两个方向完全相反的交易员"只要他们能保持自己的交易风格,最终都可以赚取利润"。做市商的定价智慧在于条件概率(Jeff Yass 的事前价值与事后价值:"如果别人卖给做市商一个头寸,他获得的将不仅仅是这个头寸。他得到了信息"),以及那句谚语——"昂贵的期权不会单独出现"。</p>
+<h3>3.4 流动性与流动性黑洞:对无记忆假设的正面攻击</h3>
+<p>第四章的题记是一位资深期权交易员的话:<strong>"市场是一家巨大的电影院,但只有一个小门。"</strong> 作者开宗明义:"在学习边界期权之前必须阅读本章";"如果有人要总结什么是交易(相对于投资),最佳答案或许是交易需要对流动性有充分的管理(和理解)。流动性是一切与市场有关事物的根源。"</p>
+<p>流动性的可比测度是<strong>滑点</strong>:给定成交数量的平均成交价格与初始买卖中间价之差。算例:报价 88/92 的期权,基金经理买 4000 手,加权均价 95.25,滑点 5.25 个最小价位——而且解除交易须计提同样折扣。"滑点是杠杆型对冲基金交易员所管理资金规模受到限制的主要原因。"反讽的是,巨大交易单的滑点成本"往往会消失":大交易员用购买力边推边积累,"当退出这笔交易时,才会发生滑点成本"。</p>
+<p><strong>流动性黑洞</strong>被定义为"市场实现均衡的常规机制被暂停的临时事件,它是自由市场机制中的信息性故障……在现实中,它体现为更低的价格加速了供给,而更高的价格加速了需求"——供需法则临时反转。成因是"信息最初影响市场的方式":交易员知道有重要信息或巨额指令,却"无法评估其规模和可能的影响",于是"焦虑、阴谋论以及价格冲突"接管市场;止损指令执行时,其他交易员"停住不动……甚至导致市场波动得更远"。风险管理上的推论是直接的:"大部分意外损失都是由流动性不足导致的市场价格缺口或清仓时市场出现对头寸不利的大幅移动造成的";在险价值模拟普遍忽略"在止损边界上的清算成本";"对于开始平仓的交易员来说,市场是无情的,尤其当平仓的一方没有选择时。"</p>
+<p>本章最具冲击力的部分,是两个把机制拆到操作层面的案例。其一,<strong>止损单是免费的期权</strong>:欧洲大基金在加拿大银行留下 3 亿美元、止损 1.3750 的指令;纽约交易员看到市场跌到 1.3780,意识到只要把市场推到止损点,就能按 1.3750 从客户手里买回——"接下来他就可以大量卖出美元,他将以尽可能粗暴的方式卖出 3 亿美元";而他激进的抛售不会吸引买家进场,"而是让其他交易员们站在一边,因为他们怀疑有人得到了他们不知道的信息"。其二,<strong>边界期权的自我触发工程</strong>:卖出 2 亿英镑、击出价 1.59 的买权的交易员,持有 1.56 亿英镑的对冲头寸,"手中的筹码很多,所以有很大的动机去触发 1.5900";他有两个选择——以 0.10 个点(20 万美元)把指令"卖给"现货交易台"并要求现货台为他操纵市场价格",或者自己动手。书中细致描绘了自行触发的时机选择("止损指令在纽约时间下午英格兰银行——也被称为'老妇人'——下班回家后更容易触发")、分批卖出序列(1.5945 卖 0.3 亿、1.5930 卖 0.2 亿……"他最好快速抛售剩下的 0.65 亿英镑来打压市场")以及法律可辩护性设计("通过与两家具有声誉的公司完成交易,这个交易员可以对这些指控进行辩护")。与止损单不同,触发期权"很早地被提供给做市商,而且本质上是无法取消的"——所以"近期,大部分市场波动率都是由触发边界期权而导致的"。</p>
+<p>由这些机制,作者提炼出对现代期权定价理论最正面的攻击:<strong>"这种对商品价格路径的影响减少了布朗运动的马尔可夫(Markov)成分,使这个过程具有记忆。"</strong> 现代期权定价理论套利推导法的关键在于无记忆的布朗运动,而"流动性黑洞揭示了 Markov 假设的脆弱性,因为追随过去价格的路径变得十分有意义。一旦市场价格触及到某些水平,将会由一些边界期权的清盘带来可以预测的价格变动,并让市场在某些方向上陡然加速"。市场有记忆的旁证俯拾皆是:"在每个市场上都会存在新高或新低附近的价格噪音和狂暴行为,无论引至该处的实际波动率是多少。"而两个"无法完全解释"的现象加深了这一判断:每天成交 1 万亿美元的市场"可能被一笔仅占总交易量 0.2% 的指令所影响";有关流动性黑洞的经验"没有产生免疫效果"。</p>
+<p><strong>1987 年投资组合保险</strong>是全章的总案例:一种管理 750 亿—1000 亿美元(不足全部被管理资产的 3%)的程序,"就可以引发一个如此大规模的流动性黑洞"。组合保险"最初被标榜为能通过动态的期权复制技巧来确保资产持有者避开不利的市场变化"——"人类的本性导致一个潜在的免费午餐看起来比一个真正的期权更容易推销给一位基金经理。"由于通过 Delta 对冲复制卖权,组合保险是负 Gamma 交易;其"免费"特征还"吸引了资金涌向标的资产本身,导致人们比该程序不存在时买入了更大数量的股票"。崩盘机制在于场内交易员识破了程序的逻辑:"在一个止损指令中,卖出决定不会由于市场价格更低而减轻。事实上,更低的价格恶化了局面"——于是抢单变得容易。作者的归因是:"罪魁祸首是信息不完全";"投资组合保险被它自己的成功所劫持,因为如果程序只管理较小的数额,将不会造成这样的滚雪球效应。"作者在大崩盘后到 SP500 期货交易池待了一年以还原情节,并留下一句建议:"要了解做市的动态过程,每个交易员都应该在这样的交易池中待上数月。"</p>
+<p>本章的建设性出口是把流动性写进定价与执行。定价端:Leland(1985)的盈亏平衡波动率 σ_A=σ√(1+A)(A 含交易成本与调整间隔),Whalley-Wilmott(1993)把它表达为 Gamma 符号的函数——做空 Gamma 用放大的波动率、做多 Gamma 用缩小的波动率;同时期权做市有巨大的规模经济("组合总的 Gamma 净值有时会等于各个 Gamma 值绝对值之和的几千分之一")。执行端则是那条著名口诀:<strong>"当做多 Gamma 时,使用限价指令;当做空 Gamma 时,使用止损指令"</strong>——做多 Gamma 者应"让市场到你这里来",做空 Gamma 者没有选择、必须追赶市场。</p>
+<h3>3.5 套利与套利者:"最无可辩驳的套利模式可能会最具伤害"</h3>
+<p>第五章清点"套利"一词在交易员语言与学术语言之间的落差。学术定义是"一个证券线性组合,其成本为零,但可能有出现正价值的概率,而绝不会有负价值";交易员的定义则是"在两种交易工具价差上下注的交易形式,通常相信收益相对所承受的风险是有吸引力的"。作者按关系的可靠性给套利分级:<strong>机械稳定性</strong>(可人工复制的可识别关联:三角套利、期现套利、变换与反转)与<strong>行为稳定性</strong>(靠排列历史记录建立的后验关联:美国互换曲线对加拿大曲线,德国利率对瑞士利率——"直至柏林墙倒塌,其关系的稳定性和墙一起倒了")。行为稳定性是"较弱形式的套利","这些表面上的关系也给市场带来了不少傻瓜陷阱";与之同构的警告再次落到风险系统头上:"完全使用在险价值的数据代表敞口,会带来与上述对冲同样的不确定性。"</p>
+<p>本章的反转命题是全书最重要的判断之一:<strong>"套利不好的一面在于尽管一笔交易显示为被完全和机械地对冲了……到期时利润将必然实现,但交易员仍有可能破产。"</strong> 空期货多现货的程序化交易必须为期货端损失付现金,却不能及时收回股票端账面盈利,"股票价格急速上涨会轻易地耗尽交易员的资本金。具有讽刺意味的是,这种最无可辩驳的套利模式可能会最具伤害"。经典逼仓中"只有资金最雄厚的才能存活"。因此路径相关组合的套利久期应以<strong>停时</strong>(首次退出时间)度量,而非平均到期时间;制度层面,"会计期会不时地压缩华尔街的视野","对短期利润的偏好使得有效市场前沿无法实现,因为证券回报会受到额外增加的路径相关所限制"。</p>
+<p>作者还专辟一节揭示"在会计系统中套利往往比在市场中套利更容易":无统一定价公式的相关性产品可用自选参数计价"欺骗他人";交易员对雇主的信用评级套利(利润应归信贷部门而非交易技能);已实现亏损不计息而未实现利润计息的系统漏洞;以及登记即确认利润而不扣未来动态对冲成本——"如果交易员将期权存续期内产品的动态对冲成本计入,他将会对潜在利润的下降十分惊讶。"最后,套利收益的方差常常高于方向性交易:观点相同的套利者积累的头寸给关联性带来压力,"当套利群体达到饱和水平时,被认为是贵的和便宜的产品间的关系将面临压力……随之而来的是资金实力较弱的套利者被清盘"。收束的引语日后广为流传:<strong>"市场无效的持续会长于交易员能维持清偿能力的时间。"</strong></p>
+<hr /></section>
+<section id="sec4"><h2>四、概念体系(三):波动率与相关性——两个"不存在"的输入(第 6 章)</h2><p>第六章是第一部分通往第二部分的桥梁:它处理期权风险度量的两大基本输入——波动率与相关性——并示范全书一贯的论证程序:先给标准定义与标准算法,再逐一揭示它们在真实市场中"变得模棱两可"之处。章首题记定下基调:"交易员和历史学家的共同之处是对相关性概念根深蒂固的不信任。"</p>
+<h3>4.1 定义、测量陷阱与"不居中"的波动率</h3>
+<p>波动率的最佳定义是"特定资产的回报变化程度的数量",但"有许多不同的测量方法"——测量方法本身是问题的一部分。实际(历史)波动率与隐含波动率的区分中藏着一个关键事实:隐含波动率是"交易员使用 Black-Scholes-Merton 公式作为基准"从期权价格反推的参数,"尽管人们认为它并不恰当且有缺点,但仍比试图解一个更高阶的定价公式方便"——模型在这里已经是报价语言而非真理。相关性同理分实际与隐含,且"存在多少期限,就存在多少隐含相关性"。作者随手纠正一个普遍误解:100% 相关不意味着同幅度同向变动——"相关性实际上指的是两个资产的变化除以它们相应的波动率后的期望比例。"</p>
+<p>第一个测量陷阱是<strong>以平均数为中心</strong>。传统波动率度量围绕均值计算偏离,于是"如果市场每天朝同一方向(如上涨)变动 1% 并保持整整一个月,传统的波动率测度将为 0……这与期权交易员的直觉相冲突。期权交易员仍然会认为波动率是每天 1%,并且当波动率的卖价低于 16% 时,他会买入波动率"。动态对冲者应当"用变化平方和的平方根来计算,而不是对均值的偏离"——不居中的 σ′ 还少估一个参数,"更接近于实际影响交易员损益的波动率"。回望期长短(10 天还是 100 天?)没有客观答案,"这些不同观点有助于造就市场";指数衰减滤波(Kalman 滤波的简化版)可以给远近数据不同权重,但作者立刻自我设限:交易员"可能有一个预计会在明天发生骚乱的信息,这使得所有的过往信息成为空谈"——<strong>"交易员最不应当做的事情是在交易时间表现得像科学家或计量经济学家。"</strong></p>
+<h3>4.2 没有恒定的波动率与相关性这回事</h3>
+<p>本章的核心经验命题以小节标题的形式出现:"没有恒定的波动率与相关性这回事。"实证图表(1992 年美元/马克隐含波动率、SP500 两周历史波动率在 1987 年 10 月"飙升到了 120%")支撑起一个不稳定性的阶梯:波动率的波动率"比标的证券本身更不稳定";"历史波动率甚至比隐含波动率变化更大";而<strong>"相关性甚至比波动率和标的本身更不稳定"</strong>。由此有全书关于相关性的最强警告:<strong>"最危险的假设是相关性是恒定的。交易员要注意:市场已经适应了波动率不是恒定的事实,但尚未接受相关性不恒定的事实。"</strong>"并不需要成为统计学家才能理解相关性总在变化。"</p>
+<p>与恒定性一同瓦解的还有分布形态的教条。"恐怕 Bachelier 是对的"专栏用两个市场创伤证明几何布朗运动(恒定百分比波动)与算术布朗运动(恒定美元波动)之争是损益问题而非学术趣味:1991—1993 年欧洲美元期货上涨中,百分比波动率理应不变的假设破产,"最小价位波动率几乎维持不变",卖出虚值买权的做市商"在很低的价位上卖出了波动率",一位知名市场思想家因此对作者倾诉:"恐怕那位 Bachelier 终究是对的";1995 年欧洲日元短期利率低至 0.10% 时,1 个基点的变化对应 160% 的波动率,"市场开始付钱购买 100 的买权(行权价的收益率为 0)",因为负价可能性无法排除。教训被作者写成一句话:<strong>"交易员不能太把理论教条当真。"</strong> 他的折中观察是:金融市场常呈现混合过程,"在短期内是算术的而长期内是几何的"。</p>
+<p><strong>弹性时间</strong>(经济时间对日历时间)进一步瓦解"时间"这个参数的天真用法:市场按事件强度而非日历流逝积累方差。周五给下周二到期的期权定价,若中间只有 2 个工作日,应使用能在 4 个日历日内产生 1.41% 期望变化的波动率(11.08% 而非 15.7%);许多交易员把冬季周末计为 1/4 天;有人按市场期望变化的真实时间表"对着时钟"定价——"该时间表降低了东京午餐时间的强度,因为市场会进入睡眠状态。"支撑这一切的直觉是:<strong>"波动率与时间的平方根对随机游走扩散有着相同的影响。"</strong>(这一"时间—波动率等价"将在第十一章升格为分析框架。)</p>
+<h3>4.3 极值、取样频率与对 GARCH 的清算</h3>
+<p>作者引入两件独立于收盘价取样的测量仪器。<strong>Parkinson 数</strong>只用每期最高/最低价估计波动率;随机游走假设下它与定期取样波动率之比应为 P=1.67σ′。实证结果"令人异常信服":美国国债期货的高低价区间系统性地比随机游走假设更宽,且该偏离"在被调查的 20 个市场中都持续存在"。由此得到三条可操作规则:边界期权、美式数位期权与回望期权由屏幕上的成交价触发,"极值的分布是最重要的……Parkinson 数是唯一的信息";P 高于 1.67σ′ 时做多 Gamma 者应更频繁对冲,反之可"让 Gamma 自己跑";"做市商的优势在 P 高于 1.67σ′ 时最强,否则应当跟随趋势。"<strong>方差比例方法</strong>(Lo-MacKinley)则把取样频率变成检测市场记忆的仪器:"如果每小时取样的波动率比每日取样的波动率高,市场可以认为是均值回归的;如果更宽的取样频率会带来更高的波动率,则可以断定存在一个趋势。"交易员的经验观察(SP500 与欧洲美元的小时波动率更高;1995 年主板涨了近 35% 而历史波动率仅约 10%)与逐笔数据的测量("'瞬时'波动率——Black-Scholes-Merton 式期权复制所必需的——是每日测量所得的两倍")共同说明:<strong>不存在唯一的"真波动率",每个取样尺度对应一个不同的数字,而复制成本恰恰依赖于最难测的那一个。</strong></p>
+<p>对 ARCH/GARCH 家族,作者的评价是双面的。学术贡献被承认:Engle 的异方差建模"提供了有关异方差思想的框架",其直觉即交易员俗话"波动率产生波动率"。但作为预测工具,"便宜软件包拟合出的只是详尽的(但也是脆弱的)预测工具";交易员"在头脑中存在 GARCH"(有人在一个黄色三明治袋上给交易员讲清了 GARCH 的概念),"事实上,有的模型比计量经济学家现在所能得到的还要好";"这也许解释了 ARCH 及其姊妹(甚至在神经网络上的拓展)为何从未影响到交易室。到目前为止,它们仍然只是资深交易员头脑的一个很不成熟的模仿。"结构性原因在于信息集不对称:隐含波动率包含"无法从过往价格中获得但对决定未来波动率十分重要的信息(例如计划中的选举、经济数据的发布)"——重大会议前市场冻结,GARCH 却会预测波动率下降;而过往价格中不会重现的跳跃,交易员"知道如何使用计量经济学家不懂的方法,将这些信息从他的波动率预测中过滤掉"。结论毫不含糊:<strong>"隐含波动率,基本上是交易员的观点,要胜过 GARCH 的预测";"在计算机与交易员之间竞争的现状中,交易员仍有明显的优势。"</strong></p>
+<hr /></section>
+<section id="sec5"><h2>五、方法论核心:真实世界与 Black-Scholes-Merton 模型——为什么用一个"错的"模型(第二部分开篇)</h2><p>第二部分开篇短短一章,是全书方法论的枢纽。它要回答的悖论是:第六章刚刚证明 BSM 的参数假设全线失守,为什么全书(以及整个行业)仍以 BSM 为骨架?</p>
+<h3>5.1 两条元规则与"几乎非参数"的定价系统</h3>
+<p>答案以两条风险管理规则的形式给出:<strong>"用 Black-Scholes-Merton 模型动态对冲。改进和调整一个简单但成熟的模型好过一个新的但更复杂的模型。"</strong> 以及:<strong>"尽可能选用需要估算参数个数最少的模型。"</strong> 理由是经验性的:"更好的模型经常会带来噩梦";有经验的交易员都用同一模型且"用得也很舒服……因为他们已经了解了这个模型的局限性"。</p>
+<p>BSM 的独特地位在于它"<strong>几乎是非参数的定价系统</strong>":除波动率外几乎不需要估计什么,却提供了统一的期权定价基准;交易员可以从这一点出发,按需要"加入一些参数来进行改进,例如跳跃过程、波动率的波动率、资产价格和利率的相关性"——对奇异期权,这种叠加式改进更加重要。换言之,BSM 是一块公共基底,一套市场的通用坐标系,而不是对世界的描述。</p>
+<p>"BSM 模型的核心"专栏纠正了对模型的常见误解:<strong>"这个模型的核心是衍生品在市场中的风险中性复制是完备的,但这并不意味着每一个衍生产品都必须有套利者来做复制,这一点常常被误解。"</strong> 日本股票权证的套利者常不能做空股票、无法动态复制,但这不意味着合理价格应偏离理论值——"Black-Scholes-Merton 模型并不要求每一个市场参与者都要在股票的每一个微小变动下做到 Delta 中性";无法复制的期权可视为其他期权的极限组合,"Black-Scholes-Merton 模型的合理价格是风险中性的套利极值"。真正的遗留问题在风险端:"随着价格的变化,Black-Scholes-Merton 模型对于风险估计的精确性也会发生变化。交易员不得不通过从粗略估计到建立更完整的多因子模型来修正公式的各种导数。"——这句话就是第二部分全部工作的任务书。</p>
+<h3>5.2 五大假设的分层与"价格连续、对冲离散"</h3>
+<p>作者把 BSM 的假设分为两层。根本层(模型理论的基础):假设一,<strong>Ito 过程</strong>——独立同分布的随机成分,"最主要的特征就是过程没有记忆",但"连续金融是一个工具,而不是一个哲学判断";假设二,<strong>无摩擦市场</strong>——无交易成本与管制,与假设一合起来意味着可无限调整 Delta,"这导致可以完全忽略效用函数的影响"。参数/分布层(可调):假设三,恒定波动率(连带恒定相关性);假设四,几何布朗运动;假设五,恒定且已知的漂移("资产的远期结构是一条固定斜率的直线")。</p>
+<p>修正路径与失效条件逐条对应:严重路径相关时(流动性黑洞,或"制造期权会影响标的资产的路径"——如投资组合保险)须放弃假设一;交易成本削弱假设二时,"交易员将不得不区分理论值与动态复制。这意味着<strong>价格可以从连续时间的金融中获取,但 Delta 需要离散计算</strong>";假设三"可能是最容易被修正的"——由于交易员的买卖本身会使波动率不稳定,出路是"建立波动率变化和市场波动幅度的关系"(这正是影子希腊字的种子);假设四在某些情况下应换成算术分布("正如 Bachelier 早期工作中那样");假设五的失效体现为利率变动且"常常与资产价格的波动相关(在不对称资产中这点很明显,例如墨西哥的资产)"。</p>
+<p>随后的"希腊字及其缺陷和修正"总表,把每个教科书希腊字的缺陷与修正方案一一列出——Delta 用离散步长与影子 Delta 修正;Gamma"对于一个期权组合来说没有意义",要分成上 Gamma 与下 Gamma、加上考虑微笑的影子 Gamma 与偏度 Gamma;Theta 要按波动率期限结构的收敛加快或削弱;Vega 要按期限加权乃至用协方差矩阵分段;Rho 的"利率曲线只有水平移动"假设不现实;凸性"经常被滥用,它假设同等波动率大小的平行移动"……这张表就是第 7—11 章的目录。</p>
+<h3>5.3 好模型为什么不起作用:参数的存活检验</h3>
+<p>"为什么好模型会不起作用"专栏给出市场版的模型选择理论:<strong>"几乎所有旨在修复 Black-Scholes-Merton 模型缺陷的新模型都没有存活下来。"</strong> 带 Merton 跳跃过程的模型"很少被实际使用,因为这需要增加两个参数的估计(泊松跳跃的大小与频率)";随机波动率技巧(Hull-White 1987)"往往很可惜地被丢弃在商学院图书馆的垃圾桶里,因为这样需要增加两个额外的参数";Heath-Jarrow-Morton 收益率曲线模型同病相怜。逻辑很简单:每个新参数都是一个新的误差来源,而参数估计恰恰是第六章证明的最不可靠环节。</p>
+<p>交易员的替代方案早已在市场里运行:<strong>"交易员并没有被 Black-Scholes-Merton 模型所蒙骗:波动率曲面的存在就是一种调整。不过他们更愿意只用一个参数,即波动率,然后使得其成为到期时间以及行权价的函数,而不是精确地计量其他的参数。"</strong> 用一个参数的"函数化"吸收所有模型缺陷,保留模型作为沟通与插值的坐标系——这就是全书标题"动态对冲"背后的操作哲学:<strong>模型用于定价与沟通,风险管理必须在模型之外、用经验修正完成。</strong></p>
+<hr /></section>
+<section id="sec6"><h2>六、概念体系(四):修正的希腊字——在参数联动的世界里测量风险(第 7—11 章)</h2><p>第二部分的主体是对五个希腊字逐一执行同一套"修正程序"。这套程序有五个动作,理解了它,五章内容便浑然一体:<strong>离散化</strong>(用有限步长替代无穷小导数,分上下两侧);<strong>主观化</strong>(步长与频率由交易员的效用函数和波动率感知决定);<strong>联动化</strong>(标的动,波动率、利率必随之动——"影子"系列);<strong>加权化</strong>(不同期限的参数按各自的方差加权,不可直接加减);<strong>高阶化与情景化</strong>(组合风险须升到矩的语言,不可交易时退回状态分析)。</p>
+<h3>6.1 Delta:金融市场上最大的错误观念(第 7 章)</h3>
+<p>章首题记先声夺人:"大致对冲一组大范围的可能性要好于精确对冲一个很窄的参数区间。"(Marty O'Connell)</p>
+<p>Delta 的教科书定义(衍生品价格对标的价格的敏感度、价格曲线的切线、无穷小变动下的对冲比例)在本章遭遇全面拆解。作者的总攻击是:<strong>"可能金融市场上最大的错误观念就是花时间在 Delta 的定义及意义上。每个交易员凭直觉就知道连续时间对冲永无可能。"</strong>"试图从风险管理角度诠释 Delta 恰恰否定了参数间的动态交互作用……在动态市场上没有系统化这种事。当交易员从单一期权转向多空期权组合时,Delta 就失去了意义。"由此确立本章的元规则:<strong>"连续时间模型应该用于定价及获取基准公允价值,而不能用于对冲风险。"</strong></p>
+<p>"5 亿美元的 Delta"轶事把问题烧到组织层面:某机构风险经理看到边界期权在边界附近 Delta 达 10000%,推断 500 万美元的交易带来"等价 5 亿美元的现货仓位",超出全公司限额而阻止交易;而交易员的最大风险不过 40 万美元。"很难给数学家式的风险经理解释 Delta 有时候的确会变得毫无意义,仅仅是浪费电脑的计算能力。"按公式对冲要求在边界附近买入 5 亿美元现货、越界后再卖出——"如果这样的操作的确是可以执行的,那么边界期权的确会比现在更加容易交易。"</p>
+<p>替代方案是<strong>修正 Delta</strong>:用有限差分 ΔF/ΔU 替代 ∂F/∂U,更好的形式是双侧平均 (1/2)(ΔF/ΔU⁻+ΔF/ΔU⁺)。代价是深刻的:"Delta 会变得和标的资产的变动幅度大小相关,步长大小由使用人来判断。这可以是他的效用曲线函数,或者是他对未来波动率的判断。"Delta 从客观量变成主观决策变量。书中用 96/104 买权价差算例把这一点算到底:按教科书连续 Delta 净额 626,000 美元对冲后,损益曲线在 ±8% 区间内呈单边多头形态(跌至 92.5 亏 12.2 万、涨至 108.5 赚 17.1 万)——研讨会上所有交易员看图后都回答"做多",只有无交易经验者回答"持平";把对冲量改成 550,000 美元后,最大损益收窄至 −6.5 万/+10.7 万,"通过一套广泛的假设,第二个头寸比第一个更加 Delta 中性,尽管看上去是做空 Delta"。作者再追问:"如果有核攻击的威胁,你会怎么看待这个头寸?"——做多;"如果只考虑 6 分钟的时间尺度呢?"——做空。同一头寸的方向取决于观察尺度。于是有规则:<strong>"Delta 取决于交易员对于未来波动的感知和他的效用函数,以及他可能做调整的频率。"</strong></p>
+<p>本章还留下三个重要判断。其一,<strong>Delta 是粗糙的风险度量</strong>:买入 1000 张买权与卖空 1000 张同 Delta 的卖权,Delta 相同而风险天壤之别;推而广之,Delta-Gamma 式的在险价值对风险反转组合给出零敞口("即使加入 Gamma 也没有多大帮助,因为 Gamma 也是 0"),正确做法只能是"模拟一个大的波动之后重新给期权组合定价"。其二,<strong>Delta 有计价单位相对性</strong>:远期的 Delta 等于 e^(−rf·t),"具有讽刺意味的是,只有外国利率与之相关……两个人基于他们各自国家的货币看待同一个远期会用到不同的对冲比例"。其三,<strong>Delta 不是成为实值的概率</strong>:Delta 是"风险中性下对期权的复制"所需持有的现货比例,与行权概率只在低波动率且无偏度时重合;经历过 Delta 达 500% 的边界期权交易员"凭直觉也能充分意识到 Delta 是需要用来复制的数量而不是概率"。与之相伴的是"两国悖论":一种货币计价下成为实值的概率,等于用另一种货币计价的 Delta。</p>
+<h3>6.2 Gamma 与影子 Gamma:被冻结参数的解冻(第 8 章)</h3>
+<p>本章以一场事故开场:1994 年某"市场中性"对冲基金破产,投资者损失至少 6 亿美元,经理吼道:<strong>"那家伙没把二阶导数搞对。"</strong></p>
+<p>基本 Gamma(价格对标的的二阶导数)的第一个问题是时空不均匀:平值期权的 Gamma 越近到期越大,虚值期权的 Gamma 越远离到期越大——日历价差的两条 Gamma 曲线因此像"短跑运动员和马拉松运动员",必有一段距离两人速度一样。照 Gamma 报告买保护,"这种保护可能在市场剧烈波动时很快失效"。于是规则一:<strong>"每次度量 Gamma 时都要与一个区间相关联。"</strong> 组合层面,期权数量增加使 Gamma 呈现"局域性"(100 处做多、101.65 处做空、更高点位又做多),补救是分别计算<strong>上 Gamma 与下 Gamma</strong>(提高/降低标的价格后离散地重算 Delta 的变化);对风险反转头寸,把上、下 Gamma 求平均"会得到一个具有欺骗性的轧平头寸。利用上 Gamma 和下 Gamma 可以显示出三阶风险"。作者顺势为交易员的"超纲"辩护:责备交易员用三阶导数的风险经理"缺乏市场经验";交易行话早已超越理论定义——"交易员把没什么 Gamma 的东西称作 Delta,把没什么 Delta-Dvol 的东西称作 Gamma。"</p>
+<p>跨到期日的 Gamma 也不可直接比较:贴水/升水的贴现效应(第一修正)与基差稳定性(第二修正)使远月合约的实际 Gamma 须按相对波动率折算——SP500 日历价差算例中,3 月合约波动率比 9 月高 12%,名义 Gamma −58 实为 −65。规则二:<strong>"没有适当的调整,不能比较不同到期日的 Gamma。"</strong></p>
+<p>本章的核心创造是<strong>影子 Gamma</strong>。出发点是一条经验定律:<strong>"市场的大幅跳动一定会带来波动率的大幅跳动。计算 Gamma 时不考虑这样的因素是毫无意义的。"</strong> 影子 Gamma 的定义因此是:"考虑波动率的变化及其带给头寸的影响来预测 Delta 的变化"——上/下移动后的 Delta 不再用原波动率计算,而是用移动后的波动率 V+Sig(x) 重算再取差商。宽跨式算例:假设标的到 98 或 102 时波动率升高 1 个点,则跌到 98 时交易员"可以买入 731 单位标的资产而不是 645 单位";传统上 Gamma 292 对应影子上 Gamma 337,传统下 Gamma 300 对应影子下 Gamma 346——做多两侧期权者的真实 Gamma 更大,反过来说,空 Gamma 者的真实风险也更大。经验丰富的交易员会把"价格→波动率变化"做成映射表(涨到 105 加 1 个点、跌到 93 加 7 个点(恐慌)、跌到 92—90 加 10 个点),"尽管这仅仅是一种预测,但效果通常比稳定波动率的方法要好";映射还可以从期权市场的偏度与微笑中反推,"市场不会被欺骗太久,最终会发现大的市场波动通常会伴随波动率的跳跃"。变体依次展开:阈值影子 Gamma(波动率对价格的响应是非线性明细表,"这个方法建议交易员去做情景分析而不是使用数学工具");偏度 Gamma(不对称影子 Gamma,沿偏度曲线移动);GARCH Gamma(Engle-Rosenberg 1995,"首次在学术上发现了影子 Gamma");以及<strong>高级影子 Gamma</strong>——同时解冻波动率与利率两个参数。</p>
+<p>高级影子 Gamma 的算例值得完整保留,因为它展示了参数联动的量级:虚构货币希达维亚(Syldavia),美元利率 6%、希达维亚利率 20%、现货 100,一年远期按抛补利率平价在 86.93;危机使现货跌到 90 并引发该国一年期利率上涨 2000 个基点,一年远期变为 62.79——<strong>"当现货跌了 10 个点(10%),一年远期遭遇了 24.14 个点的下挫。"</strong> 而映射表在 88、86 处诚实地标上"?"——"表示交易员无法预测"。</p>
+<p>方法论上,作者为影子系列定性:它"并不与 Black-Scholes-Merton 模型矛盾";并且<strong>"推荐使用预测而不是建模,因为预测允许交易员改变他的想法,而建模会将观点固化成无法摆脱的估值设置"</strong>——配套的普适规则是:<strong>"无论什么风险,只要能够被确切预测,都需要纳入分析。忽视这一点会使得希腊字的计算变成纯理论的结果。"</strong></p>
+<p>全章的顶点是<strong>希达维亚选举案例</strong>:该国选举决定采用无政府体系还是西方式资本主义体系,结果一小时后揭晓,"市场从选举开始到最终结束中间不会有交易过程,所以可以放弃对 Delta 的调整"——动态对冲的前提(可连续交易)被事件本身取消,交易员必须"忽略传统的希腊字,并把损益分析限制在两种情况之一中"。把损益矩阵沿"价格与波动率联动"的对角线读(无政府主义者获胜=低价格+29% 波动率;落败=高价格+14.7% 波动率),结论是:<strong>"虽然头寸在 Black-Scholes-Merton 下的 Gamma 是平的……但实际是在做空影子 Gamma。大涨损失 15,大跌会损失 181。"</strong> 一张"平"的希腊字报表,掩盖着两个可实现状态下都亏损的头寸。</p>
+<h3>6.3 Vega 与波动率曲面:把波动率升格为风险维度(第 9 章)</h3>
+<p>第九章把被冻结的参数本身——波动率——升格为一个有期限结构、有偏度、有自身波动率与相关结构的风险源。Vega 定义为期权价格对隐含波动率的敏感度("对于一个非普通期权,Vega 更精确的解释是指从起始到停时市场上远期波动率的敏感度。任何凸性结构都会有 Vega"),其性质包括:钟形、最大值在(以远期计的)平值处;"平值期权的 Vega 相对于波动率是稳定的。平值两侧的期权在波动率买家看来是凸的,在卖家看来是凹的"(风险管理规则)。但作者随即发出与 Gamma 章同构的警告:<strong>"原始的 Vega 对于单一期权来说是有意义的,但对于交易头寸组合的风险来说意义不大"</strong>——"读者应该很熟悉本书的一个观点:对单一期权有效的往往对于整个交易头寸无效";组合"通常在低阶矩上是平的,但在高阶矩上暴露了各种不同的风险敞口"。</p>
+<p>Vega 与 Gamma 的深层联系被一句话讲透:<strong>"Vega 是整个期权存续期内 Gamma 利润(即预期 Gamma 调整带来的损益)在某个波动率上的积分,同时减去在另一波动率上的同类积分。"</strong> 3 个月跨式组合因波动率从 15% 升到 16% 增值 10 万美元,"这恰恰意味着,如果这个更高的波动率有效,他不包括滑点的 Gamma 收益会正好等于 100000 美元"(数学表达:Vega=σtS²Gamma)。波动率风险与对冲损益由此直接挂钩——Vega 不是抽象参数敞口,而是未来 Gamma 收成的现值。</p>
+<p>因为不同期限的波动率各有各的方差,便有规则:<strong>"两个未经过加权调整的、不同到期日的 Vega 不可以被用来比较、相加或相减。"</strong> 思想实验:做多 1 个月期权 10 万美元 Vega、做空等量 2 年期 Vega,若明天股市崩盘,1 个月波动率会暴涨而 2 年期只涨一点——名义上"平"的 Vega 账本实际上是巨大的敞口。<strong>修正 Vega</strong> 用单因子权重解决:修正 Vega=ΣVᵢFᵢ,常规以 3 个月为参考期限。权重有两种来源:"理论"权重按到期时间平方根(1 个月是 3 个月的 √(90/30)=1.73 倍),其前提"长期期权交易价格反映了一个长期波动率常量"却"往往被证明是错误的,因为 SP100 和 SP500 指数的波动率一直在衰减";经验权重按各期限波动率变化绝对值之比测得(德国马克 1988—1994:1 个月 1.84、6 个月 0.60、1 年 0.36),与平方根接近但系统偏离,且"权重可能会表现出非常大的不稳定……震荡到来时,近月的期权会表现得更为激烈和领先,远月的期权通常要等待观察是否会有结构性变化"。数据还揭示均值回归之强:"看起来难以置信但却真实的是:均值回归现象非常强烈,以至于长期均值在一个大涨之后会下降;反之亦然。"</p>
+<p>更现代的方法是把波动率拆成<strong>远期(远期互换)隐含波动率</strong>:利用方差对时间可加,由 0—90 天(17%)与 0—180 天(15.5%)的市场波动率反解出"3 个月和 6 个月之间的波动率市场定价在 13.84%"。远期波动率明显失衡时存在套利,"由于期权是在即期波动率而不是远期波动率的基础上交易,所以这个套利更难被发现,市场也更容易走得比较远"。<strong>分段 Vega</strong> 由此成为高阶工具:"分段 Vega 是对普通期权更有效的风险管理工具,而对路径相关的期权来说这是唯一可能分析风险的方法"——击出期权可能在一个时间分段上多 Vega、另一个分段上空 Vega。</p>
+<p><strong>多因子 Vega</strong> 把分段推进到协方差矩阵:以各分段"波动率的波动率"(0—30 天段年化高达 48.80%,180—360 天段仅 13.53%)和分段间相关性(相邻强、远隔弱,甚至有负相关)构建矩阵 M,以局域 Vega 敞口构建向量 E,EᵀME 即"整体波动率水平变动一个标准差的损益"。旗舰算例的对照触目惊心:同一头寸在单因子加权下总敞口仅 <strong>1,340</strong> 美元(近乎"平"),而按历史协方差计算,"该头寸的在险价值是 <strong>21,000 美元</strong>,即根据精确的历史数据,尽管头寸是平的,但平均每天会有 21000 美元的波动"。</p>
+<p>最后,"曲线和曲面的位移"专栏给出形变语言(一阶平移、二阶旋转、三阶凸性改变,以及"有些虽然十分荒唐,但不是不可能"的高阶变形);<strong>波动率曲面</strong>(交易员称 Dupire-Derman-Kani 曲面,隐含波动率作为到期时间与行权价的函数;1995 年 11 月 SP500 实测:期货 585 时,525 行权价波动率 21.50%、585 处 12.35%、630 处 10.00%)提供经验对象;<strong>方格法</strong>把头寸拆进行权价×到期时间的方格阵,"对于有'偏度'的市场,这种做法是有必要的,例如股指或者非常凶险的欧洲日元市场,<strong>其偏度形态的风险往往比波动率要大</strong>"。</p>
+<h3>6.4 Theta 与次要希腊字:时间衰减的期望是零(第 10 章)</h3>
+<p>第十章以 Bachelier(1900)的洞见开篇,直接颠覆散户直觉:<strong>"时间衰减并不是期权的期望损益。如果期权用正确的波动率定价(假设利率为 0),那么时间衰减的期望也是 0。"</strong> Theta(交易员称"租金";"有不少前期权交易员患有时间衰减恐惧症")从来不是独立的盈利来源,而是 Gamma 的对价。</p>
+<p>这一对价关系由 <strong>Alpha(Gamma 租金)</strong>精确度量:Alpha=时间衰减/Gamma,"衡量每承担一美元的隔夜风险所获得 Gamma 收益的最佳指标"。由去除漂移的 BSM 偏微分方程,Theta=½Γσ²S²,故<strong>公允 Alpha=½σ²S²,只随波动率的平方变化、与到期时间无关</strong>(波动率期限结构平坦时)。这条数学事实拆穿了一个流行错觉:"大多数初级期权交易员认为做空短期期权对于给定的风险可以获得更多的时间衰减"——实际上卖出极短期期权"风险与卖出长期期权是一样的,除非交易员能够在比较贵的行权价上卖出"。配套规则:<strong>"一个空 Gamma 头寸的 Alpha 小于公允 Alpha,或者一个多 Gamma 头寸的 Alpha 大于公允 Alpha,都会导致长期损失(根据大数定理)。"</strong>"权利金的卖方如果没能收集足够的权利金来补偿风险,就不能长久存活。"日历价差算例(买 1 个月 11%、卖 3 个月 12%)展示了组合 Alpha 如何"带来意想不到的结果":净 +6 Gamma、日成本 7,780 美元,Alpha 约 1,297,盈亏平衡点接近 9.5% 波动率——即每天平均动 0.6% 就够本。</p>
+<p><strong>修正 Theta</strong> 与<strong>影子 Theta</strong> 延续"影子"程序:前者把波动率沿期限结构的收敛计入时间衰减(30 天期权 16%、29 天 15.8%,明天是否按 15.8% 重定价?"除了相信波动率会均值回归外,没有理由相信存在这样的曲线",故修正"完全是主观的,并由交易员自己判断";唯有事件驱动的情形——会议后波动率必然回落——修正毫无争议);后者叠加"平静市场使隐含波动率下降"的盯市损失(30 天 16% 的期权,7 天无事发生后 23 天期权预计定价 14%,"影子 Theta 就是正常的期权加上预期波动率下降的影响"),并有明文规则:<strong>"如果交易员认为市场平静不动的情况下波动率会下降,那么这信息需要被加入到时间衰减中来。"</strong> 反向情形同样存在:政治公告或央行操作之前的平静可能导致"逆向衰减"。Theta 的根本缺陷则无药可医:<strong>"Theta 主要的弱点是,这是一个路径无关的度量"</strong>——市场离开原点又回来的"拉锯"效果,任何 t 与 t+1 之间的衰减测量都无法预测。本书另有一个体例约定:"Theta 不包含权利金的融资成本"——很多交易员把融资成本放进 Theta 是错误的。</p>
+<p>次要希腊字沿同一程序处理:<strong>Rho</strong> 被分解为 Rhop(权利金融资)、Rho1(计价货币利率)、Rho2(标的的风险中性回报率——外国利率或分红),其教科书形式的要害是"它假设利率曲线是平移的,而平移通常只发生在风险经理新手的想象中";<strong>修正 Rho</strong> 用各期限相对方差加权("一个简单的相对权重方法就能大大优于没有加权的 Rho")。<strong>Omega(期权久期)</strong>是软性路径相关期权的预期寿命(边界期权与美式二元期权的"首次退出或停时"),快捷算法是 Omega=名义久期×(美式 Rho2/欧式 Rho2)。<strong>凸性</strong>被广义化为"相对某个参数的二阶偏导数"——期权对现货的凸性就是 Gamma,对波动率的凸性就是 Vega 凸性(平值期权对波动率线性、两侧期权有 Vega 凸性);<strong>修正凸性</strong>同样要求按参数自身波动率加权("直接比较 5 年期与 10 年期债券的凸性而不采用类似波动率权重作为因子是错误的"),作者并痛斥假设平行位移的"平庸文献":<strong>"假设参数是平移的通常毫无用处。即使交易员的直觉也比计算误导大众的指标有用。"</strong> 一个精妙的极限观察是:"当波动率极端升高时,所有期权相对波动率都变成凹的,因为期权价格被标的资产价格限制……在极高的波动率下,标的本身变成了买权,因为上涨没有限制,但下跌是有限的。"边界期权交易员的简化测度<strong>隐形度</strong>(行权价与触发价的距离,衡量期权多像普通期权)与<strong>健康度</strong>(现货与触发价的距离,行权风险指标;"有些人错误地使用远期和触发价计算健康度:期权不会因为远期价格而击出")也在此登场。</p>
+<h3>6.5 希腊字与其表现:风险的风险(第 11 章)</h3>
+<p>第十一章的题记是普鲁斯特的"时间是弹性的"。前四章度量"此刻的风险",本章度量<strong>风险本身的运动</strong>:希腊字随时间的变化被交易员称为<strong>失血(bleed)</strong>("该比喻是指缓慢流失维生的血液"),随空间的变化称为"速度"(DdeltaDspot、DgammaDspot、DvegaDspot——"对于数学家而言它们是各种三阶导数")。开篇先做维度化约:动态对冲框架下只需时间与空间两个维度,"因为时间和波动率在一阶和二阶导数上的效果是一致的"(方差与时间在布朗运动中完全成正比)——于是波动率上升等价于时间倒退(后向失血),波动率下降等价于时间加速(前向失血),第十章的影子 Theta 与本章的 DdeltaDvol 由此统一在一个框架里。</p>
+<p>失血有明确的方向规律:"时间会把所有虚值期权推向更加虚值,因而削弱它们的 Delta;时间也会把实值期权推向更加实值,因而增大它们的 Delta。"组合层面有规则:<strong>"一个多上 Gamma 并空下 Gamma 的期权头寸会随着时间失血而更加空 Delta;反之亦然。"</strong> 数字算例:空 60 天 100 买权、多 504 万美元面值 30 天 106 买权的 Delta 中性头寸,15 天内总 Delta 从 0 漂移到 −336——什么都不做,头寸自己变了。失血的局部性引入四阶导数;作者为此正名:忽略二阶以上导数的工程师习惯"对于交易一个期权组合来说是不合适的";"很多期权交易员都表示不赞同那些具有泰勒展开思维模式的'准'数学家,他们嘲笑交易员用四阶(或更高)导数来研究头寸本质的尝试。"</p>
+<p>三则轶事承载了本章的组织批判。"麻烦的老板":凸性头寸在市场暴涨后自动超出 Vega 限额,老板("吹毛求疵的神父",工作是检查交易员是否服从"神圣的限额")指控交易员"作弊",交易员只能回答:"你必须看看对于现货价格和波动率的三阶导数"——静态限额制度会把头寸的数学性质误判为违规。"谢天谢地周五到了":"失血总是在周末到来前变得更加严重",风险系统以 24 小时为步长,周五下午整个交易大厅为"用周五、周六还是周日的 Delta"争执不休——时间离散化是实际风控的固有摩擦。"一点伊藤微积分"(沾番茄酱的餐巾纸):一位资深交易员建议卖出期权收权利金、在行权价挂止损单复制回补,"由于这种聪明策略的存在,市场上的权利金显得不合理"。作者的三重反驳成为全书对连续时间金融最精确的一次使用:<strong>"局部时间永远都不会成为 0,因为布朗运动不可微分"</strong>(市场在行权价附近的震荡永不停息);再平衡频率不影响期权公允价格(只影响损益的方差);<strong>"了解伊藤微积分的关键是要知道再平衡的决定与最终的成交价格之间存在滞后,而且这种滞后永远无法消灭"</strong>——对冲成本=√(2/π)·√((ΔS)²)×震荡次数,窄区间的低单次成本恰好被更高的震荡频率补偿。"如果交易员在函数平滑的间隔上再平衡,那么他们可以保留所有的权利金,也不会需要这本书。"</p>
+<p>组合风险的统一语言是<strong>矩(moments)</strong>:一阶矩 Delta(方向),二阶矩 Gamma(凸性),三阶矩偏度(Gamma 的 Delta;"奇数阶矩是对称性的指标,偶数阶矩是凸性的指标"),四阶矩尾部(Gamma 的 Gamma,为正时"晚上可以安心睡觉"),五阶矩(含边界期权空头的组合对其极其敏感),直至七阶、九阶(复合期权;分期式期权"需要研究至少九阶矩来确保对冲的稳定性")。"通常概率学家会忽略高阶矩,因为它们消失得很快。但出人意料的是,期权交易员不会这么做……在一个金融数学会议上,一位概率学家在午饭时听到两个期权交易员在讨论七阶矩后噎住了(真实故事)。"低阶矩好处理("一个电话就可以处理好前两阶矩"),高阶矩无处可逃("要消除随后的 5000 阶矩,将不得不把整个交易头寸关掉")。规则:<strong>"在低阶矩上看起来是中性、但在高阶矩上有递增敞口的头寸会有交易上的困难。"</strong></p>
+<p>配套的实操检测程序包括:DdeltaDvol 稳定性比值;稳定性测试一(升波动率看 Delta 怎么动——"令人好奇的是,一个简单的垂直价差组合是不稳定性最有可能的候选对象");渐进 Vega 测试(在不同现货水平重复,揭示 Vega 的"反转"与期权团簇的势力范围);<strong>锁定 Delta/渐进 Delta</strong>(0 与无穷远处的极限净头寸,"在一张餐巾纸上就能算清楚"——这正是清算公司发明模拟矩阵之前收保证金的方法);以及<strong>参数化与非参数化测试</strong>的光谱——压力测试属于非参数化,对黎巴嫩里拉这类"即使厚尾和偏度的概念也很难应用"的市场,只能问最朴素的问题:"如果货币跌到某个水平之下,我的损益是多少。"</p>
+<p>本章(也是整个第二部分)的精神收束在一条惊世骇俗的规则里:<strong>"在市场大震荡(以及不同产品之间传统关联的崩溃)中存活下来的公司,是那些足够幸运在其员工中没有'科学的'风险经理的公司。……存活下来的关键在于风险经理是相信模型,还是对模型信心度不够。"</strong></p>
+<hr /></section>
+<section id="sec7"><h2>七、概念体系(五):期限结构与制度细节——规则的适用边界(第 12—13 章)</h2><h3>7.1 可替代性、收敛、堆叠:把风险管理推广到期限维(第 12 章)</h3>
+<p>章首谚语:"给我一种商品的套利交易,我就给你展示一种逼仓。"</p>
+<p><strong>可替代性(fungibility)</strong>被定义为"满足交付义务所要求的独特程度":高度可替代的产品是抽象的、可以被电子化创造出来(如互换),不可替代的产品是特定的(活牛期货须在指定时间地点交付奶牛)。这个概念的理论地位极高:<strong>"从金融理论的观点来看,可替代性反映了衍生品风险中性复制的可行性"</strong>——它是第一章"复制决定定价"命题在交割层面的重述,而"这个问题使得理论学家不能获得一个广义的衍生品定价模型"。可替代性谱系的一端是货币("能够即时无限制地汇转货币使得其摆脱了对时间和地点的依赖"),另一端是实物商品(运输与仓储使同一等级原油在纽约港与鹿特丹同时以不同价格交易);由此推出期货价格的单边约束:商品太贵时可买现货、付持有成本、卖期货锁定利润,故期货价有上边界(<strong>最大升水</strong>=利率曲线+仓储成本),"超过这条线是不可能的,不过低于这条线是可以的";易腐与活物"通常可以逃脱所有规则"。产品据此分为可双向套利(货币、流动性好的股票与固定收益)、仅可单向套利(多数实物商品)与完全不能套利(易腐产品)三类。</p>
+<p>期权层面的推论是一条明文规则:<strong>"期权套利不能在没有风险中性的远期市场中执行。远期必须完美地可套利,期权套利交易员才能足够有信心从事套利活动。"</strong> 对不可替代的工具,教科书铁律失效:"远月跨式组合的价格可以比近月跨式组合的价格更低而没有任何套利可能。"操作层面还有一条反直觉的稳定性阶梯:"二阶导数的稳定性要比一阶导数高……虽然 9 个月的 Delta 并不能很好地对冲 3 个月的,但 Gamma 对冲会更稳定,DgammaDspot 等甚至更加稳定"——所以交易员应先平掉每个到期日的 Delta,再集中处理高阶希腊字。危机还会改变游戏规则:被围攻的货币"可能收取很高的利率或者变得不能获取"(爱尔兰镑 1992 年隔夜利率年化 4000%;央行的目标是"尽可能地让这个货币难以借到,'给投机者一个教训'")。</p>
+<p><strong>收敛(convergence)</strong>是"建立在一种观点之上、形式不限的投机头寸。该观点认为,某一证券或其衍生品的期限结构(风险调整后)没有表示出对未来完全无偏差的预测"。华尔街"对风险溢价并没有一个连贯和稳定的信念",于是期限结构上的持有损益成为观点分歧之所。作者用一条强漂移曲线(现货 100、1 个月 110、2 个月 125、3 个月 145,"在曲线上爬升")演示收敛交易的阶梯:一阶(裸空单腿,吃正收敛但方向风险大)→二阶(跨月价差,免疫方向)→蝶式("双因子免疫:一个是方向,一个是曲线的斜率。交易员只是留下了曲线的凸性敞口")→四阶(双蝶式,"运行一个最小方差的堆叠程序")——每升一阶免疫一个风险因子,留下更高阶的敞口,这正是第十一章矩的阶梯在期限维的镜像。概念辨析随之而来:"不应该混淆持有损益和收敛。收敛包含持有损益";"通常时间衰减被误认为是收敛。高凸性的工具通常都会有内在的 Theta"(债券期货的可交割券选择权、GNMA 的负凸性都须做期权修正)。</p>
+<p>"收敛与不对称资产"一节是全书激励批判与分布批判的合流。华尔街的"过时理论"把高收益资产的收益视为收敛、把风险等同于历史波动率,"按照这种方式交易的交易员在他们自己眼中是卖出贵的保险",再用"分散化"把不相关的高收益产品打包。案例:买高息意大利里拉、借低息德国马克("被欧洲货币体的保护所麻痹");买斯堪的纳维亚货币、空马克;买墨西哥固定收益资产。结果:"这些资产后来被证明是有异方差的(如波动率结构发生变化:3 个月历史波动率从 2% 变至 50%),而且呈现出偏度行为",1992 年 9 月与 1995 年墨西哥崩溃中巨亏接踵而至;但在这些短暂时期之外,基金经理都能给出优秀的"夏普比率"——<strong>"该测度对偏度和厚尾无效。"</strong> 收尾一句极尽反讽:<strong>"幸亏这些交易员有业绩期权,他们在之前的几年间收获了手续费和奖金。"</strong> 高息资产的溢价"往往只是对持有风险的补偿"——收敛收益的另一面,是偏度的账单。</p>
+<p><strong>堆叠(stacking)</strong>是"一种短期对冲技巧,目的是最小化多分支对冲的执行成本,一般集中在一些追踪头寸最优的高流动性工具上"。书中用欧洲美元迭期算例展示其工程价值:需要在 8 个期限各卖 95 张合约(共 760 张)时,与其同时下 8 个指令制造混乱,不如先把全部 760 张卖在流动性最好的第 4、5 个到期日(市场中性堆叠,削减初始风险至 28%),或用蝶式堆叠保护曲线形态(削减至 14%),再用相关性矩阵找出"聪明堆叠"——仅 3 笔交易即可把风险削减到 5%("最小方差堆叠")。但堆叠只能是临时操作:<strong>"堆叠的风险随时间而增加……恒定地堆叠一个头寸会导致严重的问题。要记住 Metalgessellshaft(即 Metallgesellschaft,德国金属公司,拼写从原书),这家大型德国公司在一笔错误的原油对冲中经历了 10 位数的损失,它是市场中性的,但近月期货合约上堆叠了所有的敞口。"</strong></p>
+<h3>7.2 期权市场的一些细节:制度如何压倒模型(第 13 章,收录部分)</h3>
+<p>第十三章处理"市场细节(wrinkles)":在修正完模型之后,作者要展示交易所与做市制度本身如何划定一切规则的适用边界。</p>
+<p><strong>到期尖锐风险(pin risk)</strong>:"到期尖锐风险是到期时期权头寸的变化。它源于缺乏关于期权行权的随机分配结果的及时信息。"期权收盘与行权分配通知之间存在必要时滞,期权接近平值时,"教科书中称之为完全对冲交易"的转换组合(空买权+多卖权+多期货)在到期日变成双向赌局:执行全部卖权就得祈祷买权被放弃,放弃卖权就得祈祷买权被执行,"对手方也陷入同样的窘境";更糟的是"期货的收盘价并不是期权行权时市场价格的真实指标"(收盘后丑闻爆出,名义虚值的卖权可能实际是实值),"一些有大量持仓的交易对手常常可以操纵市场以把这种不确定性变得对他们有利……执行本来应为虚值的期权"。由此有规则:<strong>"买卖权平价规则对非现金结算的场内期权不成立(包括美式期权和欧式期权)"</strong>——第一章立下的平价代数,在此得到最后一块适用边界:只有现金交割且与期权同时到期的市场(欧洲美元、欧洲马克、PIBOR 季月、SP500 季月),转换与风险反转组合才是完美套利。</p>
+<p><strong>粘性行权价(sticky strike)</strong>:"在场外或者场内交易的行权价上,有大量的期权持仓,从而改变临近到期时市场在靠近该行权价附近的行为。"机制来自对冲行为的不对称:持仓集中于不做 Delta 对冲的一方(如大额备兑卖空的客户)时,承接 Gamma 多头的做市商"倾向于在行权价附近买卖……行权价之下会有买单,行权价之上会有卖单",于是"标的资产的价格会被粘在行权价附近,直至有新的供给或是需求将其推离",市场在到期日呈现"吸收态";若持仓分散在做市商之间,双向 Gamma 指令互相抵消,粘性大减。规则:<strong>"当动态对冲者在一个行权价上做多(相应的,静态对冲者做空该行权价)时,这个行权价就会变得有粘性;反之,现货会抽动。"</strong> 这一节的结论把第四章"市场有记忆"推到了顶点:<strong>"随着更多的客户用衍生品取代主要证券,期权的持仓开始决定标的资产的路径。"</strong> 备注里是现货交易员的抱怨:"往往是尾巴摇狗,而不是狗摇尾巴。"</p>
+<p><strong>市场边界(market boundaries)</strong>:"由于制度性限制而引发的一些粘性价位"(汇率目标区间、农产品保护价、涨跌停板),"不应与边界期权混淆"。经济学家的"橡胶树"模型论证:价格距上限 20 点时上行波幅封顶,偏度恒定下下行波幅也须限于 20 点,故边界附近波动率递减、价格"胶着";加入偏度的版本用公平游戏条件 pu=(1−p)d 调低大幅下跌的概率。作者给出两层反驳:文献证实目标区间的异方差"方向恰恰相反";交易员的机制解释是"当价格靠近交易区间的边界,远期的波动率应该大幅增加。当市场靠近这一区间的边界时,央行和投机者会爆发剧烈的冲突。此外,与物理学中的滞后现象类似,市场有报复性地跨越边界的倾向"。</p>
+<p><strong>缺失的边界</strong>(文字稿至此中断):"市场参与者(以巨大的代价)发现,设置反射或吸收边界来研究汇率交易区间没有任何意义。"即期触及区间边界只是表象——"远期的交易仍不受约束地进行。看起来是极端的利率,其实是汇率的波动率被转换成了利率的形式";甚至即期本身都是合成量("交易员先买卖现货,然后买卖远期'基点'。现实市场中不存在非合成的远期")。制度可以卡住一个价格通道,但风险只是换装成另一个通道继续存在——这是全书"约束不了分布,只能转移分布"逻辑的最后一次亮相。</p>
+<hr /></section>
+<section id="sec8"><h2>八、全书内在逻辑的总重构:从一个定义推出一整套体系</h2><p>现在可以把散布在各章的概念收拢,呈现全书作为一个演绎体系的样貌。它的全部内容,可以从一个定义、两个摩擦、一条原理出发重构出来。</p>
+<h3>8.1 逻辑主干</h3>
+<p><strong>起点(定义)</strong>:期权由动态对冲(Gamma 再平衡)复制;"任何证券由套利衍生出的价格取决于其 Delta 中性的复制"。定价问题就是复制问题。</p>
+<p><strong>第一个摩擦(离散性)</strong>:连续对冲永无可能。于是复制损益是随机变量,分布宽度由 σ/√n 决定,BSM 值只是这个分布的中心——"期权复制不是一个无风险头寸"。推论:风险管理的对象不是"正确价格",而是复制损益的整个分布;"定价的问题被夸大了"。</p>
+<p><strong>第二个摩擦(交易成本与流动性)</strong>:提高频率缩小方差,却把分布中心左移;而流动性——复制的原材料——本身会在最需要的时候消失(黑洞),甚至被复制行为本身摧毁(组合保险)、被对手方策略性地操纵(止损触发、粘性行权价)。推论:价格过程有记忆,Markov 假设脆弱;"流动性是一切与市场有关事物的根源";清算成本必须进入定价(Leland 调整)与执行纪律(多 Gamma 用限价单、空 Gamma 用止损单)。</p>
+<p><strong>一条原理(传递/凸性原理)</strong>:获利点会"传染"其邻域,故凡凸者必有时间价值、必有时间衰减、必须付租金;凸性独立于合约形式而普遍存在(几何平均指数、LIBOR 平方、期货的盯市凸性),且"华尔街极少提供免费午餐"——凸性总有价格。推论链:非线性=需要动态对冲=有复制成本=有时间价值;Theta 只是 Gamma 的对价(Alpha=½σ²S²),期望时间衰减为零(Bachelier);"所有期权定价问题就由解决概率问题组成"。</p>
+<p><strong>参数的失稳(第三层现实)</strong>:复制的输入——波动率、相关性、利率——本身不可唯一测量("瞬时"波动率是日测的两倍)、不恒定(不稳定性阶梯:标的&lt;波动率&lt;波动率的波动率&lt;相关性)、且与标的价格联动("市场的大幅跳动一定会带来波动率的大幅跳动")。推论:"需要考虑的参数越多,动态对冲越困难";每个参数的凸性都要在定价中计提("参数越不稳定,计提越多")。</p>
+<p><strong>模型的选择(方法论决断)</strong>:既然参数估计是最不可靠的环节,修复 BSM 的"更好模型"(跳跃、随机波动率、HJM)反而因引入更多待估参数而全部"死在图书馆";存活下来的方案是:保留 BSM 这个"几乎非参数"的公共坐标系用于定价与沟通(波动率曲面本身就是市场化的调整),把全部修正工作转移到<strong>模型的导数</strong>上——"价格可以从连续时间的金融中获取,但 Delta 需要离散计算";"连续时间模型应该用于定价及获取基准公允价值,而不能用于对冲风险"。</p>
+<p><strong>修正希腊字(体系的主体)</strong>:于是第二部分对每个希腊字执行同一套五步程序——离散化(上/下 Gamma、双侧 Delta)、主观化(步长由效用与波动率感知决定)、联动化(影子 Delta/Gamma/Theta:标的动则波动率与利率跟着动)、加权化(修正 Vega/Rho/凸性:不同期限按各自方差加权,"未经加权的 Vega 不可比较、相加或相减")、高阶化与情景化(矩的语言;不可交易时退回状态分析,如希达维亚选举)。每一次修正都是同一个母题的变奏:<strong>教科书希腊字是"其他参数冻结"时的偏导数,真实世界不冻结任何参数。</strong></p>
+<p><strong>组合与时间(体系的两个展开方向)</strong>:横向,"对单一期权有效的往往对于整个交易头寸无效"——组合在低阶矩上中性、在高阶矩上失稳,"平"的报表是最危险的幻觉(单因子 Vega 敞口 1,340 美元对日度在险价值 21,000 美元;BSM 下 Gamma 平的选举头寸实为双向亏损)。纵向,风险本身在运动(失血),时间与波动率可互换(方差∝时间),到期日是奇点(Delta 趋于二元形态)——风险管理是对一个活体的持续照料,而非一张快照的核对。</p>
+<p><strong>制度边界(体系的收口)</strong>:期限维上,可替代性("风险中性复制的可行性")决定套利与对冲的合法性——"期权套利不能在没有风险中性的远期市场中执行";交易所细节(尖锐风险、粘性行权价、市场边界)最终划定每条规则的适用范围,并揭示因果的倒转:"期权的持仓开始决定标的资产的路径"。至此,体系闭环:从"复制决定价格"出发,最终发现"复制行为反过来塑造市场"——这正是路径依赖的最深形态,也是"动态对冲"四个字的完整含义。</p>
+<h3>8.2 三组贯穿性对立</h3>
+<p>全书所有论证都可以安放在三组对立之上。</p>
+<p><strong>模型世界对真实世界</strong>。模型世界连续、无摩擦、无记忆、参数恒定、风险可加;真实世界离散、有滑点、有记忆(止损与边界制造加速度)、参数联动、"各种风险相加之和并不等于总的风险"。作者的态度不是抛弃模型,而是给模型划定职权:定价与沟通归模型,风险与对冲归经验——"连续金融是一个工具,而不是一个哲学判断。"</p>
+<p><strong>单一期权对交易组合</strong>。单一期权的希腊字温顺可靠;组合的希腊字互相掩护、在高阶矩上潜伏。全书反复出现的算例结构——"报表显示平的,实际敞口巨大"——从 Delta(626,000 美元的"中性"对冲)、Gamma(风险反转的欺骗性轧平)、Vega(1,340 对 21,000)到选举头寸(平 Gamma、空影子 Gamma),都是这一对立的展开。</p>
+<p><strong>静态度量对动态演化</strong>。Delta、Gamma、Theta、VaR 都是快照;而头寸会失血、权重会漂移、参数会联动、到期日会把一切压缩成不连续。静态限额制度("麻烦的老板")、静态业绩评价(累积损益曲线、夏普比率)、静态保证金(渐进 Delta)都因此系统性失真——反正弦法则甚至证明,连"半年赚半年亏"这个最朴素的预期都是错的。</p>
+<h3>8.3 判断体系:从中心命题演绎出的行为准则</h3>
+<p>书中的各条"风险管理规则"并非清单式的经验杂录,而是中心命题在不同层面的投影,可按逻辑层级重排如下。</p>
+<p>定价层:参数越不稳定,计提越多;所有非线性衍生品的价格都受时间影响;硬性美式期权=欧式期权+利率/波动率复式期权;r 与 F 正相关则期货凸而贵于远期。</p>
+<p>模型层:用 BSM 动态对冲,简单成熟模型加修正好过复杂新模型;参数个数最少化;连续时间模型只用于定价,不用于对冲;凡能确切预测的风险都须纳入分析,否则希腊字计算"变成纯理论的结果";预测优于建模。</p>
+<p>度量层:度量 Gamma 必须关联区间;不同到期日的 Gamma、Vega 未经加权不可比较与加减;Delta 取决于波动率感知、效用函数与调整频率;平值 Vega 稳定、两侧 Vega 对买家为凸;路径相关期权只能用分段 Vega 分析;Theta 不含权利金融资成本;市场平静则波动率下降的预期须计入时间衰减;空 Gamma 头寸的 Alpha 低于公允 Alpha 会导致长期损失。</p>
+<p>执行层:多 Gamma 用限价指令,空 Gamma 用止损指令;避免抛开行权价使用买卖权平价;平价对非现金结算的场内期权不成立;动态对冲者做多的行权价会变粘;先平各到期日的 Delta 再处理高阶;堆叠只能临时使用。</p>
+<p>组织层:不要将夏普比率用于非线性产品;评价交易员须计条件概率(数猴子)、防偏度操纵、防反正弦错觉;交易频率越高统计显著性越高;"在市场大震荡中存活下来的公司,是那些足够幸运在其员工中没有'科学的'风险经理的公司"。</p>
+<h3>8.4 全书的精神格言</h3>
+<p>最后,把体系的精神浓缩为书中反复回响的几句话:"这不是物理学";"把对冲和风险管理从科学的神坛上降级成一门手艺";"动态对冲更像是医学而不是生物学";"大致对冲一组大范围的可能性要好于精确对冲一个很窄的参数区间";"交易员最不应当做的事情是在交易时间表现得像科学家或计量经济学家";"更好的模型经常会带来噩梦";"市场无效的持续会长于交易员能维持清偿能力的时间";"流动性是交易中一切的来源和起因";以及那句判定生死的标准——"存活下来的关键在于风险经理是相信模型,还是对模型信心度不够"。</p>
+<p>这套体系的最终形象是清晰的:期权交易员站在一个参数会动、分布会变形、流动性会消失、对手会算计、制度会摩擦的世界里,手里只有一个自己明知有错的模型。他的生存之道不是找到更对的模型,而是<strong>用一个错得透明的模型,加上一层随时可以修改的经验修正,去换取在所有可能世界里都不死的稳健性</strong>。这就是"动态对冲"作为一门手艺的全部内容。</p>
+<hr /></section>
+<section id="sec9"><h2>附录一:全书"风险管理规则"辑录(按文中出现顺序)</h2><table>
+<thead>
+<tr>
+<th>出处</th>
+<th>规则(转述)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简介</td>
+<td>要考虑的参数越不稳定,对参数波动率与预期交易成本的计提就越多</td>
+</tr>
+<tr>
+<td>第 1 章</td>
+<td>所有非线性衍生品的价格都受时间影响</td>
+</tr>
+<tr>
+<td>第 1 章</td>
+<td>避免抛开行权价使用买卖权平价规则;软性美式可用,Delta 过高除外</td>
+</tr>
+<tr>
+<td>第 1 章</td>
+<td>硬性美式期权比同期限欧式更有价值(隐含利率/波动率复式期权)</td>
+</tr>
+<tr>
+<td>第 1 章</td>
+<td>盯市规则下,r 与 F 正相关→期货凸、贵于远期;负相关→凹、贱于远期</td>
+</tr>
+<tr>
+<td>第 3 章</td>
+<td>不要将夏普比率运用在非线性产品上,或以非线性方式交易的线性产品上</td>
+</tr>
+<tr>
+<td>第 4 章</td>
+<td>做多 Gamma 用限价指令;做空 Gamma 用止损指令</td>
+</tr>
+<tr>
+<td>第二部分开篇</td>
+<td>用 BSM 动态对冲;改进简单成熟模型好过新的复杂模型;参数个数最少化</td>
+</tr>
+<tr>
+<td>第 7 章</td>
+<td>连续时间模型用于定价与基准公允价值,不能用于对冲风险</td>
+</tr>
+<tr>
+<td>第 7 章</td>
+<td>Delta 取决于对未来波动的感知、效用函数与调整频率</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>每次度量 Gamma 都要与一个区间相关联</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>没有适当调整,不能比较不同到期日的 Gamma</td>
+</tr>
+<tr>
+<td>第 8 章</td>
+<td>凡能确切预测的风险都须纳入分析,否则希腊字沦为纯理论结果</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>平值 Vega 对波动率稳定;两侧期权对波动率买家为凸、卖家为凹</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>未经加权的不同到期日 Vega 不可比较、相加或相减</td>
+</tr>
+<tr>
+<td>第 9 章</td>
+<td>交易路径相关或延迟启动期权者须检查远期分段的 Vega 风险</td>
+</tr>
+<tr>
+<td>第 10 章</td>
+<td>认为市场平静时波动率会下降,该信息须加入时间衰减(影子 Theta)</td>
+</tr>
+<tr>
+<td>第 10 章</td>
+<td>空 Gamma 头寸 Alpha 低于公允值、或多 Gamma 头寸 Alpha 高于公允值,长期必亏(大数定理)</td>
+</tr>
+<tr>
+<td>第 11 章</td>
+<td>多上 Gamma 空下 Gamma 的头寸随时间失血而更空 Delta;反之亦然</td>
+</tr>
+<tr>
+<td>第 11 章</td>
+<td>低阶矩中性、高阶矩递增敞口的头寸会有交易困难</td>
+</tr>
+<tr>
+<td>第 11 章</td>
+<td>大震荡中存活的公司,是幸运地没有"科学的"风险经理的公司</td>
+</tr>
+<tr>
+<td>第 12 章</td>
+<td>可替代性不强时,现货日历价差期权组合须分解成各组成部分分别分析</td>
+</tr>
+<tr>
+<td>第 12 章</td>
+<td>期权套利不能在没有风险中性远期市场的情况下执行</td>
+</tr>
+<tr>
+<td>第 13 章</td>
+<td>买卖权平价对非现金结算的场内期权不成立</td>
+</tr>
+<tr>
+<td>第 13 章</td>
+<td>动态对冲者做多的行权价会变粘;反之现货会抽动</td>
+</tr>
+</tbody>
+</table></section>
+<section id="sec10"><h2>附录二:核心概念中英对照(按本文出现顺序)</h2><table>
+<thead>
+<tr>
+<th>中文</th>
+<th>英文</th>
+<th>首出章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>动态对冲/Gamma 再平衡</td>
+<td>Dynamic Hedging / Gamma rebalancing</td>
+<td>简介</td>
+</tr>
+<tr>
+<td>微观/宏观风险管理</td>
+<td>Micro / Macro risk management</td>
+<td>简介</td>
+</tr>
+<tr>
+<td>最小可分解片段</td>
+<td>Smallest Decomposable Fragment (SDF)</td>
+<td>前言、第 2 章</td>
+</tr>
+<tr>
+<td>线性/非线性衍生品</td>
+<td>Linear / Nonlinear derivatives</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>传递(凸性)原理</td>
+<td>Contamination (Convexity) Principle</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>单元传递</td>
+<td>Cells contamination</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>硬性/软性期权性</td>
+<td>Hard / Soft optionality</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>买卖权平价、镜像规则</td>
+<td>Put-call parity; Mirror rule</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>软性/硬性美式期权</td>
+<td>Soft / Hard American option</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>简易规则</td>
+<td>The Simplicity Rule</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>主要/次要风险</td>
+<td>Primary / Secondary risks</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>生成模块</td>
+<td>Building blocks</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>时间同质性</td>
+<td>Time-homogeneity</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>数位式/斜坡式回报</td>
+<td>Digital / Ramp payoff</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>边界、触发点</td>
+<td>Barrier; trigger point</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>期权阶数</td>
+<td>Order of an option</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>软性/硬性路径相关</td>
+<td>Soft / Hard path dependence</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>本地/纸单/套利参与者</td>
+<td>Local / Paper / Arb</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>商品化/非标准化产品</td>
+<td>Commoditized / Nonstandardized</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>博傻理论</td>
+<td>Greater fool theory</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>盈亏的反正弦法则</td>
+<td>ArcSine law</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>滑点</td>
+<td>Slippage</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>流动性黑洞</td>
+<td>Liquidity hole</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>反向滑点</td>
+<td>Reverse slippage</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>投资组合保险</td>
+<td>Portfolio insurance</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>机械/行为稳定性</td>
+<td>Mechanical / Behavioral stability</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>被动套利</td>
+<td>Passive arbitrage</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>逼仓</td>
+<td>Squeeze</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>停时/首次退出时间</td>
+<td>Stopping time / First exit time</td>
+<td>第 5、10 章</td>
+</tr>
+<tr>
+<td>弹性时间(经济时间)</td>
+<td>Elastic (economic) time</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>Parkinson 数</td>
+<td>Parkinson number</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>方差比例方法</td>
+<td>Variance ratio method</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>异方差性、GARCH</td>
+<td>Heteroskedasticity; GARCH</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>修正 Delta</td>
+<td>Modified delta</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>上/下 Gamma</td>
+<td>Up / Down gamma</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>影子 Gamma(及阈值、偏度、高级变体)</td>
+<td>Shadow gamma</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>修正 Vega、分段 Vega、多因子 Vega</td>
+<td>Modified / bucketed / multifactor vega</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>远期隐含波动率</td>
+<td>Forward implied volatility</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>波动率曲面</td>
+<td>Volatility surface (Dupire-Derman-Kani)</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>方格法</td>
+<td>Bucketing</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>修正 Theta、影子 Theta</td>
+<td>Modified / Shadow theta</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>Alpha(Gamma 租金)、公允 Alpha</td>
+<td>Alpha (gamma rent); fair alpha</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>Omega(期权久期)</td>
+<td>Omega (option duration)</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>隐形度、健康度</td>
+<td>(边界期权简化测度)</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>修正凸性</td>
+<td>Modified convexity</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>失血</td>
+<td>Bleed</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>DdeltaDvol(稳定性比值)</td>
+<td>DdeltaDvol</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>期权组合的矩</td>
+<td>Moments of an option position</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>锁定 Delta/渐进 Delta</td>
+<td>Asymptotic delta</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>可替代性</td>
+<td>Fungibility</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>最大升水</td>
+<td>(期货价格上边界)</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>收敛</td>
+<td>Convergence</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>堆叠、最小方差堆叠</td>
+<td>Stacking; minimum-variance stacking</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>到期尖锐风险</td>
+<td>Pin risk</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>粘性行权价</td>
+<td>Sticky strike</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>市场边界</td>
+<td>Market boundaries</td>
+<td>第 13 章</td>
+</tr>
+</tbody>
+</table></section>
+<section id="sec11"><h2>附录三:文本覆盖说明</h2><p>本文依据的文字稿收录范围:总序、译者序、前言、《动态对冲简介》、第一部分第 1—6 章、第二部分第 7—13 章;文字稿在第十三章"缺失的边界"一节内(给出即期—远期换算公式 S=F·e^((r₂−r₁)t) 并解释符号之后)中断。按目录,第十三章尚有"仓位持平意味着什么"一节,其后的第 14 章(分段和形态)、第 15 章(注意分布)、第 16 章(期权交易的概念)、第三部分奇异期权各章(第 17—23 章:欧式/美式二元期权、边界期权、复式与抉择式期权、多元资产期权、回望与亚式期权)与第四部分模块 A—G(布朗运动教程、风险中性解释、计价单位相对性与两国悖论、相关性三角、在险价值、套利中的概率排名、期权定价)均未收录正文,本文对这些章节仅按正文中的前向引用提及,未作内容展开。</p></section></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 规则辑录 ================= -->
+  <div class="view" id="v-rules">
+    <div class="kicker">风险管理规则</div>
+    <h1 class="pg">全书规则辑录</h1>
+    <p class="sub">书中明文标注的"风险管理规则",按其在逻辑体系中的层级归类:定价、模型、度量、执行、组织。可叠加筛选与搜索。</p>
+    <div class="filters" id="ruleLayerChips"></div>
+    <div class="filters">
+      <select id="ruleCh"><option value="">全部出处</option></select>
+      <input id="ruleQ" type="search" placeholder="搜索规则关键词…" style="flex:1;min-width:200px">
+    </div>
+    <div class="count-line" id="ruleCount"></div>
+    <div class="rulegrid" id="ruleGrid"></div>
+  </div>
+
+  <!-- ================= 术语表 ================= -->
+  <div class="view" id="v-glossary">
+    <div class="kicker">中英对照</div>
+    <h1 class="pg">核心术语表</h1>
+    <div class="filters">
+      <input id="glQ" type="search" placeholder="搜索中文或英文…" style="flex:1;min-width:220px">
+      <select id="glCh"><option value="">全部章节</option></select>
+    </div>
+    <div class="count-line" id="glCount"></div>
+    <div style="overflow-x:auto"><table class="gl-table"><thead><tr><th>中文</th><th>英文</th><th>首出章节</th></tr></thead><tbody id="glBody"></tbody></table></div>
+  </div>
+
+  <!-- ================= 自测 ================= -->
+  <div class="view" id="v-quiz">
+    <div class="kicker">检验理解</div>
+    <h1 class="pg">闪卡自测</h1>
+    <p class="sub">正面是问题,点击卡片翻面看书中答案。"记住了"移出卡组,"再来一次"放回队尾。</p>
+    <div class="filters" id="quizTags" style="justify-content:center"></div>
+    <div class="quiz-wrap">
+      <div class="qmeta"><span id="qPos"></span><button class="pill-btn" id="qShuffle">洗牌重来 ↺</button></div>
+      <div id="qStage"></div>
+      <div class="qbar"><i id="qBarFill"></i></div>
+    </div>
+  </div>
+</main>
+
+<footer><div class="ft">
+  依据《动态对冲:管理普通期权与奇异期权》(Nassim Taleb 著,上交所期权高阶文库中译本)文字稿整理。文字稿覆盖前言、简介、第一部分(第 1—6 章)与第二部分(第 7—13 章,第十三章至"缺失的边界"中途截止);第 14—23 章及模块 A—G 仅存目录。整理稿之引语与数字已逐条对照原文校验;本页面为学习辅助材料,呈现书中观点,不构成投资建议。
+</div></footer>
+
+<div id="maptip"></div>
+
+<script>
+const DATA = {"stats": [{"v": "20 万笔", "l": "作者 12 年间的期权交易", "n": "前言:写作前的经验凭据"}, {"v": "7 万份", "l": "研究过的风险管理报告", "n": "\"反思数千笔对冲错误\""}, {"v": "25 条", "l": "书中明文的风险管理规则", "n": "见「规则辑录」,可按层级筛选"}, {"v": "45 个", "l": "核心概念,六大体系", "n": "见「概念地图」,含关联网络"}], "quotes": [{"t": "这不是物理学。", "s": "前言,作者对培训生的告诫"}, {"t": "动态对冲更像是医学而不是生物学,它要通过获得实践经验和阅读出版的研究报告来学习。", "s": "前言"}, {"t": "定价的问题被夸大了,大多数盈亏来自于市场变动,而不是错误定价。", "s": "《动态对冲简介》"}, {"t": "流动性是交易中一切的来源和起因,应当存在于每个风险管理者的心中。", "s": "第 1 章"}, {"t": "市场是一家巨大的电影院,但只有一个小门。", "s": "第 4 章题记,一位资深期权交易员"}, {"t": "市场无效的持续会长于交易员能维持清偿能力的时间。", "s": "第 5 章,一位期权交易员"}, {"t": "最危险的假设是相关性是恒定的。", "s": "第 6 章"}, {"t": "更好的模型经常会带来噩梦。", "s": "第二部分开篇"}, {"t": "大致对冲一组大范围的可能性要好于精确对冲一个很窄的参数区间。", "s": "第 7 章题记,Marty O'Connell"}, {"t": "预测允许交易员改变他的想法,而建模会将观点固化成无法摆脱的估值设置。", "s": "第 8 章"}, {"t": "存活下来的关键在于风险经理是相信模型,还是对模型信心度不够。", "s": "第 11 章"}], "duels": [{"name": "模型世界 vs 真实世界", "sides": [{"h": "模型世界", "items": ["连续时间、无摩擦,可无限调整 Delta", "布朗运动无记忆,过程不回头", "波动率、相关性、漂移恒定且已知", "风险可加,相关性矩阵稳定可用"]}, {"h": "真实世界", "items": ["离散对冲+滑点:损益是 σ/√n 的分布", "止损与边界制造记忆与加速度", "参数联动:大跳动必带来波动率跳动", "\"各种风险相加之和并不等于总的风险\""]}]}, {"name": "单一期权 vs 交易组合", "sides": [{"h": "单一期权", "items": ["希腊字温顺可靠,Vega/Gamma 有意义", "高阶矩敞口很小", "教科书度量基本够用"]}, {"h": "交易组合", "items": ["「对单一期权有效的往往对整个头寸无效」", "低阶矩中性、高阶矩失稳:1,340 vs 21,000 美元", "风险反转:上/下 Gamma 平均=欺骗性轧平", "选举头寸:BSM 平 Gamma,实为双向亏损"]}]}, {"name": "静态度量 vs 动态演化", "sides": [{"h": "静态度量", "items": ["Delta/Gamma/Theta/VaR 都是快照", "静态限额把凸性误判为\"作弊\"", "累积业绩曲线、夏普比率照单全收"]}, {"h": "动态演化", "items": ["头寸会失血:什么都不做,Delta 自己漂移", "时间与波动率可互换,到期日是奇点", "反正弦法则:半年赚半年亏反而最不可能", "评价须看条件概率与交易频率"]}]}], "logic": [{"k": "起点 · 一个定义", "t": "期权由动态对冲复制,定价问题就是复制问题", "b": "「Gamma 再平衡相当于通过买卖标的资产来复制期权的回报。」而<b>单元传递<\/b>把定价观压缩成一句话——任何证券由套利衍生出的价格,取决于其 Delta 中性的复制。全书随后的一切,都是在追问:这个复制在真实世界里要花多少钱、会在哪里失败。", "q": "任何证券由套利衍生出的价格取决于其 Delta 中性的复制。"}, {"k": "摩擦一 · 离散性", "t": "连续对冲永无可能,BSM 值只是分布的中心", "b": "只有\"每百万分之一秒都能以屏幕上的市场中间价成交\"时损益才是确定的。离散对冲下,复制损益是随机变量,分布宽度由 <b>σ/√n<\/b> 决定(泛函型中心极限定理),BSM 值只是这个分布的中心。推论:风险管理的对象不是\"正确价格\",而是复制损益的整个分布——「定价的问题被夸大了」。", "q": "期权复制不是一个无风险头寸。"}, {"k": "摩擦二 · 成本与流动性", "t": "提高频率缩小方差,却把分布中心推向左边", "b": "交易成本使\"理论价 5.00\"只对应 4.00—6.00 的合成区间,做市商永远处于方差与成本的两难。更糟的是,复制的原材料——<b>流动性<\/b>——会在最需要时消失(黑洞)、被复制行为本身摧毁(1987 组合保险)、被对手策略性操纵(止损触发、粘性行权价)。止损与边界让价格过程\"具有记忆\",Markov 假设破产。", "q": "流动性是一切与市场有关事物的根源。"}, {"k": "原理 · 传递/凸性", "t": "获利点传染邻域:凡凸者必有时间价值,凸性总有价格", "b": "热传导式的推理给出期权的全部形而上学:凸性、时间价值、时间衰减由同一原理生成,且凸性独立于合约形式(几何平均指数、LIBOR 平方、期货的盯市凸性都要付\"凸性价\")。Theta 由此不是盈利来源而是 Gamma 的对价——公允 Alpha=½σ²S²,时间衰减的期望是零。", "q": "如果时空中存在能够带来获利的一个点,那么处在它周围的区域就应当考虑这种效应。"}, {"k": "现实 · 参数失稳", "t": "输入本身不可测、不恒定、且与价格联动", "b": "波动率没有唯一测量(逐笔\"瞬时\"波动率是日测的两倍);不稳定性沿\"标的<波动率<波动率的波动率<相关性\"递增;「市场的大幅跳动一定会带来波动率的大幅跳动」。于是全书论点成立:<b>需要考虑的参数越多,动态对冲越困难<\/b>;每个参数的凸性都要计提。", "q": "最危险的假设是相关性是恒定的。"}, {"k": "决断 · 模型选择", "t": "保留\"错的\"BSM:参数最少的模型才能存活", "b": "修复 BSM 的\"更好模型\"(跳跃、随机波动率、HJM)全因新增待估参数而死——参数估计恰是最不可靠的环节。存活方案:保留 BSM 这个\"几乎非参数\"的公共坐标系用于定价与沟通(波动率曲面本身就是市场化的调整),把全部修正转移到<b>模型的导数<\/b>上——价格连续、对冲离散。", "q": "更好的模型经常会带来噩梦。"}, {"k": "主体 · 修正希腊字", "t": "对每个希腊字执行同一套五步修正程序", "b": "第 7—11 章是同一个母题的五次变奏:教科书希腊字是\"其他参数冻结\"时的偏导数,而真实世界不冻结任何参数。点击下面五个步骤查看每一步在做什么:", "q": "", "extra": "<div class=\"chips\" id=\"fiveSteps\"><\/div><div id=\"chipDetail\"><\/div>"}, {"k": "展开 · 组合与时间", "t": "\"平\"的报表是最危险的幻觉;风险本身在运动", "b": "横向:「对单一期权有效的往往对于整个交易头寸无效」——低阶矩中性的组合在高阶矩上失稳(Vega 敞口 1,340 美元 vs 日在险价值 21,000 美元;平 Gamma 的选举头寸双向亏损)。纵向:希腊字自己会<b>失血<\/b>,时间与波动率可互换,到期日是奇点。风险管理是对活体的持续照料,不是快照核对。", "q": "在低阶矩上看起来是中性、但在高阶矩上有递增敞口的头寸会有交易上的困难。"}, {"k": "收口 · 制度边界", "t": "复制行为反过来塑造市场——体系闭环", "b": "期限维上,<b>可替代性<\/b>(\"风险中性复制的可行性\")决定套利与对冲的合法性;交易所细节(尖锐风险、粘性行权价、市场边界)划定每条规则的适用范围,并揭示因果的倒转:「期权的持仓开始决定标的资产的路径」。从\"复制决定价格\"出发,最终发现复制反过来塑造市场——这是路径依赖的最深形态,也是\"动态对冲\"四个字的完整含义。", "q": "存活下来的关键在于风险经理是相信模型,还是对模型信心度不够。"}], "five": [{"n": "① 离散化", "d": "用有限步长替代无穷小导数:双侧修正 Delta、上/下 Gamma。「每次度量 Gamma 时都要与一个区间相关联。」"}, {"n": "② 主观化", "d": "步长与频率由使用者决定:「Delta 取决于交易员对于未来波动的感知和他的效用函数,以及他可能做调整的频率。」"}, {"n": "③ 联动化", "d": "标的动,波动率与利率必随之动——影子 Delta/Gamma/Theta 用\"移动后的参数\"重算敞口;希达维亚案例是其试金石。"}, {"n": "④ 加权化", "d": "不同期限的参数按各自方差加权:修正 Vega、修正 Rho、修正凸性。「未经加权的 Vega 不可比较、相加或相减。」"}, {"n": "⑤ 高阶化与情景化", "d": "组合风险升到矩的语言(直至九阶);不可连续交易时退回状态-情景分析(选举、压力测试、锁定 Delta)。"}], "groups": [{"id": "tool", "name": "工具与凸性", "desc": "第 1—2 章:按复制成本重新切分工具世界"}, {"id": "eco", "name": "市场生态", "desc": "第 3—5 章:参与者、激励、流动性与套利的真实面目"}, {"id": "vol", "name": "波动率输入", "desc": "第 6 章:两个\"不存在\"的输入——波动率与相关性"}, {"id": "bsm", "name": "BSM 方法论", "desc": "第二部分开篇:为什么用一个\"错的\"模型"}, {"id": "greeks", "name": "修正希腊字", "desc": "第 7—11 章:在参数联动世界里测量风险"}, {"id": "term", "name": "期限与制度", "desc": "第 12—13 章:规则的适用边界"}], "concepts": [{"id": "convex", "name": "传递(凸性)原理", "s": "传递原理", "en": "Contamination / Convexity Principle", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "全书\"动态对冲的基本原理\":「如果时空中存在能够带来获利的一个点,那么处在它周围的区域就应当考虑这种效应。」由此推出:凡凸者必有时间价值、必有时间衰减、必须付租金;凸性独立于合约形式而普遍存在,且\"华尔街极少提供免费午餐\"——凸性总有价格。", "rel": ["linear", "cells", "optionality", "alpha"]}, {"id": "linear", "name": "线性与非线性", "s": "线性/非线性", "en": "Linear / Nonlinear", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "分析衍生品的最佳方式:二阶导数是否为零。线性者可对冲完全并锁定;非线性者不稳定、需要动态对冲。但\"并不存在纯粹的线性衍生品\",许多证券只是\"在未受考验时\"体现线性。", "rel": ["convex", "mdelta"]}, {"id": "cells", "name": "单元传递", "s": "单元传递", "en": "Cells Contamination", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "全书定价观的最简表述:「任何证券由套利衍生出的价格取决于其 Delta 中性的复制。」定价问题被彻底还原为复制问题——这是后文一切\"修正\"的出发点。", "rel": ["convex", "replication"]}, {"id": "optionality", "name": "硬性/软性期权性", "s": "期权性", "en": "Hard / Soft Optionality", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "有真实行权价者为硬性期权性;仅有内生凸性而无行权价者(止损单、已知市场指令)为软性。作为传递原理的拓展:每个具有期权性的物品应以溢价交易,并因此有时间衰减。", "rel": ["convex", "stops"]}, {"id": "parity", "name": "平价与镜像规则", "s": "平价/镜像", "en": "Put-Call Parity / Mirror Rule", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "+C−P=F;1 单位卖权+x%远期=1 单位买权+(100−x)%远期。推论:虚值卖权与同行权价实值买权的波动率必须完全一致。但前提是欧式+流动远期市场——尖锐风险、美式行权、微笑都会破坏它。", "rel": ["pin", "amer", "mdelta"]}, {"id": "amer", "name": "硬性美式期权", "s": "硬性美式", "en": "Hard American Option", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "行权由权利金融资成本与标的持有成本共同决定;「硬性美式期权比同期限的欧式期权更有价值,因为其隐含了利率或波动率的复式期权」——本质上是\"可延期权\",溢价随波动率的波动率上升。", "rel": ["parity"]}, {"id": "sdf", "name": "最小可分解片段", "s": "SDF", "en": "Smallest Decomposable Fragment", "g": "tool", "sec": "sec2", "ch": "第 2 章", "blurb": "风险管理必须把结构分解到不能再分的单元:跨式可分解;双界、组合资产、价差、互换期权不可分解。考虑交易成本时,整组片段合并管理与逐片段独立管理的收益\"明显不同\"。", "rel": ["fungible"]}, {"id": "pathdep", "name": "路径相关", "s": "路径相关", "en": "Path Dependence", "g": "tool", "sec": "sec2", "ch": "第 2 章", "blurb": "「路径无关其实是个神话,每种证券对个人都是路径相关的」——逐日盯市与中途决策权使然。软性路径相关只记一条信息(边界、极值);硬性路径相关\"强记忆\",如均值期权。", "rel": ["memory", "squeeze", "bleed"]}, {"id": "prisec", "name": "主要/次要风险", "s": "主次风险", "en": "Primary / Secondary Risks", "g": "tool", "sec": "sec2", "ch": "第 1 章", "blurb": "\"有些工具和市场的次要风险比其主要敞口更危险。\"划分标准是头寸对几个价格反应;归纳的终点是:「至今试图找到风险管理通用理论的艰苦尝试都失败了,没有两种工具是一样的。」", "rel": []}, {"id": "mm", "name": "做市商与价格接受者", "s": "做市商", "en": "Market Maker vs Price Taker", "g": "eco", "sec": "sec3", "ch": "第 3 章", "blurb": "「做市商和市场使用者之间的区别在于前者必须是防御性的,而后者仍有具备攻击的自由。」做市商靠及时性与负一阶自相关的隐蔽优势获利,功能上\"似乎在做空波动率\"。", "rel": ["hole", "sticky"]}, {"id": "incentive", "name": "激励的期权结构", "s": "激励期权", "en": "Incentive as Option", "g": "eco", "sec": "sec3", "ch": "第 3 章", "blurb": "交易员提成合同=写在其损益上的期权,\"决定期权价格的关键是波动率,而不是头寸的预期收益\"。分散投资摧毁该期权价值——「自营部门总以关门为结局而基金经理却日益兴旺」。", "rel": ["monkey"]}, {"id": "monkey", "name": "打字机上的猴子", "s": "数猴子", "en": "Monkeys on a Typewriter", "g": "eco", "sec": "sec3", "ch": "第 3 章", "blurb": "幸存者偏差的计数问题:「我从来没有见过人去数猴子,同样没有人去数市场中交易员的数量」——应计算给定交易员总数下出现成功业绩的条件概率,历史业绩的统计价值被系统性高估。", "rel": ["arcsine", "incentive"]}, {"id": "arcsine", "name": "盈亏的反正弦法则", "s": "反正弦法则", "en": "ArcSine Law", "g": "eco", "sec": "sec3", "ch": "第 3 章", "blurb": "公平赌博中,一年里 1 个月或 11 个月处于同一盈亏状态的概率相当高,\"有 6 个月处在盈利或亏损的状态反而是最低的\"——传统累积业绩比较法因此\"不公平\"。", "rel": ["monkey"]}, {"id": "hole", "name": "流动性黑洞", "s": "流动性黑洞", "en": "Liquidity Hole", "g": "eco", "sec": "sec3", "ch": "第 4 章", "blurb": "市场均衡机制暂停的临时事件、\"自由市场机制中的信息性故障\":更低的价格加速供给,更高的价格加速需求。\"大部分意外损失都是由流动性不足导致的价格缺口或清仓滑点造成的。\"", "rel": ["stops", "pi", "memory", "slippage"]}, {"id": "slippage", "name": "滑点与反向滑点", "s": "滑点", "en": "Slippage / Reverse Slippage", "g": "eco", "sec": "sec3", "ch": "第 4 章", "blurb": "滑点=平均成交价与初始中间价之差,是流动性的可比测度,也是对冲基金规模的上限所在;囤积者可制造正滑点获利,但\"解除头寸的一方不像囤积头寸的一方那样有中途退出的自由\"。", "rel": ["hole"]}, {"id": "stops", "name": "止损单与边界触发", "s": "止损/触发", "en": "Stops & Barrier Triggering", "g": "eco", "sec": "sec3", "ch": "第 4 章", "blurb": "止损单是留给市场的\"免费的期权\";边界触发条件更早交予做市商且不可取消——\"大部分市场波动率都是由触发边界期权而导致的\"。书中完整演示了 2 亿英镑击出期权的自我触发工程。", "rel": ["hole", "memory", "optionality"]}, {"id": "memory", "name": "市场记忆", "s": "市场记忆", "en": "Market Memory", "g": "eco", "sec": "sec3", "ch": "第 4 章", "blurb": "止损与边界「减少了布朗运动的马尔可夫成分,使这个过程具有记忆」——对期权定价理论\"无记忆\"核心假设的正面攻击:价格触及关键位后会出现可预测的加速度。", "rel": ["stops", "sticky", "pathdep"]}, {"id": "pi", "name": "投资组合保险", "s": "组合保险", "en": "Portfolio Insurance", "g": "eco", "sec": "sec3", "ch": "第 4 章", "blurb": "1987 年的总案例:负 Gamma 的卖权复制程序管理 750 亿—1000 亿美元,\"免费午餐\"的表象吸引更多资金入市;场内交易员识破\"更低的价格恶化局面\"的止损逻辑——组合保险\"被它自己的成功所劫持\"。", "rel": ["hole", "discrete"]}, {"id": "squeeze", "name": "逼仓与套利的路径风险", "s": "逼仓", "en": "Squeeze", "g": "eco", "sec": "sec3", "ch": "第 5 章", "blurb": "「尽管一笔交易显示为被完全和机械地对冲了……交易员仍有可能破产。」逐日盯市与到期收益的现金流错配使\"最无可辩驳的套利模式可能会最具伤害\";「市场无效的持续会长于交易员能维持清偿能力的时间。」", "rel": ["pathdep", "fungible"]}, {"id": "sigma", "name": "不居中的波动率", "s": "不居中σ′", "en": "Uncentered Volatility", "g": "vol", "sec": "sec4", "ch": "第 6 章", "blurb": "波动率应按\"变化平方和的平方根\"计算,而非对均值的偏离:连涨一个月的市场传统测度为 0,而交易员仍会按每天 1% 出价——不居中的 σ′ 少估一个参数,更接近真实影响损益的波动率。", "rel": ["parkinson"]}, {"id": "ladder", "name": "不稳定性阶梯", "s": "不稳定阶梯", "en": "Instability Ladder", "g": "vol", "sec": "sec4", "ch": "第 6 章", "blurb": "标的 < 波动率 < 波动率的波动率 < 相关性,越往上越不稳定。「最危险的假设是相关性是恒定的。市场已经适应了波动率不是恒定的事实,但尚未接受相关性不恒定的事实。」", "rel": ["garch", "mvega"]}, {"id": "etime", "name": "弹性时间", "s": "弹性时间", "en": "Elastic / Economic Time", "g": "vol", "sec": "sec4", "ch": "第 6 章", "blurb": "市场按事件强度而非日历流逝积累方差:周五给下周二的期权应按 11.08% 而非 15.7% 定价;\"波动率与时间的平方根对随机游走扩散有着相同的影响\"——时间与波动率可互换的源头。", "rel": ["bleed", "shadowt"]}, {"id": "parkinson", "name": "Parkinson 数", "s": "Parkinson数", "en": "Parkinson Number", "g": "vol", "sec": "sec4", "ch": "第 6 章", "blurb": "只用最高/最低价估波动率;随机游走下应有 P=1.67σ′,实测 20 个市场高低价区间系统性偏宽。应用:边界期权触发概率、Gamma 对冲频率(\"让 Gamma 自己跑\")、做市 vs 跟随趋势。", "rel": ["sigma", "stops"]}, {"id": "garch", "name": "GARCH 批判", "s": "GARCH批判", "en": "\"GARCH in Their Heads\"", "g": "vol", "sec": "sec4", "ch": "第 6 章", "blurb": "交易员\"头脑中存在 GARCH\",且掌握价格之外的信息(选举、数据发布);「隐含波动率,基本上是交易员的观点,要胜过 GARCH 的预测」——计量拟合\"仍然只是资深交易员头脑的一个很不成熟的模仿\"。", "rel": ["ladder"]}, {"id": "nonparam", "name": "\"几乎非参数\"的 BSM", "s": "几乎非参数", "en": "Almost Nonparametric", "g": "bsm", "sec": "sec5", "ch": "第二部分开篇", "blurb": "BSM 除波动率外几乎无需估计,是统一定价的公共基底与市场报价语言。元规则:「改进和调整一个简单但成熟的模型好过一个新的但更复杂的模型」「尽可能选用需要估算参数个数最少的模型」。", "rel": ["goodmodels", "surface", "replication"]}, {"id": "replication", "name": "风险中性复制的完备性", "s": "复制完备性", "en": "Risk-Neutral Replication", "g": "bsm", "sec": "sec5", "ch": "第二部分开篇", "blurb": "「模型的核心是衍生品在市场中的风险中性复制是完备的,但这并不意味着每一个衍生产品都必须有套利者来做复制」——常见误解被纠正;合理价格是\"风险中性的套利极值\"。", "rel": ["cells", "nonparam"]}, {"id": "discrete", "name": "价格连续、对冲离散", "s": "价连对离", "en": "Continuous Price, Discrete Delta", "g": "bsm", "sec": "sec5", "ch": "第二部分开篇", "blurb": "交易成本削弱无摩擦假设时:「价格可以从连续时间的金融中获取,但 Delta 需要离散计算。」\"连续金融是一个工具,而不是一个哲学判断\"——模型与操作从此分工。", "rel": ["mdelta", "ito"]}, {"id": "goodmodels", "name": "好模型为何不起作用", "s": "好模型之死", "en": "Why Good Models Fail", "g": "bsm", "sec": "sec5", "ch": "第二部分开篇", "blurb": "跳跃模型、随机波动率(Hull-White)、HJM\"几乎都没有存活下来\":每个新参数都是新的误差源,而参数估计恰是最不可靠的环节。「更好的模型经常会带来噩梦。」", "rel": ["nonparam", "surface"]}, {"id": "surface", "name": "波动率曲面即调整", "s": "曲面即调整", "en": "Volatility Surface as Adjustment", "g": "bsm", "sec": "sec5", "ch": "第二部分开篇", "blurb": "「交易员并没有被 BSM 所蒙骗:波动率曲面的存在就是一种调整」——用单一参数的函数化 σ(K,t) 吸收全部模型缺陷,保留模型作沟通与插值的坐标系。", "rel": ["mvega", "goodmodels"]}, {"id": "mdelta", "name": "修正 Delta", "s": "修正Delta", "en": "Modified Delta", "g": "greeks", "sec": "sec6", "ch": "第 7 章", "blurb": "「金融市场上最大的错误观念就是花时间在 Delta 的定义及意义上」:用双侧有限差分替代无穷小导数后,「Delta 取决于交易员对于未来波动的感知和他的效用函数,以及他可能做调整的频率」——Delta 被主观化。", "rel": ["discrete", "dprob", "shadowg"]}, {"id": "dprob", "name": "Delta ≠ 概率", "s": "Delta≠概率", "en": "Delta Is Not Probability", "g": "greeks", "sec": "sec6", "ch": "第 7 章", "blurb": "Delta 是风险中性复制所需持有的现货数量,不是成为实值的概率;两者仅在低波动率且无偏度时重合。两国悖论:一种货币计价下的实值概率恰等于另一种计价下的 Delta。", "rel": ["mdelta"]}, {"id": "shadowg", "name": "影子 Gamma", "s": "影子Gamma", "en": "Shadow Gamma", "g": "greeks", "sec": "sec6", "ch": "第 8 章", "blurb": "「市场的大幅跳动一定会带来波动率的大幅跳动。计算 Gamma 时不考虑这样的因素是毫无意义的。」影子 Gamma 用移动后的波动率重算 Delta;希达维亚选举:BSM 下 Gamma 平的头寸实为空影子 Gamma,大涨亏 15、大跌亏 181。", "rel": ["mdelta", "mvega", "shadowt"]}, {"id": "vegagamma", "name": "Vega 与 Gamma 的换算", "s": "Vega=∫Gamma", "en": "Vega as Gamma P/L", "g": "greeks", "sec": "sec6", "ch": "第 9 章", "blurb": "「Vega 是整个期权存续期内 Gamma 利润在某个波动率上的积分,减去在另一波动率上的同类积分」(Vega=σtS²Γ):Vega 不是抽象敞口,而是未来 Gamma 收成的现值。", "rel": ["alpha", "mvega"]}, {"id": "mvega", "name": "修正/多因子 Vega", "s": "多因子Vega", "en": "Modified / Multifactor Vega", "g": "greeks", "sec": "sec6", "ch": "第 9 章", "blurb": "「未经加权调整的不同到期日 Vega 不可以被用来比较、相加或相减。」旗舰算例:单因子加权敞口仅 1,340 美元的\"平\"头寸,按协方差矩阵计算日度在险价值 21,000 美元——把敞口净成一个数的汇总都是欺骗性的。", "rel": ["surface", "ladder", "vegagamma"]}, {"id": "alpha", "name": "Alpha(Gamma 租金)", "s": "Alpha租金", "en": "Alpha / Gamma Rent", "g": "greeks", "sec": "sec6", "ch": "第 10 章", "blurb": "Theta 只是 Gamma 的对价:公允 Alpha=Theta/Gamma=½σ²S²,与到期时间无关——\"卖短期期权赚更多衰减\"是错觉;时间衰减的期望为零(Bachelier),收不够租金的卖方\"不能长久存活\"。", "rel": ["convex", "vegagamma", "shadowt"]}, {"id": "shadowt", "name": "影子 Theta", "s": "影子Theta", "en": "Shadow Theta", "g": "greeks", "sec": "sec6", "ch": "第 10 章", "blurb": "平静市场使隐含波动率下降,权利金买家在 Theta 之外再承受盯市损失——该预期必须计入时间衰减。Theta 的根本缺陷无药可医:「这是一个路径无关的度量」,无法捕捉拉锯行情。", "rel": ["etime", "shadowg", "alpha"]}, {"id": "bleed", "name": "失血", "s": "失血 Bleed", "en": "Bleed", "g": "greeks", "sec": "sec6", "ch": "第 11 章", "blurb": "希腊字随时间的变化(\"缓慢流失维生的血液\"):多上 Gamma 空下 Gamma 的头寸随时间自动变得更空 Delta。时间与波动率在一、二阶导数上等价——波动率上升=时间倒退,下降=时间加速。", "rel": ["etime", "pathdep", "moments"]}, {"id": "moments", "name": "期权组合的矩", "s": "组合的矩", "en": "Moments of a Position", "g": "greeks", "sec": "sec6", "ch": "第 11 章", "blurb": "一阶 Delta、二阶 Gamma、三阶偏度、四阶尾部,直至九阶:「在低阶矩上看起来是中性、但在高阶矩上有递增敞口的头寸会有交易上的困难。」前两阶一个电话即可消除,高阶只能关掉头寸。", "rel": ["bleed", "shadowg"]}, {"id": "ito", "name": "局部时间与止损复制", "s": "局部时间", "en": "Local Time & Ito", "g": "greeks", "sec": "sec6", "ch": "第 11 章", "blurb": "对\"在行权价挂止损单复制期权\"的三重否定:局部时间永不为 0(布朗运动不可微);再平衡频率不影响公允价格;再平衡决定与成交价之间的滞后\"永远无法消灭\"——权利金贵得有数学根据。", "rel": ["discrete", "stops"]}, {"id": "fungible", "name": "可替代性", "s": "可替代性", "en": "Fungibility", "g": "term", "sec": "sec7", "ch": "第 12 章", "blurb": "「可替代性反映了衍生品风险中性复制的可行性」——复制命题在交割层面的重述。规则:「期权套利不能在没有风险中性的远期市场中执行」;对不可替代工具,远月跨式可以比近月便宜而无套利。", "rel": ["squeeze", "sdf", "converge"]}, {"id": "converge", "name": "收敛", "s": "收敛", "en": "Convergence", "g": "term", "sec": "sec7", "ch": "第 12 章", "blurb": "对期限结构是否为无偏预测的下注。阶梯:单腿吃收敛→价差免疫方向→蝶式再免疫斜率(只留凸性)→双蝶式配最小方差堆叠——每升一阶免疫一个因子,恰是矩的阶梯在期限维的镜像。\"收敛包含持有损益\"。", "rel": ["stack", "fungible", "moments"]}, {"id": "stack", "name": "堆叠", "s": "堆叠", "en": "Stacking", "g": "term", "sec": "sec7", "ch": "第 12 章", "blurb": "把多分支敞口临时集中到高流动性工具以省执行成本:欧洲美元算例中三笔\"聪明堆叠\"即可把初始风险削到 5%。但只能临时用——「恒定地堆叠一个头寸会导致严重的问题」(Metalgessellshaft 十位数亏损)。", "rel": ["converge"]}, {"id": "pin", "name": "到期尖锐风险", "s": "尖锐风险", "en": "Pin Risk", "g": "term", "sec": "sec7", "ch": "第 13 章", "blurb": "行权分配通知的时滞使平值附近的\"教科书完全对冲\"(转换组合)在到期变成双向赌局;规则:「买卖权平价规则对非现金结算的场内期权不成立」——只有现金交割且同步到期的市场才有完美套利。", "rel": ["parity"]}, {"id": "sticky", "name": "粘性行权价", "s": "粘性行权价", "en": "Sticky Strike", "g": "term", "sec": "sec7", "ch": "第 13 章", "blurb": "大量持仓集中于不做对冲的一方时,做市商在行权价下方买、上方卖,价格被\"粘\"住形成吸收态:「期权的持仓开始决定标的资产的路径」——\"往往是尾巴摇狗,而不是狗摇尾巴\"。", "rel": ["memory", "mm"]}, {"id": "bound", "name": "市场边界", "s": "市场边界", "en": "Market Boundaries", "g": "term", "sec": "sec7", "ch": "第 13 章", "blurb": "制度性粘性价位(汇率区间、保护价、涨跌停)。交易员对\"边界降低波动率\"的反驳:市场\"有报复性地跨越边界的倾向\";「看起来是极端的利率,其实是汇率的波动率被转换成了利率的形式」——制度卡住一个通道,风险换装到另一个通道。", "rel": ["sticky"]}], "rules": [{"ch": "简介", "text": "要考虑的参数越不稳定,对参数波动率与预期交易成本的计提就越多", "layer": "定价"}, {"ch": "第 1 章", "text": "所有非线性衍生品的价格都受时间影响", "layer": "定价"}, {"ch": "第 1 章", "text": "避免抛开行权价使用买卖权平价规则;软性美式可用,Delta 过高除外", "layer": "执行"}, {"ch": "第 1 章", "text": "硬性美式期权比同期限欧式更有价值(隐含利率/波动率复式期权)", "layer": "定价"}, {"ch": "第 1 章", "text": "盯市规则下,r 与 F 正相关→期货凸、贵于远期;负相关→凹、贱于远期", "layer": "定价"}, {"ch": "第 3 章", "text": "不要将夏普比率运用在非线性产品上,或以非线性方式交易的线性产品上", "layer": "组织"}, {"ch": "第 4 章", "text": "做多 Gamma 用限价指令;做空 Gamma 用止损指令", "layer": "执行"}, {"ch": "第二部分开篇", "text": "用 BSM 动态对冲;改进简单成熟模型好过新的复杂模型;参数个数最少化", "layer": "模型"}, {"ch": "第 7 章", "text": "连续时间模型用于定价与基准公允价值,不能用于对冲风险", "layer": "模型"}, {"ch": "第 7 章", "text": "Delta 取决于对未来波动的感知、效用函数与调整频率", "layer": "度量"}, {"ch": "第 8 章", "text": "每次度量 Gamma 都要与一个区间相关联", "layer": "度量"}, {"ch": "第 8 章", "text": "没有适当调整,不能比较不同到期日的 Gamma", "layer": "度量"}, {"ch": "第 8 章", "text": "凡能确切预测的风险都须纳入分析,否则希腊字沦为纯理论结果", "layer": "模型"}, {"ch": "第 9 章", "text": "平值 Vega 对波动率稳定;两侧期权对波动率买家为凸、卖家为凹", "layer": "度量"}, {"ch": "第 9 章", "text": "未经加权的不同到期日 Vega 不可比较、相加或相减", "layer": "度量"}, {"ch": "第 9 章", "text": "交易路径相关或延迟启动期权者须检查远期分段的 Vega 风险", "layer": "度量"}, {"ch": "第 10 章", "text": "认为市场平静时波动率会下降,该信息须加入时间衰减(影子 Theta)", "layer": "度量"}, {"ch": "第 10 章", "text": "空 Gamma 头寸 Alpha 低于公允值、或多 Gamma 头寸 Alpha 高于公允值,长期必亏(大数定理)", "layer": "定价"}, {"ch": "第 11 章", "text": "多上 Gamma 空下 Gamma 的头寸随时间失血而更空 Delta;反之亦然", "layer": "度量"}, {"ch": "第 11 章", "text": "低阶矩中性、高阶矩递增敞口的头寸会有交易困难", "layer": "度量"}, {"ch": "第 11 章", "text": "大震荡中存活的公司,是幸运地没有\"科学的\"风险经理的公司", "layer": "组织"}, {"ch": "第 12 章", "text": "可替代性不强时,现货日历价差期权组合须分解成各组成部分分别分析", "layer": "度量"}, {"ch": "第 12 章", "text": "期权套利不能在没有风险中性远期市场的情况下执行", "layer": "执行"}, {"ch": "第 13 章", "text": "买卖权平价对非现金结算的场内期权不成立", "layer": "执行"}, {"ch": "第 13 章", "text": "动态对冲者做多的行权价会变粘;反之现货会抽动", "layer": "执行"}], "glossary": [{"cn": "动态对冲/Gamma 再平衡", "en": "Dynamic Hedging / Gamma rebalancing", "ch": "简介"}, {"cn": "微观/宏观风险管理", "en": "Micro / Macro risk management", "ch": "简介"}, {"cn": "最小可分解片段", "en": "Smallest Decomposable Fragment (SDF)", "ch": "前言、第 2 章"}, {"cn": "线性/非线性衍生品", "en": "Linear / Nonlinear derivatives", "ch": "第 1 章"}, {"cn": "传递(凸性)原理", "en": "Contamination (Convexity) Principle", "ch": "第 1 章"}, {"cn": "单元传递", "en": "Cells contamination", "ch": "第 1 章"}, {"cn": "硬性/软性期权性", "en": "Hard / Soft optionality", "ch": "第 1 章"}, {"cn": "买卖权平价、镜像规则", "en": "Put-call parity; Mirror rule", "ch": "第 1 章"}, {"cn": "软性/硬性美式期权", "en": "Soft / Hard American option", "ch": "第 1 章"}, {"cn": "简易规则", "en": "The Simplicity Rule", "ch": "第 1 章"}, {"cn": "主要/次要风险", "en": "Primary / Secondary risks", "ch": "第 1 章"}, {"cn": "生成模块", "en": "Building blocks", "ch": "第 1 章"}, {"cn": "时间同质性", "en": "Time-homogeneity", "ch": "第 2 章"}, {"cn": "数位式/斜坡式回报", "en": "Digital / Ramp payoff", "ch": "第 2 章"}, {"cn": "边界、触发点", "en": "Barrier; trigger point", "ch": "第 2 章"}, {"cn": "期权阶数", "en": "Order of an option", "ch": "第 2 章"}, {"cn": "软性/硬性路径相关", "en": "Soft / Hard path dependence", "ch": "第 2 章"}, {"cn": "本地/纸单/套利参与者", "en": "Local / Paper / Arb", "ch": "第 3 章"}, {"cn": "商品化/非标准化产品", "en": "Commoditized / Nonstandardized", "ch": "第 3 章"}, {"cn": "博傻理论", "en": "Greater fool theory", "ch": "第 3 章"}, {"cn": "盈亏的反正弦法则", "en": "ArcSine law", "ch": "第 3 章"}, {"cn": "滑点", "en": "Slippage", "ch": "第 4 章"}, {"cn": "流动性黑洞", "en": "Liquidity hole", "ch": "第 4 章"}, {"cn": "反向滑点", "en": "Reverse slippage", "ch": "第 4 章"}, {"cn": "投资组合保险", "en": "Portfolio insurance", "ch": "第 4 章"}, {"cn": "机械/行为稳定性", "en": "Mechanical / Behavioral stability", "ch": "第 5 章"}, {"cn": "被动套利", "en": "Passive arbitrage", "ch": "第 5 章"}, {"cn": "逼仓", "en": "Squeeze", "ch": "第 5 章"}, {"cn": "停时/首次退出时间", "en": "Stopping time / First exit time", "ch": "第 5、10 章"}, {"cn": "弹性时间(经济时间)", "en": "Elastic (economic) time", "ch": "第 6 章"}, {"cn": "Parkinson 数", "en": "Parkinson number", "ch": "第 6 章"}, {"cn": "方差比例方法", "en": "Variance ratio method", "ch": "第 6 章"}, {"cn": "异方差性、GARCH", "en": "Heteroskedasticity; GARCH", "ch": "第 6 章"}, {"cn": "修正 Delta", "en": "Modified delta", "ch": "第 7 章"}, {"cn": "上/下 Gamma", "en": "Up / Down gamma", "ch": "第 8 章"}, {"cn": "影子 Gamma(及阈值、偏度、高级变体)", "en": "Shadow gamma", "ch": "第 8 章"}, {"cn": "修正 Vega、分段 Vega、多因子 Vega", "en": "Modified / bucketed / multifactor vega", "ch": "第 9 章"}, {"cn": "远期隐含波动率", "en": "Forward implied volatility", "ch": "第 9 章"}, {"cn": "波动率曲面", "en": "Volatility surface (Dupire-Derman-Kani)", "ch": "第 9 章"}, {"cn": "方格法", "en": "Bucketing", "ch": "第 9 章"}, {"cn": "修正 Theta、影子 Theta", "en": "Modified / Shadow theta", "ch": "第 10 章"}, {"cn": "Alpha(Gamma 租金)、公允 Alpha", "en": "Alpha (gamma rent); fair alpha", "ch": "第 10 章"}, {"cn": "Omega(期权久期)", "en": "Omega (option duration)", "ch": "第 10 章"}, {"cn": "隐形度、健康度", "en": "(边界期权简化测度)", "ch": "第 10 章"}, {"cn": "修正凸性", "en": "Modified convexity", "ch": "第 10 章"}, {"cn": "失血", "en": "Bleed", "ch": "第 11 章"}, {"cn": "DdeltaDvol(稳定性比值)", "en": "DdeltaDvol", "ch": "第 11 章"}, {"cn": "期权组合的矩", "en": "Moments of an option position", "ch": "第 11 章"}, {"cn": "锁定 Delta/渐进 Delta", "en": "Asymptotic delta", "ch": "第 11 章"}, {"cn": "可替代性", "en": "Fungibility", "ch": "第 12 章"}, {"cn": "最大升水", "en": "(期货价格上边界)", "ch": "第 12 章"}, {"cn": "收敛", "en": "Convergence", "ch": "第 12 章"}, {"cn": "堆叠、最小方差堆叠", "en": "Stacking; minimum-variance stacking", "ch": "第 12 章"}, {"cn": "到期尖锐风险", "en": "Pin risk", "ch": "第 13 章"}, {"cn": "粘性行权价", "en": "Sticky strike", "ch": "第 13 章"}, {"cn": "市场边界", "en": "Market boundaries", "ch": "第 13 章"}], "quiz": [{"tag": "概念", "q": "「传递(凸性)原理」说的是什么?它如何推出\"凡有期权性者必有时间衰减\"?", "a": "「如果时空中存在能够带来获利的一个点,那么处在它周围的区域就应当考虑这种效应。」获利点会\"传染\"邻域,故凡凸者必有时间价值;时间价值随事件概率测度收窄而缩减——所以每个具有期权性的物品应以溢价交易,并必然有时间衰减。"}, {"tag": "概念", "q": "影子 Gamma 与普通 Gamma 的本质区别是什么?希达维亚选举案例说明了什么?", "a": "普通 Gamma 在\"波动率冻结\"下重算 Delta;影子 Gamma 用移动后的波动率 V+Sig(x) 重算——因为「市场的大幅跳动一定会带来波动率的大幅跳动」。选举案例:BSM 下 Gamma 是平的头寸,沿\"价格-波动率联动\"的对角线读实为做空影子 Gamma——大涨损失 15,大跌损失 181,两个可实现状态都亏。"}, {"tag": "判断", "q": "卖出极短期期权比卖长期期权\"赚时间衰减\"更划算吗?", "a": "不。Alpha(每单位 Gamma 的 Theta)= ½σ²S²,与到期时间无关(期限结构平坦时):卖极短期期权的风险与卖长期一样,\"除非交易员能够在比较贵的行权价上卖出\"。且时间衰减的期望本来就是零(Bachelier):若期权按正确波动率定价,衰减只是 Gamma 的对价。"}, {"tag": "概念", "q": "Delta 是\"到期成为实值的概率\"吗?", "a": "不是。Delta 是风险中性复制所需持有的现货比例——\"是需要用来复制的数量而不是概率\"。两者仅在低波动率且无偏度时近似相等。两国悖论:一种货币计价下成为实值的概率,恰等于用另一种货币计价的 Delta。"}, {"tag": "规则", "q": "做多 Gamma 时该用什么指令?做空 Gamma 呢?为什么?", "a": "「当做多 Gamma 时,使用限价指令;当做空 Gamma 时,使用止损指令。」做多 Gamma 者有选择权,应\"让市场到你这里来\";做空 Gamma 者别无选择、必须完成所有调整,只能追赶市场——而市场变动时买卖价差通常还会变宽。"}, {"tag": "判断", "q": "1 个月期权 10 万美元 Vega 多头 + 2 年期等量 Vega 空头,这个账本\"平\"吗?", "a": "不平。「两个未经过加权调整的、不同到期日的 Vega 不可以被用来比较、相加或相减。」若明天崩盘,1 个月波动率暴涨而 2 年期只涨一点。旗舰算例:单因子加权敞口仅 1,340 美元的头寸,按协方差矩阵算日度在险价值 21,000 美元。"}, {"tag": "概念", "q": "什么是流动性黑洞?它对期权定价理论的核心假设意味着什么?", "a": "「市场实现均衡的常规机制被暂停的临时事件……更低的价格加速了供给,更高的价格加速了需求。」止损与边界触发使价格过程\"具有记忆\"、在关键价位出现加速度——直接攻击了套利定价所依赖的\"无记忆布朗运动\"(Markov)假设。"}, {"tag": "判断", "q": "\"到期时利润必然实现的完全机械对冲\"是安全的吗?", "a": "不安全。「套利不好的一面在于尽管一笔交易显示为被完全和机械地对冲了……交易员仍有可能破产。」空期货多现货者须为期货端损失付现金,股票端盈利却收不回来——逼仓中\"只有资金最雄厚的才能存活\";\"这种最无可辩驳的套利模式可能会最具伤害\"。路径相关组合应以停时(首次退出时间)度量久期。"}, {"tag": "概念", "q": "BSM 五大假设中,哪两条是\"根本的\"、哪三条是\"可调的\"?", "a": "根本层:①Ito 过程(无记忆布朗运动)、②无摩擦市场——两者合起来允许无限调整 Delta、忽略效用函数。可调层:③恒定波动率(连带恒定相关性)、④几何布朗运动、⑤恒定且已知的漂移。修正路径:黑洞时放弃①;交易成本下\"价格连续、Delta 离散\"处理②;③最易修正——建立波动率与市场波幅的关系(影子系列的种子)。"}, {"tag": "判断", "q": "跳跃扩散、随机波动率、HJM 都比 BSM\"更真实\",为什么交易员不用?", "a": "「几乎所有旨在修复 BSM 模型缺陷的新模型都没有存活下来。」每个新模型都要求估计更多参数(跳跃的大小与频率、波动率的波动率……),而参数估计恰是最不可靠的环节——「更好的模型经常会带来噩梦」。交易员的替代方案:单参数的函数化——「波动率曲面的存在就是一种调整」。"}, {"tag": "概念", "q": "什么是\"失血\"(bleed)?多上 Gamma 空下 Gamma 的头寸随时间会怎样?", "a": "失血是希腊字随时间的变化(\"缓慢流失维生的血液\")。规则:「一个多上 Gamma 并空下 Gamma 的期权头寸会随着时间失血而更加空 Delta;反之亦然。」算例:Delta 中性的双腿头寸,15 天内总 Delta 从 0 自动漂到 −336——什么都不做,头寸自己变了。"}, {"tag": "概念", "q": "期权组合的一至四阶矩分别对应什么?为什么\"低阶中性\"不等于安全?", "a": "一阶=Delta(方向),二阶=Gamma(凸性),三阶=偏度(Gamma 的 Delta),四阶=尾部(Gamma 的 Gamma)。「在低阶矩上看起来是中性、但在高阶矩上有递增敞口的头寸会有交易上的困难」——Delta/Gamma 中性的风险反转仍被偏度支配;前两阶\"一个电话\"可平,高阶只能关头寸。"}, {"tag": "判断", "q": "卖出期权收权利金、在行权价挂止损单\"复制\"回补——这个策略为什么必败?", "a": "三重否定:①局部时间永不为 0——布朗运动不可微,行权价附近的震荡不会停;②再平衡频率不影响期权公允价格,只影响损益方差;③「再平衡的决定与最终的成交价格之间存在滞后,而且这种滞后永远无法消灭」。窄区间的低单次成本恰被更高的震荡频率补偿——权利金\"贵\"得有数学根据。"}, {"tag": "概念", "q": "可替代性为什么被称为\"风险中性复制的可行性\"?它给期权套利立了什么规矩?", "a": "可替代性衡量交割对时间与空间的依赖:可电子化创造的产品(货币、互换)可双向套利,实物只能单向(期货只有上边界=最大升水),易腐品\"逃脱所有规则\"。规则:「期权套利不能在没有风险中性的远期市场中执行」;对不可替代工具,远月跨式可以比近月便宜而无套利。"}, {"tag": "概念", "q": "粘性行权价是如何产生的?\"尾巴摇狗\"指什么?", "a": "当大量持仓集中在不做 Delta 对冲的一方,承接 Gamma 多头的做市商会在行权价下方挂买单、上方挂卖单,价格被\"粘\"在行权价附近形成吸收态。规则:「当动态对冲者在一个行权价上做多时,这个行权价就会变得有粘性;反之,现货会抽动。」于是「期权的持仓开始决定标的资产的路径」——现货交易员抱怨\"往往是尾巴摇狗\"。"}, {"tag": "判断", "q": "一位交易员连续多年盈利,这能证明他有技能吗?", "a": "未必。打字机上的猴子(Borel-Cantelli):无数猴子中必有一只打出《伊利亚特》——「没有人去数市场中交易员的数量」来计算条件概率。45% 胜率的负优势交易员,30 次 1 美元下注后仍盈利的概率至少 35%。评价还要防偏度操纵(小止损制造\"频繁小亏+罕见大赚\"的镜像)与反正弦错觉;\"运气与技能的比例随交易频率增加而下降\"。"}, {"tag": "概念", "q": "影子 Theta 比普通 Theta 多算了什么?Theta 的\"无药可医\"缺陷是什么?", "a": "多算了\"平静市场使隐含波动率下降\"的盯市损失:30 天 16% 的期权,7 天无事后 23 天期权预计只值 14%——「如果交易员认为市场平静不动的情况下波动率会下降,那么这信息需要被加入到时间衰减中来」。根本缺陷:「Theta 主要的弱点是,这是一个路径无关的度量」——拉锯行情的损耗任何 t 与 t+1 之间的测量都抓不住。"}, {"tag": "判断", "q": "高息货币资产\"收益高、历史波动率低\",买入并用夏普比率考核,问题在哪?", "a": "这正是书中\"收敛与不对称资产\"批判的结构:把收益当收敛、把风险等同历史波动率。里拉/马克、墨西哥资产后来被证明有异方差(3 个月历史波动率从 2% 变至 50%)且呈偏度行为;而平静期的夏普比率一直\"优秀\"——「该测度对偏度和厚尾无效」。\"幸亏这些交易员有业绩期权,他们在之前的几年间收获了手续费和奖金。\""}, {"tag": "数字", "q": "理论估值 5.00 的期权组合,卖出后实际能在什么区间合成?这说明什么?", "a": "剔除交易成本后只能预期在 4.00—6.00 之间合成。说明:复制损益是分布不是数字;提高对冲频率缩小方差(σ/√n)但交易成本把中心左移——做市商永远处于\"方差 vs 成本\"的两难;「需要被保护的参数越多,管理的成本就越高」。"}, {"tag": "数字", "q": "Parkinson 数与定期取样波动率的理论比值是多少?实测偏离说明什么?", "a": "随机游走下 P=1.67σ′。实测美国国债期货乃至 20 个市场的高低价区间都系统性偏宽——极值分布比随机游走假设更\"野\"。应用:P 持续偏高时边界期权更易被触发、Gamma 多头应更频繁对冲(否则可\"让 Gamma 自己跑\")、做市商优势最强。"}], "toc": [{"id": "sec0", "title": "导读:本文的任务与文本范围"}, {"id": "sec1", "title": "一、全书立场:把对冲和风险管理从科学的神坛上降级成一门手艺"}, {"id": "sec2", "title": "二、概念体系(一):按复制成本重新切分工具世界(第 1—2 章)"}, {"id": "sec3", "title": "三、概念体系(二):市场生态学"}, {"id": "sec4", "title": "四、概念体系(三):波动率与相关性"}, {"id": "sec5", "title": "五、方法论核心:真实世界与 Black-Scholes-Merton 模型"}, {"id": "sec6", "title": "六、概念体系(四):修正的希腊字"}, {"id": "sec7", "title": "七、概念体系(五):期限结构与制度细节"}, {"id": "sec8", "title": "八、全书内在逻辑的总重构:从一个定义推出一整套体系"}, {"id": "sec9", "title": "附录一:全书\"风险管理规则\"辑录(按文中出现顺序)"}, {"id": "sec10", "title": "附录二:核心概念中英对照(按本文出现顺序)"}, {"id": "sec11", "title": "附录三:文本覆盖说明"}]};
+
+/* ---------- 主题 ---------- */
+const root=document.documentElement;
+let theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light';
+function applyTheme(){ root.setAttribute('data-theme',theme); }
+applyTheme();
+document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';applyTheme();drawMap(selConcept);};
+
+/* ---------- 路由 ---------- */
+const VIEWS=[['overview','总览'],['logic','逻辑主线'],['map','概念地图'],['reader','章节精读'],['rules','规则辑录'],['glossary','术语表'],['quiz','自测']];
+const nav=document.getElementById('nav');
+VIEWS.forEach(([id,label])=>{
+  const b=document.createElement('button');b.className='tab';b.textContent=label;b.dataset.v=id;
+  b.onclick=()=>{location.hash='#/'+id};nav.appendChild(b);
+});
+function route(){
+  let h=(location.hash||'#/overview').replace('#/','');
+  const parts=h.split('/'); const v=parts[0]||'overview';
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  const el=document.getElementById('v-'+v)||document.getElementById('v-overview');
+  el.classList.add('on');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===(document.getElementById('v-'+v)?v:'overview')));
+  if(v==='reader'&&parts[1]){ setTimeout(()=>{const s=document.getElementById(parts[1]); if(s) s.scrollIntoView({behavior:'smooth'});},60); }
+  if(v==='map'&&parts[1]){ selectConcept(parts[1]); }
+  window.scrollTo({top:0});
+  if(v==='reader') updateToc();
+}
+window.addEventListener('hashchange',route);
+
+/* ---------- 总览 ---------- */
+(function(){
+  const tiles=document.getElementById('tiles');
+  DATA.stats.forEach(s=>{tiles.insertAdjacentHTML('beforeend',
+    `<div class="tile"><div class="v">${s.v}</div><div class="l">${s.l}</div><div class="n">${s.n}</div></div>`)});
+  let qi=0;const qt=document.getElementById('quoteText'),qs=document.getElementById('quoteSrc');
+  function showQ(){const q=DATA.quotes[qi%DATA.quotes.length];qt.textContent=q.t;qs.textContent='—— '+q.s;}
+  showQ();document.getElementById('quoteNext').onclick=()=>{qi++;showQ();};
+  const seg=document.getElementById('duelSeg'),body=document.getElementById('duelBody');
+  DATA.duels.forEach((d,i)=>{
+    const b=document.createElement('button');b.textContent=d.name;if(i===0)b.classList.add('on');
+    b.onclick=()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderDuel(i)};
+    seg.appendChild(b);
+  });
+  function renderDuel(i){const d=DATA.duels[i];
+    body.innerHTML=d.sides.map((s,j)=>`<div class="side"><h4><span class="dot" style="background:var(--g${j?2:1})"></span>${s.h}</h4><ul>${s.items.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('');
+  }
+  renderDuel(0);
+})();
+
+/* ---------- 逻辑主线 ---------- */
+(function(){
+  const c=document.getElementById('chain');
+  DATA.logic.forEach((st,i)=>{
+    const d=document.createElement('div');d.className='step'+(i===0?' open':'');
+    d.innerHTML=`<div class="num">${i+1}</div><div class="box">
+      <button class="head"><span><span class="kk">${st.k}</span><span class="tt">${st.t}</span></span><span class="ar">▶</span></button>
+      <div class="bd"><div class="bd-in">${st.b}${st.q?`<div class="q">「${st.q}」</div>`:''}${st.extra||''}</div></div></div>`;
+    d.querySelector('.head').onclick=()=>d.classList.toggle('open');
+    c.appendChild(d);
+  });
+  // 五步程序 chips(在第7环内)
+  const chipWrap=document.getElementById('fiveSteps');
+  if(chipWrap){
+    const detail=document.getElementById('chipDetail');
+    DATA.five.forEach((f,i)=>{
+      const b=document.createElement('button');b.className='chip'+(i===0?' on':'');b.textContent=f.n;
+      b.onclick=()=>{chipWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');detail.innerHTML=`<b>${f.n}</b> — ${f.d}`;};
+      chipWrap.appendChild(b);
+    });
+    detail.innerHTML=`<b>${DATA.five[0].n}</b> — ${DATA.five[0].d}`;
+  }
+})();
+
+/* ---------- 概念地图 ---------- */
+const tip=document.getElementById('maptip');
+let selConcept=null, mapMode='graph';
+const GC = id => `var(--g${DATA.groups.findIndex(g=>g.id===id)+1})`;
+function conceptById(id){return DATA.concepts.find(c=>c.id===id)}
+function measure(text,font){const cv=measure.cv||(measure.cv=document.createElement('canvas'));const ctx=cv.getContext('2d');ctx.font=font;return ctx.measureText(text).width;}
+
+function drawMap(keepSel){
+  const svg=document.getElementById('mapsvg'); if(mapMode!=='graph'){return;}
+  const stage=document.getElementById('mapStage');
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(t,at)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);return e;};
+  // —— 思维导图布局:左右各三组,成员纵向堆叠(无碰撞)
+  const rowH=34, hubH=38, groupGap=34, pad=40;
+  const leftG=DATA.groups.slice(0,3), rightG=DATA.groups.slice(3);
+  const colH=gs=>gs.reduce((a,g)=>a+Math.max(DATA.concepts.filter(c=>c.g===g.id).length*rowH,hubH)+groupGap,-groupGap);
+  const H=Math.max(colH(leftG),colH(rightG))+pad*2;
+  const W=Math.max(stage.clientWidth,880);
+  const cx=W/2, cy=H/2;
+  const hubOff=Math.min(190,W*0.17), nearOff=Math.min(310,W*0.28);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
+  svg.innerHTML='';
+  const edges=mk('g',{}), relg=mk('g',{}), nodes=mk('g',{});
+  svg.append(edges,relg,nodes);
+  const positions={};
+  const curve=(x1,y1,x2,y2,st,sw)=>edges.appendChild(mk('path',{d:`M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}`,fill:'none',stroke:st,'stroke-width':sw}));
+  function layoutSide(gs,side){ // side=-1 左, +1 右
+    let y=cy-colH(gs)/2;
+    gs.forEach(g=>{
+      const members=DATA.concepts.filter(c=>c.g===g.id);
+      const blockH=Math.max(members.length*rowH,hubH);
+      const hy=y+blockH/2, hx=cx+side*hubOff;
+      positions['hub-'+g.id]=[hx,hy];
+      curve(cx+side*70,cy,hx-side*10,hy,'var(--axis)',2);
+      members.forEach((c,ci)=>{
+        const my=y+ci*rowH+rowH/2;
+        const lb=c.s||c.name;
+        const w=measure(lb,'600 12px system-ui')+24, h=27;
+        const nearX=cx+side*nearOff;           // pill 靠近 hub 的一侧边缘
+        const x=side<0? nearX-w : nearX;       // rect 左上角 x
+        const cxx=x+w/2;
+        positions[c.id]=[cxx,my];
+        curve(hx+side*10,hy,nearX-side*4,my,'var(--grid)',1.3);
+        const gnode=mk('g',{class:'gnode',id:'n-'+c.id,transform:`translate(${x},${my-h/2})`});
+        gnode.appendChild(mk('rect',{width:w,height:h,rx:3,fill:'var(--surface)',stroke:GC(c.g),'stroke-width':1.8}));
+        const tx=mk('text',{x:w/2,y:h/2+4,'text-anchor':'middle',fill:'var(--ink)','font-size':12,'font-weight':600});
+        tx.textContent=lb;gnode.appendChild(tx);
+        gnode.addEventListener('mousemove',e=>{
+          tip.innerHTML=`<b>${c.name}</b>${c.blurb.length>66?c.blurb.slice(0,66)+'…':c.blurb}`;
+          tip.style.opacity=1;
+          const tw=tip.offsetWidth||240;
+          tip.style.left=Math.min(e.clientX+14,innerWidth-tw-12)+'px';
+          tip.style.top=Math.min(e.clientY+14,innerHeight-80)+'px';
+        });
+        gnode.addEventListener('mouseleave',()=>tip.style.opacity=0);
+        gnode.addEventListener('click',()=>selectConcept(c.id));
+        nodes.appendChild(gnode);
+      });
+      // hub 节点
+      const w=measure(g.name,'800 13px system-ui')+32;
+      const hub=mk('g',{class:'gnode',transform:`translate(${hx-w/2},${hy-hubH/2})`});
+      hub.appendChild(mk('rect',{width:w,height:hubH,rx:3,fill:GC(g.id)}));
+      const tx=mk('text',{x:w/2,y:hubH/2+5,'text-anchor':'middle',fill:'#FBF6E8','font-size':13,'font-weight':800,class:'hub-label'});
+      tx.textContent=g.name;hub.appendChild(tx);
+      hub.addEventListener('click',()=>selectGroup(g.id));
+      nodes.appendChild(hub);
+      y+=blockH+groupGap;
+    });
+  }
+  layoutSide(leftG,-1); layoutSide(rightG,1);
+  // 中心节点
+  const cw=measure('动态对冲','800 17px system-ui')+44, chh=48;
+  const center=mk('g',{class:'gnode',transform:`translate(${cx-cw/2},${cy-chh/2})`});
+  center.appendChild(mk('rect',{width:cw,height:chh,rx:3,fill:'var(--ink)'}));
+  const ct=mk('text',{x:cw/2,y:chh/2+6,'text-anchor':'middle',fill:'var(--page)','font-size':17,'font-weight':800});
+  ct.textContent='动态对冲';center.appendChild(ct);
+  const sub=mk('text',{x:cx,y:cy+chh/2+18,'text-anchor':'middle',fill:'var(--muted)','font-size':11});
+  sub.textContent='Dynamic Hedging';nodes.appendChild(sub);
+  nodes.appendChild(center);
+  svg._pos=positions; svg._relg=relg;
+  if(W>stage.clientWidth) stage.scrollLeft=(W-stage.clientWidth)/2;
+  if(keepSel) highlight(keepSel);
+}
+function highlight(id){
+  const svg=document.getElementById('mapsvg'); const relg=svg._relg,pos=svg._pos;
+  if(!relg)return; relg.innerHTML='';
+  document.querySelectorAll('.gnode').forEach(n=>n.classList.remove('sel','dim'));
+  const c=conceptById(id); if(!c)return;
+  const relSet=new Set([id,...(c.rel||[])]);
+  document.querySelectorAll('#mapsvg .gnode[id^="n-"]').forEach(n=>{
+    const nid=n.id.slice(2);
+    if(nid===id)n.classList.add('sel');
+    else if(!relSet.has(nid))n.classList.add('dim');
+  });
+  (c.rel||[]).forEach(r=>{
+    if(!pos[r]||!pos[id])return;
+    const [x1,y1]=pos[id],[x2,y2]=pos[r];
+    const NS='http://www.w3.org/2000/svg';
+    const p=document.createElementNS(NS,'path');
+    const mx=(x1+x2)/2,my=(y1+y2)/2-40;
+    p.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+    p.setAttribute('fill','none');p.setAttribute('stroke',GC(c.g));
+    p.setAttribute('stroke-width',1.6);p.setAttribute('stroke-dasharray','5 4');p.setAttribute('opacity',.85);
+    relg.appendChild(p);
+  });
+}
+function selectConcept(id){
+  selConcept=id; const c=conceptById(id); if(!c)return;
+  if(mapMode==='graph')highlight(id);
+  const g=DATA.groups.find(g=>g.id===c.g);
+  const d=document.getElementById('mapDetail');
+  d.innerHTML=`<div class="grp"><span class="dot" style="background:${GC(c.g)}"></span>${g.name}</div>
+    <h3>${c.name}</h3><div class="en">${c.en||''} · ${c.ch}</div>
+    <div class="blurb">${c.blurb}</div>
+    ${c.rel&&c.rel.length?`<div class="rel"><div class="lb">关联概念</div>${c.rel.map(r=>{const rc=conceptById(r);return rc?`<button class="rel-pill" onclick="selectConcept('${r}')">${rc.name}</button>`:''}).join('')}</div>`:''}
+    <div style="margin-top:14px"><a class="jump" href="#/reader/${c.sec}">在精读中查看本章 →</a></div>`;
+}
+function selectGroup(gid){
+  const g=DATA.groups.find(x=>x.id===gid);
+  const members=DATA.concepts.filter(c=>c.g===gid);
+  document.querySelectorAll('.gnode').forEach(n=>n.classList.remove('sel','dim'));
+  document.querySelectorAll('#mapsvg .gnode[id^="n-"]').forEach(n=>{
+    if(!members.some(m=>'n-'+m.id===n.id))n.classList.add('dim');
+  });
+  const d=document.getElementById('mapDetail');
+  d.innerHTML=`<div class="grp"><span class="dot" style="background:${GC(gid)}"></span>概念群</div>
+    <h3>${g.name}</h3><div class="en">${g.desc}</div>
+    <div class="rel"><div class="lb">包含概念(${members.length})</div>${members.map(m=>`<button class="rel-pill" onclick="selectConcept('${m.id}')">${m.name}</button>`).join('')}</div>`;
+}
+(function(){
+  const legend=document.getElementById('mapLegend');
+  DATA.groups.forEach((g,i)=>{legend.insertAdjacentHTML('beforeend',`<span><span class="dot" style="background:var(--g${i+1})"></span>${g.name}</span>`)});
+  const gBtn=document.getElementById('mapModeGraph'),tBtn=document.getElementById('mapModeTable');
+  gBtn.onclick=()=>{mapMode='graph';gBtn.classList.add('on');tBtn.classList.remove('on');
+    document.getElementById('mapStage').innerHTML='<svg id="mapsvg"></svg>';drawMap(selConcept);};
+  tBtn.onclick=()=>{mapMode='table';tBtn.classList.add('on');gBtn.classList.remove('on');renderMapTable();};
+  new ResizeObserver(()=>{if(mapMode==='graph')drawMap(selConcept)}).observe(document.getElementById('mapStage'));
+})();
+function renderMapTable(){
+  const stage=document.getElementById('mapStage');
+  stage.innerHTML=`<div style="padding:6px 4px"><table class="cmap"><thead><tr><th>概念</th><th>体系</th><th>要点</th></tr></thead><tbody>
+  ${DATA.concepts.map(c=>{const g=DATA.groups.find(g=>g.id===c.g);
+    return `<tr style="cursor:pointer" onclick="selectConcept('${c.id}')"><td style="white-space:nowrap"><b>${c.name}</b><br><span style="font-size:11px;color:var(--muted)">${c.en||''}</span></td>
+    <td style="white-space:nowrap"><span class="dot" style="background:${GC(c.g)}"></span> ${g.name}</td><td>${c.blurb}</td></tr>`}).join('')}
+  </tbody></table></div>`;
+}
+
+/* ---------- 精读 ---------- */
+let fontSize=15;
+(function(){
+  const toc=document.getElementById('tocList');
+  DATA.toc.forEach(t=>{
+    const a=document.createElement('a');a.href='#/reader/'+t.id;a.textContent=t.title;a.dataset.sec=t.id;
+    toc.appendChild(a);
+  });
+  document.getElementById('fontPlus').onclick=()=>{fontSize=Math.min(19,fontSize+1);document.getElementById('rbody').style.fontSize=fontSize+'px'};
+  document.getElementById('fontMinus').onclick=()=>{fontSize=Math.max(13,fontSize-1);document.getElementById('rbody').style.fontSize=fontSize+'px'};
+  const rq=document.getElementById('rq');
+  rq.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(rq.value.trim())});
+  rq.addEventListener('input',()=>{if(!rq.value)doSearch('')});
+})();
+function clearMarks(){
+  document.querySelectorAll('#rbody mark').forEach(m=>{
+    const p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();
+  });
+}
+function doSearch(q){
+  clearMarks();const info=document.getElementById('hitInfo');
+  if(!q){info.style.display='none';return;}
+  // 宽容匹配:字符间允许任意空白(中英混排的"影子Gamma"可命中"影子 Gamma")
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const re=new RegExp(Array.from(q.replace(/\s+/g,'')).map(esc).join('\\s*'),'g');
+  let hits=0;
+  const walker=document.createTreeWalker(document.getElementById('rbody'),NodeFilter.SHOW_TEXT,{
+    acceptNode:n=>{re.lastIndex=0;return !['SCRIPT','STYLE'].includes(n.parentNode.tagName)&&re.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
+  const list=[];while(walker.nextNode())list.push(walker.currentNode);
+  list.forEach(node=>{
+    re.lastIndex=0;
+    const text=node.nodeValue;const frag=document.createDocumentFragment();
+    let last=0,m;
+    while((m=re.exec(text))!==null){
+      if(m[0].length===0){re.lastIndex++;continue;}
+      frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+      const mk=document.createElement('mark');mk.textContent=m[0];frag.appendChild(mk);
+      last=m.index+m[0].length;hits++;
+    }
+    frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag,node);
+  });
+  info.style.display='block';
+  info.textContent=hits?`共 ${hits} 处命中,已高亮`: '未找到匹配';
+  const first=document.querySelector('#rbody mark');
+  if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function updateToc(){
+  const links=[...document.querySelectorAll('#tocList a')];
+  const secs=links.map(a=>document.getElementById(a.dataset.sec)).filter(Boolean);
+  let cur=secs[0];
+  secs.forEach(s=>{if(s.getBoundingClientRect().top<140)cur=s;});
+  links.forEach(a=>a.classList.toggle('on',cur&&a.dataset.sec===cur.id));
+}
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const p=h.scrollTop/(h.scrollHeight-h.clientHeight);
+  document.getElementById('progress').style.width=(p*100)+'%';
+  if(document.getElementById('v-reader').classList.contains('on'))updateToc();
+},{passive:true});
+
+/* ---------- 规则 ---------- */
+const LAYERS=[['all','全部','var(--ink)'],['定价','定价层','var(--g1)'],['模型','模型层','var(--g2)'],['度量','度量层','var(--g3)'],['执行','执行层','var(--g4)'],['组织','组织层','var(--g5)']];
+let ruleLayer='all';
+(function(){
+  const chips=document.getElementById('ruleLayerChips');
+  LAYERS.forEach(([id,label,color])=>{
+    const b=document.createElement('button');b.className='pill-btn'+(id==='all'?' on':'');
+    b.innerHTML=id==='all'?label:`<span class="dot" style="background:${color};margin-right:5px"></span>${label}`;
+    b.onclick=()=>{ruleLayer=id;chips.querySelectorAll('.pill-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderRules();};
+    chips.appendChild(b);
+  });
+  const sel=document.getElementById('ruleCh');
+  [...new Set(DATA.rules.map(r=>r.ch))].forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});
+  sel.onchange=renderRules;
+  document.getElementById('ruleQ').addEventListener('input',renderRules);
+  renderRules();
+})();
+function layerColor(l){const f=LAYERS.find(x=>x[0]===l);return f?f[2]:'var(--muted)'}
+function renderRules(){
+  const ch=document.getElementById('ruleCh').value, q=document.getElementById('ruleQ').value.trim();
+  const list=DATA.rules.filter(r=>(ruleLayer==='all'||r.layer===ruleLayer)&&(!ch||r.ch===ch)&&(!q||r.text.includes(q)));
+  document.getElementById('ruleCount').textContent=`共 ${list.length} 条(全书辑录 ${DATA.rules.length} 条)`;
+  document.getElementById('ruleGrid').innerHTML=list.map(r=>
+    `<div class="rule"><div class="meta"><span class="layer" style="background:${layerColor(r.layer)}">${r.layer}层</span><span class="src">${r.ch}</span></div><p>${r.text}</p></div>`).join('')||'<p class="hint">没有匹配的规则。</p>';
+}
+
+/* ---------- 术语 ---------- */
+(function(){
+  const sel=document.getElementById('glCh');
+  [...new Set(DATA.glossary.map(g=>g.ch))].forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});
+  sel.onchange=renderGl;
+  document.getElementById('glQ').addEventListener('input',renderGl);
+  renderGl();
+})();
+function renderGl(){
+  const q=document.getElementById('glQ').value.trim().toLowerCase(), ch=document.getElementById('glCh').value;
+  const list=DATA.glossary.filter(g=>(!ch||g.ch===ch)&&(!q||g.cn.toLowerCase().includes(q)||(g.en||'').toLowerCase().includes(q)));
+  document.getElementById('glCount').textContent=`共 ${list.length} 条(全表 ${DATA.glossary.length} 条)`;
+  document.getElementById('glBody').innerHTML=list.map(g=>`<tr><td>${g.cn}</td><td>${g.en||'—'}</td><td>${g.ch}</td></tr>`).join('');
+}
+
+/* ---------- 自测 ---------- */
+let deck=[],qIdx=0,qDone=0,qTag='全部';
+(function(){
+  const tags=['全部',...new Set(DATA.quiz.map(q=>q.tag))];
+  const wrap=document.getElementById('quizTags');
+  tags.forEach(t=>{
+    const b=document.createElement('button');b.className='pill-btn'+(t==='全部'?' on':'');b.textContent=t;
+    b.onclick=()=>{qTag=t;wrap.querySelectorAll('.pill-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');resetDeck();};
+    wrap.appendChild(b);
+  });
+  document.getElementById('qShuffle').onclick=resetDeck;
+  resetDeck();
+})();
+function resetDeck(){
+  deck=DATA.quiz.filter(q=>qTag==='全部'||q.tag===qTag).slice();
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  qDone=0;renderQuiz();
+}
+function renderQuiz(){
+  const stage=document.getElementById('qStage');
+  const total=qDone+deck.length;
+  document.getElementById('qBarFill').style.width=(total?qDone/total*100:0)+'%';
+  document.getElementById('qPos').textContent=`已掌握 ${qDone} / ${total}`;
+  if(!deck.length){stage.innerHTML=`<div class="qdone">🎉 本组卡片全部掌握。点击"洗牌重来"再练一轮。</div>`;return;}
+  const c=deck[0];
+  stage.innerHTML=`<div class="qcard" id="qc"><div class="qinner">
+    <div class="qface"><div class="tag">${c.tag}</div><div class="q">${c.q}</div><div class="flip-hint">点击卡片查看书中答案</div></div>
+    <div class="qface back"><div class="tag">书中答案</div><div class="a">${c.a}</div></div>
+  </div></div>
+  <div class="qbtns"><button class="qbtn" id="qAgain">再来一次 ↩</button><button class="qbtn pri" id="qGot">记住了 ✓</button></div>`;
+  const card=document.getElementById('qc');
+  card.onclick=()=>card.classList.toggle('flip');
+  document.getElementById('qGot').onclick=e=>{e.stopPropagation();deck.shift();qDone++;renderQuiz();};
+  document.getElementById('qAgain').onclick=e=>{e.stopPropagation();deck.push(deck.shift());renderQuiz();};
+}
+
+/* ---------- 启动 ---------- */
+drawMap();
+route();
+</script>
+</body>
+</html>
