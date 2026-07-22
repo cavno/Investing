@@ -235,7 +235,7 @@ body.in-tool .toolonly{display:inline-block}
   <div class="brand">
     <div class="eyebrow">CAVNO · INVESTING</div>
     <h1>投资研究<br>综合工作台</h1>
-    <div class="tagline">十一座仪器 · 三条谱系 · 零构建</div>
+    <div class="tagline">十三座仪器 · 三条谱系 · 零构建</div>
   </div>
   <nav id="racknav"></nav>
   <div class="rackfoot">
@@ -264,7 +264,7 @@ body.in-tool .toolonly{display:inline-block}
         <div class="eyebrow">CAVNO · INVESTING RESEARCH BENCH</div>
         <h2>投资研究 · 综合工作台</h2>
         <div class="rule"></div>
-        <p>十一座工作台聚合于一处：<b>Gamma 敞口</b>读做市商对冲的地形与动力学，<b>期权体系</b>从持仓地形、策略图谱到希腊字母的统一投影，<b>宏观与案例</b>落在信用扩张全景与监管案例拆解。本页仅作聚合与导航，<b>各台内容一字未改</b>；根页 Gamma Profile 的原地址保持不变。</p>
+        <p>十三座工作台聚合于一处：<b>Gamma 敞口</b>读做市商对冲的地形与动力学，<b>期权体系</b>从持仓地形、策略图谱到希腊字母的统一投影，<b>宏观与案例</b>落在信用扩张全景与监管案例拆解。本页仅作聚合与导航，<b>各台内容一字未改</b>；根页 Gamma Profile 的原地址保持不变。</p>
       </div>
       <div id="groups"></div>
       <section class="group dl" style="--ga:#7C8A4D;--gd:#5E6B39;--gw:#ECEEDF">
@@ -323,13 +323,17 @@ const TOOLS = [
  {slug:"credit-expansion", src:"./CreditExpansion/index.html", fn:"明斯基脆弱度地形", name:"信用扩张场景全景图",
   sub:"家庭 · 民间金融 · 公司 · 银行 · 金融市场 · 国家六个领域，五十二个典型场景。每个场景在抵押品强度 / 杠杆 / 反身性三轴上打分，合成脆弱度坐标，定位它在对冲 → 投机 → 庞氏谱系上的位置。案例集可切换：当代 ↔《金瓶梅》↔《大明王朝 1566》↔ 恒大。"},
  {slug:"jane-street", src:"./jane-street-viz/index.html", fn:"SEBI 调查可视化", name:"Jane Street 策略拆解",
-  sub:"Jane Street 操纵 BANKNIFTY / NIFTY 指数：策略拆解。基于 SEBI 临时禁令 WTM/AN/MRD/MRD-SEC-3/31516/2025-26（2025-07-03 印度证券交易委员会发布）。"}
+  sub:"Jane Street 操纵 BANKNIFTY / NIFTY 指数：策略拆解。基于 SEBI 临时禁令 WTM/AN/MRD/MRD-SEC-3/31516/2025-26（2025-07-03 印度证券交易委员会发布）。"},
+ {slug:"vol-pricing", src:"./期权波动率与定价/index.html", fn:"NATENBERG 第2版", name:"期权波动率与定价 · 核心概念与内在逻辑",
+  sub:"以 Natenberg《期权波动率与定价》第2版为底本的十四命题链逻辑重构：从无套利与期望收益、波动率这个唯一的未知数，到希腊字母、动态对冲、价差与合成套利、BSM 与二项式模型，再到波动率倾斜与「波动率成为资产」。"},
+ {slug:"dynamic-hedging", src:"./动态对冲/index.html", fn:"TALEB 互动导读", name:"动态对冲 · 核心概念与内在逻辑",
+  sub:"依 Taleb《动态对冲：管理普通期权与奇异期权》中译本文字稿整理的互动版：把对冲与风险管理从科学的神坛上降级成一门手艺——一条九环逻辑主线、四十余个互相勾连的概念、二十五条风险管理规则。中心命题：期权复制不是无风险头寸，离散对冲下损益是随机变量。"},
 ];
 const GROUPS = [
  {title:"Gamma 敞口", ga:"#3F7E6B", gd:"#2C5A4C", gw:"#E4EFEA",
   note:'做市商被绑在哪里：静态 Profile → 动态视图 → <em>14 种博弈格局</em> → 挤压动力学', idx:[0,1,2,3]},
  {title:"期权体系", ga:"#A9853C", gd:"#856727", gw:"#F0E6C9",
-  note:'持仓地形 · 65 式策略 · 张力系统 · 希腊字母统一 · 单腿损益解剖', idx:[4,5,6,7,8]},
+  note:'持仓地形 · 65 式策略 · 张力系统 · 希腊字母统一 · 单腿损益解剖', idx:[4,5,6,7,8,11,12]},
  {title:"宏观与案例", ga:"#BC4B33", gd:"#9A3A26", gw:"#F3DED5",
   note:'信用扩张的明斯基地形 × Jane Street 的 SEBI 案例拆解', idx:[9,10]}
 ];
