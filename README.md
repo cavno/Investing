@@ -14,6 +14,8 @@
 | 期权张力系统 · Options Tension Dynamics | https://cavno.github.io/Investing/options_tension/ |
 | 希腊字母统一图谱 · Greeks Unified Atlas | https://cavno.github.io/Investing/option_greek/ |
 | 买入看涨 · 损益解剖 Long Call Anatomy | https://cavno.github.io/Investing/longcall/ |
+| 期权波动率与定价 · 核心概念与内在逻辑 | https://cavno.github.io/Investing/%E6%9C%9F%E6%9D%83%E6%B3%A2%E5%8A%A8%E7%8E%87%E4%B8%8E%E5%AE%9A%E4%BB%B7/ |
+| 动态对冲 · 核心概念与内在逻辑 | https://cavno.github.io/Investing/%E5%8A%A8%E6%80%81%E5%AF%B9%E5%86%B2/ |
 | 信用扩张场景全景图 · 明斯基脆弱度地形 | https://cavno.github.io/Investing/CreditExpansion/ |
 | Jane Street 操纵指数策略拆解 · SEBI 调查可视化 | https://cavno.github.io/Investing/jane-street-viz/ |
 
