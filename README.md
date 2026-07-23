@@ -12,6 +12,7 @@
 | 期权最大痛点 · 持仓地形 Max Pain | https://cavno.github.io/Investing/MaxPain/ |
 | 期权策略图谱 · Options Strategy Atlas | https://cavno.github.io/Investing/options-atlas/ |
 | 期权张力系统 · Options Tension Dynamics | https://cavno.github.io/Investing/options_tension/ |
+| 价值投资 · 从格雷厄姆到巴菲特的头号投资法则（第二版） | https://cavno.github.io/Investing/value_investing/ |
 | 希腊字母统一图谱 · Greeks Unified Atlas | https://cavno.github.io/Investing/option_greek/ |
 | 买入看涨 · 损益解剖 Long Call Anatomy | https://cavno.github.io/Investing/longcall/ |
 | 期权波动率与定价 · 核心概念与内在逻辑 | https://cavno.github.io/Investing/%E6%9C%9F%E6%9D%83%E6%B3%A2%E5%8A%A8%E7%8E%87%E4%B8%8E%E5%AE%9A%E4%BB%B7/ |
