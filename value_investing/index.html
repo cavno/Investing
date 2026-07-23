@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>价值投资：从格雷厄姆到巴菲特的头号投资法则（第二版）· 核心概念与内在逻辑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --parchment:#F3EAD3;
+  --parchment-deep:#EBDFC0;
+  --card:#F8F1DE;
+  --ink:#2C2620;
+  --ink-soft:#5A4F3F;
+  --teal:#1E6E68;
+  --teal-deep:#14514C;
+  --teal-wash:#DCE8E2;
+  --terra:#B5541F;
+  --terra-deep:#8F3E12;
+  --terra-wash:#F0DCC9;
+  --line:#D6C6A2;
+  --line-soft:#E3D7B8;
+  --gold:#8A6D1F;
+  --mono:"SFMono-Regular","JetBrains Mono",Consolas,"Liberation Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{
+  background:var(--parchment);
+  color:var(--ink);
+  font-family:"Noto Serif SC","Songti SC","STSong",serif;
+  font-size:16px;line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---------- 布局骨架 ---------- */
+.layout{display:grid;grid-template-columns:236px 1fr;max-width:1320px;margin:0 auto}
+nav.spine{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--line);
+  padding:28px 18px 40px 22px;
+  background:linear-gradient(180deg,var(--parchment) 0%,var(--parchment-deep) 100%);
+  scrollbar-width:thin;
+}
+nav.spine .brand{font-weight:900;font-size:15px;letter-spacing:.08em;color:var(--teal-deep);border-bottom:2px solid var(--teal);padding-bottom:10px;margin-bottom:14px}
+nav.spine .brand small{display:block;font-weight:400;font-size:11px;color:var(--ink-soft);letter-spacing:.15em;margin-top:4px}
+nav.spine a{
+  display:block;text-decoration:none;color:var(--ink-soft);
+  font-size:12.5px;padding:5px 8px 5px 14px;margin:1px 0;
+  border-left:2px solid transparent;line-height:1.5;
+}
+nav.spine a b{color:var(--teal);font-family:var(--mono);font-size:10px;margin-right:6px;font-weight:600}
+nav.spine a:hover{color:var(--terra);border-left-color:var(--terra)}
+nav.spine a.on{color:var(--teal-deep);border-left-color:var(--teal);background:var(--teal-wash);font-weight:600}
+nav.spine .grp{font-size:10px;letter-spacing:.3em;color:var(--gold);margin:14px 0 4px 8px;font-weight:600}
+main{min-width:0;padding:0 clamp(20px,4.5vw,64px) 90px}
+.wrap{max-width:900px;margin:0 auto}
+
+/* ---------- 题头 ---------- */
+header.hero{padding:58px 0 40px;border-bottom:3px double var(--line)}
+.hero .eyebrow{font-size:12px;letter-spacing:.45em;color:var(--terra);font-weight:600;margin-bottom:16px}
+.hero h1{font-size:clamp(30px,4.4vw,46px);font-weight:900;line-height:1.3;letter-spacing:.02em}
+.hero h1 span.en{display:block;font-size:clamp(13px,1.5vw,16px);font-weight:400;color:var(--ink-soft);letter-spacing:.06em;margin-top:10px;font-style:italic}
+.hero .meta{margin-top:18px;font-size:13px;color:var(--ink-soft);line-height:2}
+.hero .thesis{
+  margin-top:26px;padding:20px 24px;background:var(--card);
+  border-left:4px solid var(--teal);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+  font-size:15.5px;
+}
+.hero .thesis b{color:var(--teal-deep)}
+
+/* ---------- 章节 ---------- */
+section{padding:52px 0 12px;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:8px}
+.sec-head .no{font-family:var(--mono);font-size:13px;color:var(--terra);font-weight:700;letter-spacing:.1em;white-space:nowrap}
+.sec-head h2{font-size:clamp(22px,2.8vw,30px);font-weight:900;letter-spacing:.03em}
+.sec-head h2 span.en{font-size:13px;font-weight:400;color:var(--ink-soft);font-style:italic;margin-left:12px;letter-spacing:.03em}
+.sec-lede{
+  font-size:15.5px;color:var(--ink);background:var(--teal-wash);
+  border:1px solid #C7DAD2;border-radius:3px;padding:14px 18px;margin:14px 0 22px;
+}
+.sec-lede::before{content:"结论";font-size:10.5px;letter-spacing:.3em;color:var(--teal-deep);font-weight:700;display:block;margin-bottom:4px}
+h3{font-size:18.5px;font-weight:700;color:var(--teal-deep);margin:34px 0 10px;padding-left:12px;border-left:3px solid var(--terra)}
+h4{font-size:15.5px;font-weight:700;color:var(--ink);margin:22px 0 8px}
+p{margin:10px 0;text-align:justify}
+p.note{font-size:13.5px;color:var(--ink-soft)}
+em.tag{font-style:normal;color:var(--terra-deep);font-weight:600}
+strong{color:var(--teal-deep)}
+.enx{font-size:.86em;color:var(--ink-soft);font-style:italic}
+
+/* ---------- 公式 ---------- */
+.formula{
+  font-family:var(--mono);font-size:14.5px;text-align:center;
+  background:var(--card);border:1px solid var(--line);border-radius:3px;
+  padding:14px 16px;margin:16px 0;color:var(--ink);
+  overflow-x:auto;white-space:nowrap;line-height:2;
+}
+.formula b{color:var(--terra);font-weight:700}
+.formula .fr{color:var(--teal-deep)}
+.formula small{display:block;font-family:"Noto Serif SC",serif;font-size:12px;color:var(--ink-soft);white-space:normal;line-height:1.7;margin-top:6px}
+
+/* ---------- 表格 ---------- */
+.tbl-wrap{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:3px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+caption{caption-side:top;text-align:left;font-size:12.5px;color:var(--ink-soft);padding:10px 14px 6px;font-weight:600;letter-spacing:.05em}
+th{background:var(--teal-deep);color:#F5EFDD;font-weight:600;padding:9px 12px;text-align:left;font-size:12.5px;letter-spacing:.05em;white-space:nowrap}
+td{padding:8px 12px;border-top:1px solid var(--line-soft);vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.35)}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td.pos{color:var(--teal-deep);font-weight:600}
+td.neg{color:var(--terra-deep);font-weight:600}
+td.hd{font-weight:700;color:var(--teal-deep)}
+tfoot td{border-top:2px solid var(--line);font-weight:700;background:var(--parchment-deep)}
+
+/* ---------- 卡片与清单 ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:16px 18px}
+.card h5{font-size:14.5px;font-weight:700;color:var(--terra-deep);margin-bottom:6px}
+.card h5 .cnum{font-family:var(--mono);color:var(--teal);font-size:11px;margin-right:8px}
+.card p{font-size:13.5px;margin:6px 0;color:var(--ink)}
+.card.tealed{border-top:3px solid var(--teal)}
+.card.terraed{border-top:3px solid var(--terra)}
+ol.steps{counter-reset:st;list-style:none;margin:14px 0}
+ol.steps li{counter-increment:st;position:relative;padding:8px 0 8px 44px;border-bottom:1px dashed var(--line-soft);font-size:14.5px}
+ol.steps li::before{
+  content:counter(st,decimal-leading-zero);position:absolute;left:0;top:9px;
+  font-family:var(--mono);font-size:12px;color:#F5EFDD;background:var(--teal);
+  width:28px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:2px;font-weight:700;
+}
+ul.plain{list-style:none;margin:10px 0}
+ul.plain li{padding:6px 0 6px 20px;position:relative;font-size:14.5px;border-bottom:1px dashed var(--line-soft)}
+ul.plain li::before{content:"▸";color:var(--terra);position:absolute;left:2px}
+
+/* ---------- 交互控件 ---------- */
+.lab{
+  background:var(--card);border:1px solid var(--line);border-radius:4px;
+  padding:20px 22px;margin:20px 0;position:relative;
+}
+.lab::before{
+  content:"交互推演 INTERACTIVE";position:absolute;top:-9px;left:16px;
+  background:var(--terra);color:#F8F1DE;font-size:10px;letter-spacing:.25em;
+  padding:2px 10px;border-radius:2px;font-weight:700;
+}
+.lab h4{margin-top:4px;color:var(--teal-deep)}
+.ctrl{display:grid;grid-template-columns:150px 1fr 90px;gap:10px;align-items:center;margin:10px 0;font-size:13.5px}
+.ctrl label{color:var(--ink-soft);font-weight:600}
+.ctrl output{font-family:var(--mono);font-size:13px;color:var(--terra-deep);font-weight:700;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--line);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal);border:2px solid var(--card);box-shadow:0 0 0 1px var(--teal-deep);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--teal);border:2px solid var(--card);cursor:pointer}
+input[type=number]{
+  font-family:var(--mono);font-size:13px;padding:6px 8px;width:100%;
+  border:1px solid var(--line);border-radius:2px;background:#FDFAF0;color:var(--ink);
+}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.readout .ro{background:#FDFAF0;border:1px solid var(--line-soft);border-radius:3px;padding:10px 12px;text-align:center}
+.readout .ro .k{font-size:11px;color:var(--ink-soft);letter-spacing:.08em;display:block;margin-bottom:2px}
+.readout .ro .v{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--teal-deep)}
+.readout .ro .v.bad{color:var(--terra-deep)}
+.readout .ro .sub{font-size:11px;color:var(--ink-soft)}
+button.act{
+  font-family:"Noto Serif SC",serif;font-size:13.5px;font-weight:700;
+  background:var(--teal);color:#F5EFDD;border:none;border-radius:3px;
+  padding:8px 20px;cursor:pointer;letter-spacing:.1em;margin:6px 6px 6px 0;
+}
+button.act:hover{background:var(--teal-deep)}
+button.act.ghost{background:transparent;color:var(--teal-deep);border:1px solid var(--teal)}
+button.act.ghost:hover{background:var(--teal-wash)}
+.verdict{font-size:14px;margin-top:12px;padding:10px 14px;border-radius:3px;font-weight:600}
+.verdict.good{background:var(--teal-wash);color:var(--teal-deep);border:1px solid #B8D2C8}
+.verdict.bad{background:var(--terra-wash);color:var(--terra-deep);border:1px solid #E0BC9C}
+.verdict.mid{background:#EFE7CE;color:var(--gold);border:1px solid var(--line)}
+
+/* ---------- SVG 图 ---------- */
+.fig{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px}
+.fig figcaption{font-size:12.5px;color:var(--ink-soft);margin-top:8px;text-align:center}
+svg text{font-family:"Noto Serif SC",serif}
+svg .mono{font-family:var(--mono)}
+
+/* ---------- 画像 ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:18px 0}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px 18px;border-top:3px solid var(--teal)}
+.pcard .pn{font-weight:900;font-size:16px}
+.pcard .pn .en{display:block;font-size:11.5px;font-weight:400;font-style:italic;color:var(--ink-soft)}
+.pcard .ptag{display:inline-block;font-size:11px;background:var(--terra-wash);color:var(--terra-deep);padding:2px 8px;border-radius:2px;margin:8px 0;font-weight:700;letter-spacing:.05em}
+.pcard p{font-size:13px;color:var(--ink);margin:4px 0}
+
+/* ---------- 页尾 ---------- */
+footer{border-top:3px double var(--line);padding:28px 0 10px;font-size:12.5px;color:var(--ink-soft);line-height:2}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr}
+  nav.spine{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:2px;padding:14px 16px}
+  nav.spine .brand{width:100%;border-bottom:none;margin-bottom:6px;padding-bottom:0}
+  nav.spine .grp{display:none}
+  nav.spine a{border:1px solid var(--line-soft);border-radius:2px;padding:3px 8px;font-size:11.5px}
+  nav.spine a.on{border-color:var(--teal)}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .ctrl{grid-template-columns:110px 1fr 70px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--terra);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="spine" id="nav">
+  <div class="brand">价值投资 · 逻辑全图<small>GRAHAM → BUFFETT & BEYOND · 2E</small></div>
+  <a href="#s0"><b>00</b>全书主线</a>
+  <div class="grp">原理 WHY</div>
+  <a href="#s1"><b>01</b>定义·前提·证据</a>
+  <a href="#s2"><b>02</b>搜索：站在交易的正确一侧</a>
+  <div class="grp">估值 VALUATION</div>
+  <a href="#s3"><b>03</b>估值原理：三来源对 DCF</a>
+  <a href="#s4"><b>04</b>资产价值：重置成本</a>
+  <a href="#s5"><b>05</b>盈利能力价值 EPV</a>
+  <div class="grp">增长 GROWTH</div>
+  <a href="#s6"><b>06</b>增长何时创造价值</a>
+  <a href="#s7"><b>07</b>好生意：护城河的解剖</a>
+  <a href="#s8"><b>08</b>特许经营股估值：回报法</a>
+  <div class="grp">实证 CASES</div>
+  <a href="#s9"><b>09</b>四个案例的完整算例</a>
+  <div class="grp">执行 PROCESS</div>
+  <a href="#s10"><b>10</b>研究策略</a>
+  <a href="#s11"><b>11</b>风险管理与组合构建</a>
+  <a href="#s12"><b>12</b>十一位投资者画像</a>
+  <a href="#s13"><b>13</b>总判定树与方法总表</a>
+</nav>
+<main>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">知识构件 · 全书逻辑重建</div>
+  <h1>价值投资：从格雷厄姆到巴菲特的头号投资法则
+    <span class="en">Value Investing: From Graham to Buffett and Beyond — Second Edition (Wiley, 2021)</span>
+  </h1>
+  <div class="meta">
+    布鲁斯·格林沃尔德 (Bruce C. Greenwald) · 贾德·卡恩 (Judd Kahn) · 艾琳·贝利西莫 (Erin Bellissimo) · 马克·库珀 (Mark A. Cooper) · 塔诺·桑托斯 (Tano Santos)<br>
+    哥伦比亚商学院 (Columbia Business School) 价值投资课程二十五年之总成 · 本页依据第二版原文逐章重建，未混入书外观点
+  </div>
+  <div class="thesis">
+    全书只论证一件事：<b>投资是零和博弈 (zero-sum game)</b>，因此每一笔买入都必须回答"为什么这次站在交易正确一侧 (right side of the trade) 的是你"。格雷厄姆–多德 (Graham &amp; Dodd) 传统的答案不是预测未来，而是一套<b>按可靠性递减排列信息</b>的纪律：先资产、再当期盈利、最后才是增长——且增长仅在护城河 (moat) 之内才值得付钱；而对增长型特许经营 (franchise)，内在价值本身不可测，必须换用<b>回报法 (return-based approach)</b>。这是第二版对第一版的根本扩展。
+  </div>
+</header>
+
+<!-- ================= 00 全书主线 ================= -->
+<section id="s0">
+  <div class="sec-head"><span class="no">00</span><h2>全书主线：一条论证链<span class="en">The Single Chain of Argument</span></h2></div>
+  <div class="sec-lede">全书十章不是并列的题目，而是一条从"市场性质"推到"操作规程"的连续论证。每一环都由上一环强制导出：接受零和约束，就必须有可辩护的搜索策略；接受"信息可靠性递减"，就必须把估值拆成三来源；接受"竞争消灭超额回报"，就必须以护城河为增长定价的前提；接受"增长股内在价值不可测"，就必须换用回报法。</div>
+  <figure class="fig">
+    <svg viewBox="0 0 860 560" role="img" aria-label="全书逻辑主线图" style="width:100%;height:auto">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#1E6E68"/>
+        </marker>
+      </defs>
+      <!-- 链条 -->
+      <g font-size="13.5">
+        <rect x="250" y="10" width="360" height="46" rx="3" fill="#14514C"/>
+        <text x="430" y="30" text-anchor="middle" fill="#F5EFDD" font-weight="700">市场三前提：市场先生 · 内在价值 · 安全边际</text>
+        <text x="430" y="47" text-anchor="middle" fill="#BFD8CF" font-size="10.5" font-style="italic">Mr. Market · Intrinsic Value · Margin of Safety</text>
+
+        <line x1="430" y1="56" x2="430" y2="76" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="250" y="78" width="360" height="46" rx="3" fill="#F8F1DE" stroke="#B5541F" stroke-width="1.5"/>
+        <text x="430" y="98" text-anchor="middle" fill="#8F3E12" font-weight="700">零和约束：你的超额回报必来自对手盘的亏损</text>
+        <text x="430" y="115" text-anchor="middle" fill="#5A4F3F" font-size="10.5" font-style="italic">Zero-sum constraint → why are YOU on the right side?</text>
+
+        <line x1="430" y1="124" x2="430" y2="144" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="130" y="146" width="600" height="50" rx="3" fill="#1E6E68"/>
+        <text x="430" y="166" text-anchor="middle" fill="#F5EFDD" font-weight="700">四步流程：搜索 → 估值 → 研究 → 风险管理</text>
+        <text x="430" y="184" text-anchor="middle" fill="#BFD8CF" font-size="10.5" font-style="italic">Search → Valuation → Research → Risk Management（每一步都须优于对手盘）</text>
+
+        <line x1="430" y1="196" x2="430" y2="216" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="130" y="218" width="600" height="64" rx="3" fill="#F8F1DE" stroke="#1E6E68" stroke-width="1.5"/>
+        <text x="430" y="240" text-anchor="middle" fill="#14514C" font-weight="700">估值三来源（按信息可靠性递减）</text>
+        <text x="430" y="260" text-anchor="middle" fill="#2C2620" font-size="12">① 资产价值 AV（重置成本）→ ② 盈利能力价值 EPV（当期可持续盈利）→ ③ 增长（单列，防止污染前两者）</text>
+        <text x="430" y="276" text-anchor="middle" fill="#5A4F3F" font-size="10.5" font-style="italic">拒绝 DCF 把好信息与坏信息混在同一个净现值里</text>
+
+        <line x1="430" y1="282" x2="430" y2="302" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="430" y="322" text-anchor="middle" fill="#8F3E12" font-weight="700" font-size="14">AV 与 EPV 的比较 ⇒ 三种战略情形</text>
+
+        <!-- 三分支 -->
+        <line x1="430" y1="330" x2="180" y2="356" stroke="#B5541F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <line x1="430" y1="330" x2="430" y2="356" stroke="#8A6D1F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <line x1="430" y1="330" x2="680" y2="356" stroke="#1E6E68" stroke-width="1.6" marker-end="url(#arr)"/>
+
+        <rect x="60" y="360" width="240" height="76" rx="3" fill="#F0DCC9" stroke="#B5541F"/>
+        <text x="180" y="381" text-anchor="middle" fill="#8F3E12" font-weight="700">Case A：AV &gt; EPV</text>
+        <text x="180" y="400" text-anchor="middle" font-size="11.5">管理层在毁灭价值 → 价值陷阱</text>
+        <text x="180" y="417" text-anchor="middle" font-size="11.5">除非有催化剂换掉管理层</text>
+        <text x="180" y="431" text-anchor="middle" font-size="10.5" fill="#5A4F3F" font-style="italic">growth destroys value</text>
+
+        <rect x="310" y="360" width="240" height="76" rx="3" fill="#EFE7CE" stroke="#8A6D1F"/>
+        <text x="430" y="381" text-anchor="middle" fill="#8A6D1F" font-weight="700">Case B：AV ≈ EPV</text>
+        <text x="430" y="400" text-anchor="middle" font-size="11.5">竞争性市场 + 称职管理层</text>
+        <text x="430" y="417" text-anchor="middle" font-size="11.5">两估值互相验证；增长无关紧要</text>
+        <text x="430" y="431" text-anchor="middle" font-size="10.5" fill="#5A4F3F" font-style="italic">growth is irrelevant</text>
+
+        <rect x="560" y="360" width="240" height="76" rx="3" fill="#DCE8E2" stroke="#1E6E68"/>
+        <text x="680" y="381" text-anchor="middle" fill="#14514C" font-weight="700">Case C：EPV &gt; AV</text>
+        <text x="680" y="400" text-anchor="middle" font-size="11.5">特许经营：进入壁垒守护超额盈利</text>
+        <text x="680" y="417" text-anchor="middle" font-size="11.5">只有这里，增长才创造价值</text>
+        <text x="680" y="431" text-anchor="middle" font-size="10.5" fill="#5A4F3F" font-style="italic">franchise = moat = barriers to entry</text>
+
+        <line x1="680" y1="436" x2="680" y2="458" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="470" y="460" width="380" height="88" rx="3" fill="#14514C"/>
+        <text x="660" y="484" text-anchor="middle" fill="#F5EFDD" font-weight="700">第二版核心创新：回报法</text>
+        <text x="660" y="504" text-anchor="middle" fill="#DCE8E2" font-size="11.5">总回报 = 现金回报 + 有机增长回报 + 主动再投资回报 − 衰减</text>
+        <text x="660" y="522" text-anchor="middle" fill="#DCE8E2" font-size="11.5" class="mono">r = D/M + g·(V/M)，且 V/M = R/R*</text>
+        <text x="660" y="540" text-anchor="middle" fill="#BFD8CF" font-size="10.5" font-style="italic">因为增长股的内在价值算不准，改比回报与资本成本</text>
+
+        <rect x="60" y="470" width="360" height="68" rx="3" fill="none" stroke="#D6C6A2" stroke-dasharray="4 3"/>
+        <text x="240" y="493" text-anchor="middle" fill="#5A4F3F" font-size="12" font-weight="600">Case A / B 沿用传统格雷厄姆–多德路径：</text>
+        <text x="240" y="512" text-anchor="middle" fill="#5A4F3F" font-size="11.5">AV 与 EPV 三角验证 (triangulation) + 安全边际买入</text>
+        <text x="240" y="529" text-anchor="middle" fill="#5A4F3F" font-size="11.5">案例：Hudson General（A）· Magna（B）</text>
+      </g>
+    </svg>
+    <figcaption>图 0：全书论证链。左路（Case A/B）对应第一版的传统方法，右路（Case C → 回报法）是第二版新增的完整体系。案例 WD-40 与 Intel 走右路。</figcaption>
+  </figure>
+  <p>这条链同时解释了全书结构：第 1–2 章建立"为什么"（前提、证据、行为根源），第 3–5 章建立传统估值（三来源、资产、EPV），第 6–8 章建立增长与特许经营体系（增长判据、护城河解剖、回报法），第 9–10 章回到执行（研究、风险），四个穿插案例分别演示资产法、EPV 法与回报法的完整算例，末尾以十一位实践者画像展示同一套原理的不同"配方"。</p>
+</section>
+
+<!-- ================= 01 定义·前提·证据 ================= -->
+<section id="s1">
+  <div class="sec-head"><span class="no">01</span><h2>价值投资是什么、不是什么、凭什么有效<span class="en">Definitions, Distinctions, Results, Risks, Principles</span></h2></div>
+  <div class="sec-lede">价值投资建立在三条市场前提之上，其"主配方"极简：估算内在价值，与市场先生的报价比较，价差足够大才买。它区别于所有其他流派之处不在"想买便宜货"（人人都想），而在于<strong>比较的是价格水平与价值水平，而非价格的变化</strong>。零和约束决定了它必须、也确实拿得出三类经验证据。</div>
+
+  <h3>三条前提与主配方</h3>
+  <ol class="steps">
+    <li><strong>价格剧烈且任性地波动。</strong>市场先生 <span class="enx">(Mr. Market)</span> 每天报价，情绪不可预测——这是机会的来源，不是风险的定义。</li>
+    <li><strong>许多资产存在相对稳定、可被勤勉测算的基本经济价值。</strong>内在价值 <span class="enx">(intrinsic value)</span> 与当日价格是两回事，二者时常背离。</li>
+    <li><strong>只在价格显著低于测算价值时买入，长期将产生超额回报。</strong>缺口即安全边际 <span class="enx">(margin of safety)</span>：理想约为价值的一半，不应少于三分之一——"用五角钱买一块钱"。</li>
+  </ol>
+  <p>由此得出主配方 <span class="enx">(master recipe)</span>；格雷厄姆–多德的各路传人只在五个环节上加各自的"调味"：<em class="tag">选择证券</em>、<em class="tag">估算价值</em>、<em class="tag">设定各证券所需安全边际</em>、<em class="tag">决定仓位与组合分散度</em>、<em class="tag">决定何时卖出</em>。</p>
+
+  <h3>与其他流派的坐标（书中图 1.1 重绘）</h3>
+  <div class="tbl-wrap"><table>
+    <caption>投资方法矩阵：价值投资 = 基本面 × 长期 × 比较"水平"而非"变化"</caption>
+    <thead><tr><th></th><th>长期 (Long Term)</th><th>短期 (Short Term)</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">基本面·水平 (Levels)</td><td><strong>价值投资</strong>：市场价格 vs 内在价值</td><td>—</td></tr>
+      <tr><td class="hd">基本面·变化 (Changes)</td><td>宏观基本面 <span class="enx">(macro-fundamental)</span>：自上而下预测</td><td>微观基本面预测：当前价格 + 预测盈利变化（多数卖方分析师）</td></tr>
+      <tr><td class="hd">非基本面</td><td>有效市场 <span class="enx">(EMH)</span>：资产配置 + 成本最小化（指数化）</td><td>技术分析 <span class="enx">(technical)</span>：动量、量价形态</td></tr>
+    </tbody>
+  </table></div>
+  <p>书中对微观基本面预测者的批评一针见血：同一套盈利预测分析对 10 倍、20 倍、50 倍市盈率的股票"一视同仁"——它不含可识别的安全边际，好消息公布后股价照样可以下跌。对 EMH，书承认其"逃不掉的那一半"是真的：<strong>按资产加权，全体投资者的平均回报必然等于该资产类别的市场回报</strong>；扣除交易成本后是负和。因此 80–90% 的主动基金经理长期跑输低费率指数（S&amp;P SPIVA 记分卡：截至 2018 年 6 月的 15 年期，跑赢基准者不足 10%）。这不是价值投资的反证，而是它的<strong>起点</strong>——任何主动策略都必须先回答零和之问。</p>
+
+  <h3>三类证据</h3>
+  <div class="grid3">
+    <div class="card tealed"><h5><span class="cnum">证据一</span>机械选股组合（回测）</h5>
+      <p>按便宜程度分档 <span class="enx">(deciles)</span>：Kenneth French 数据，1927–2018 年，做多最便宜 30%、做空最贵 30% 的零成本组合复合年回报 <strong>+3.35%</strong>。低市盈率组合同理。"魅力股" <span class="enx">(glamour)</span> 组合长期落后——高价已把过去的成功全部计入。</p></div>
+    <div class="card tealed"><h5><span class="cnum">证据二</span>价值型机构的真实净值</h5>
+      <p>不是回测而是真金白银：Tweedy Browne（1993 起）、Sequoia（1970 起）、Dodge &amp; Cox 等系统采用格雷厄姆–多德方法的机构长期跑赢 S&amp;P 500——"价值投资在实验室之外同样成立"。</p></div>
+    <div class="card tealed"><h5><span class="cnum">证据三</span>超级投资者的聚集</h5>
+      <p>长期大幅跑赢指数的著名投资者中，师承格雷厄姆–多德者<strong>严重超比例</strong>。巴菲特 1984 年《格雷厄姆–多德村的超级投资者们》<span class="enx">(The Superinvestors of Graham-and-Doddsville)</span> 即此论。</p></div>
+  </div>
+  <div class="tbl-wrap"><table>
+    <caption>关键数据点（均出自书内）</caption>
+    <thead><tr><th>比较</th><th class="num">价值组合</th><th class="num">对照</th><th>期间/口径</th></tr></thead>
+    <tbody>
+      <tr><td>E/P 最便宜五分位 vs S&amp;P 500 年化</td><td class="num pos">11.8%</td><td class="num">9.3%</td><td>截至 2018.6 的 15 年</td></tr>
+      <tr><td>同口径 30 年复合年回报</td><td class="num pos">12.9%</td><td class="num">9.2%</td><td>1989–2018</td></tr>
+      <tr><td>熊市回撤 2000.8–2002.9</td><td class="num pos">−19%</td><td class="num neg">−45%</td><td>价值五分位 vs S&amp;P</td></tr>
+      <tr><td>熊市回撤 2007–2009.2</td><td class="num">−51%</td><td class="num">−51%</td><td>两者相当</td></tr>
+      <tr><td>价值组合跑输市场的频率</td><td class="num">约 3–4 年 / 每 10 年</td><td class="num">—</td><td>但 10 年期以上几乎总是跑赢</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>"超额回报是否只是风险补偿"——第一章附录的回答</h3>
+  <p>学界的标准辩护是：价值组合回报高只因风险高。书的反驳分两层。其一，用学界自己的尺子量（年度波动率、β），价值组合<strong>并不比市场更高</strong>；其二，换用更贴近常识的风险尺度——坏消息时的跌幅、熊市回撤、最大亏损——价值组合反而<strong>更低</strong>。巴菲特的华盛顿邮报 <span class="enx">(The Washington Post)</span> 一问是此节点睛之笔：1973 年公司市值跌到 8000 万美元，而任何一个产业买家都愿出至少 4 亿；若市值再跌到 4000 万，现代金融理论说风险（波动率）升高了，巴菲特说风险降低了——因为安全边际扩大了。<strong>把价格波动当作风险，还是当作报价机会，是两种世界观的分水岭。</strong>用安全边际度量风险，前提是承认内在价值存在并且自信有能力估算它。</p>
+</section>
+
+<!-- ================= 02 搜索 ================= -->
+<section id="s2">
+  <div class="sec-head"><span class="no">02</span><h2>搜索策略：为什么便宜货会轮到你<span class="en">Searching for Value: Finding the Right Side of the Trade</span></h2></div>
+  <div class="sec-lede">搜索策略回答零和之问的前半句。答案只有两个来源：<strong>专业化</strong>（你比对手盘更懂这一小块领域）与<strong>价值异象</strong>（对手盘被三种根深蒂固的行为偏差和一组机构约束系统性地推向错误一侧）。丑陋、无聊、冷门、令人失望、因而便宜的股票长期跑赢——而且越极端越有效。</div>
+
+  <h3>专业化优先于"能力圈"</h3>
+  <p>能力圈 <span class="enx">(circle of competence)</span> 从外向内划界（排除不懂的），专业化 <span class="enx">(specialization)</span> 从内向外生长（吃透一个行业/地域再扩展到相邻领域）——对初学者，后者更高效。书给出的经验参数：掌握一个行业的基本工作知识需要<strong>至少 1000 小时</strong>的专注投入，约合一整年。得州湾岸陆上油田租约的本地专家与飞来买"美国石油资产"的欧洲投资人对赌，长期赢家不言自明。巴菲特自己在保险、银行、旧媒体、消费非耐用品上的成绩显著好于其他领域；投资界最普遍的专业化即按行业分工。持续深耕的两项红利：跟上行业竞争逻辑的迁移（零售业从买手才能 → 沃尔玛式本地物流密度 → 电商履约），以及积累可校准的产业人脉网络。</p>
+
+  <h3>价值异象的统计画像</h3>
+  <div class="tbl-wrap"><table>
+    <caption>三项奠基性研究（书中原引）</caption>
+    <thead><tr><th>研究</th><th>分组变量</th><th>核心结果</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">Fama &amp; French (1992)</td><td>市净率 <span class="enx">(market-to-book)</span> 十分位 × 规模</td><td>最便宜十分位月均超额 <strong>+0.99%</strong>；最小且最便宜 1.92%/月 vs 最大最贵 0.89%/月。加入规模仅再增 0.04%——<strong>溢价集中在最极端处</strong>：从第 3 便宜档到第 1 档的增益远大于从第 8 到第 6 档</td></tr>
+      <tr><td class="hd">Lakonishok, Shleifer &amp; Vishny (1994)</td><td>E/P、CF/P × 过去 5 年销售增速</td><td>极端价值组合年超魅力组合约 <strong>9%</strong>；"低销售增速的价值股" 21%/年 vs "高增速魅力股" 11%/年</td></tr>
+      <tr><td class="hd">De Bondt &amp; Thaler (1989)</td><td>过去 12/24/36 个月总回报</td><td>按 36 个月排序：<strong>最差组随后 30 个月超最好组约 18%</strong>——均值回归 <span class="enx">(reversion to the mean)</span>；但按 12 个月排序头一年动量仍在（1979–2018 动量多空 4.2%/年，月度换仓，且三年即反转）</td></tr>
+    </tbody>
+  </table></div>
+  <p>补充两条书中的冷水：其一，纯"质量"指标（高 ROE、高利润率、高增长）排序<strong>不能</strong>预测未来回报，往往相反——Clayman 的"寻找灾难" <span class="enx">(in search of disaster)</span> 比"追求卓越"更好用；《从优秀到卓越》<span class="enx">(Good to Great)</span> 选出的 11 家"卓越"公司，出版数年内 Circuit City 与房利美 <span class="enx">(Fannie Mae)</span> 破产，其余 9 家整体负回报。其二，最便宜十分位中<strong>常有三分之二的公司走向破产</strong>——是幸存者相对于极低起点的巨大回报把整篮子抬成最佳组合，这正是下一节"损失厌恶"起作用的地方。</p>
+
+  <h3>异象为何持续：三种行为根源 × 一组机构约束</h3>
+  <div class="grid3">
+    <div class="card terraed"><h5><span class="cnum">根源一</span>彩票偏好 <span class="enx">(lottery preference)</span></h5><p>人类始终愿为"一夜暴富的梦"付出过高价格——彩票抽走 30–70% 仍畅销数千年。魅力股就是股市的彩票：1990 年代末的科技股、其后的新兴市场，皆因"彩票吸引力"被系统性高估。站在它对面即可。</p></div>
+    <div class="card terraed"><h5><span class="cnum">根源二</span>损失厌恶 <span class="enx">(loss aversion)</span></h5><p>损失之痛压倒等量收益之乐（Kahneman &amp; Tversky, 1979 前景理论）。面对"三分之二会破产、但整体高利润"的组合，多数人本能退缩，并对已持有的变丑股票不加分析地反射性抛售——丑股因此长期被低估。</p></div>
+    <div class="card terraed"><h5><span class="cnum">根源三</span>过度自信 <span class="enx">(overconfidence)</span></h5><p>人类以"互相竞争的确定性"取代概率讨论（暗室荧光方块实验：受试者永远给出精确到英尺的距离与过小的误差带）。它放大魅力股的高估与丑股的低估，并制造时间维度的钟摆——牛市里期权隐含波动率低得离谱，恰是保险最便宜的时候。</p></div>
+  </div>
+  <ul class="plain">
+    <li><strong>政策约束：</strong>大量基金被章程/立法禁止持有"不体面"的股票，需求被永久性抽走，除非规则改变，折价可以长存。</li>
+    <li><strong>规模偏差：</strong>管理 100 亿美元、持 100 只股票、单一持股不超 10% 的基金，只能买市值 ≥10 亿美元的公司——小盘股永远"打折上架"，而小公司只需长大即可自动摘牌折价。</li>
+    <li><strong>分拆 (spin-offs)：</strong>大基金拿到分拆出的小公司股票时"确定的只有一件事：它太小，不值得研究"，于是无差别抛售——与前景无关的卖压造就系统性机会（Greenblatt 公之于众后已有所收敛）。</li>
+    <li><strong>橱窗粉饰 (window dressing) 与羊群：</strong>披露持仓前买入体面的赢家、抛掉难堪的输家；对经理人而言"和所有人一样"是职业上最安全的路径。1960 年代的"漂亮 50" <span class="enx">(Nifty 50)</span> 1965–1974 年间跌去 80% 以上；2015 年 S&amp;P 500 全部涨幅来自 FANG 四股——剧本换了演员，结构没变。</li>
+    <li><strong>客户端偏差：</strong>机构要向带着同样偏差的人类客户交代，于是被迫讲"苹果 10 元买入"的故事、回避满是伤员的持仓表。</li>
+  </ul>
+  <p><strong>实践形态：</strong>量化筛选（低估值 × 小市值 × 长期落后）对新手有用，但清单又长又稳定，老手多半早已眼熟；更实用的是"新低名单" <span class="enx">(new lows list)</span>、困境行业、破产与财务危机、诉讼与监管阴影、连续两三年跑输大盘的公司、被亏损部门拖累整体报表的复合企业、以及 RTC 式的制度性甩卖。搜索的收尾必须回到那个问题：<em class="tag">在一个满是聪明人的世界里，这个大折扣为什么偏偏留给你？</em>专业化的答案是"我更有资格识别价值"；宽基价值策略的答案是"我给自己接种了别人没有的行为疫苗"。</p>
+</section>
+
+<!-- ================= 03 估值原理 ================= -->
+<section id="s3">
+  <div class="sec-head"><span class="no">03</span><h2>估值原理：三来源框架对 DCF 的替代<span class="en">Valuation in Principle, Valuation in Practice</span></h2></div>
+  <div class="sec-lede">NPV/DCF 理论上正确、实践上失格，罪在三条：<strong>①无视资产负债表</strong>这份最可靠的当期信息；<strong>②让占大头却误差最大的终值污染整个估值</strong>——好信息与坏信息等权相加，坏信息毁掉全部；<strong>③依赖对遥远未来数值参数的精确猜测，却抛弃了更可靠的战略判断</strong>（"北美汽车业会继续存在"比"福特第 10 年的利润率"可知得多）。格雷厄姆–多德的替代：把价值拆成资产、盈利能力、增长三个<strong>独立测算、可靠性递减</strong>的来源，用前两者的比较（Case A/B/C）读出企业的战略处境。</div>
+
+  <h3>先看被淘汰者：倍数法与 DCF</h3>
+  <p>倍数估值 <span class="enx">(ratio/multiple valuation)</span> 只是把 DCF 的终值计算从第 10 年挪到今天，继承其全部毛病还失去其透明度。DCF 的致命伤在终值倍数 <span class="enx">(terminal multiple)</span> = 1/(R − g)：书中原例，资本成本 8%、永续增速 4% 时倍数为 25；两参数各错 1%，倍数在 16.7 与 50 之间摆动——<strong>3 倍的量程</strong>，而终值通常占 NPV 的大头。敏感性分析 <span class="enx">(sensitivity analysis)</span> 只是把不可靠摊开给你看，并不解决它。下面的滑杆即书中算例：</p>
+
+  <div class="lab" id="lab-dcf">
+    <h4>终值倍数的脆弱性 · 1/(R − g)</h4>
+    <div class="ctrl"><label>资本成本 R</label><input type="range" id="dcfR" min="5" max="14" step="0.5" value="8"><output id="dcfRv">8.0%</output></div>
+    <div class="ctrl"><label>永续增速 g</label><input type="range" id="dcfG" min="0" max="8" step="0.5" value="4"><output id="dcfGv">4.0%</output></div>
+    <div class="readout">
+      <div class="ro"><span class="k">中心倍数 1/(R−g)</span><span class="v" id="dcfM">25.0×</span><span class="sub">名义精确值</span></div>
+      <div class="ro"><span class="k">各错 1% 的下界</span><span class="v bad" id="dcfLo">16.7×</span><span class="sub">R+1%, g−1%</span></div>
+      <div class="ro"><span class="k">各错 1% 的上界</span><span class="v bad" id="dcfHi">50.0×</span><span class="sub">R−1%, g+1%</span></div>
+      <div class="ro"><span class="k">误差量程</span><span class="v" id="dcfBand">3.0×</span><span class="sub">上界 ÷ 下界</span></div>
+    </div>
+    <p class="note" id="dcfNote">复利在漫长年限上放大微小参数差——这不是模型缺陷，是"给遥远现金流估值"这件事本身的属性。第 08 节的回报法正是为绕开它而生。</p>
+  </div>
+
+  <h3>三来源：按可靠性递减排列信息</h3>
+  <div class="grid3">
+    <div class="card tealed"><h5><span class="cnum">来源①</span>资产价值 <span class="enx">(Asset Value)</span></h5><p>最可靠。资产负债表上的项目<strong>今天就存在、今天就能核验</strong>。行业可存续 → 按重置成本 <span class="enx">(reproduction cost)</span>；行业濒死 → 按清算价值 <span class="enx">(liquidation value)</span>。无需预测未来。</p></div>
+    <div class="card tealed"><h5><span class="cnum">来源②</span>盈利能力价值 <span class="enx">(EPV)</span></h5><p>次可靠。假设当期可持续盈利<strong>不增不减地永续</strong>，按资本成本资本化。含一个温和预测（当期水平可持续），但不含增速与远期猜测。</p></div>
+    <div class="card terraed"><h5><span class="cnum">来源③</span>增长价值 <span class="enx">(Growth)</span></h5><p>最不可靠，故单列隔离，防止污染前两者。且多数情形下增长<strong>根本不创造价值</strong>——是否值得计价由战略分析预先裁定（见 06 节）。</p></div>
+  </div>
+  <div class="formula">EPV <b>=</b> 盈利能力 EP <b>×</b> <span class="fr">1 / R</span><small>R 为资本成本 (cost of capital)。在"不增长"假设下，若折旧恰等于维护性资本开支，净利润 = 可分配现金流，EPV 即等价于该现金流的 NPV——但只用当期可得信息。</small></div>
+
+  <h3>Case A / B / C：两个独立估值的比较即战略诊断</h3>
+  <div class="lab" id="lab-abc">
+    <h4>点击切换三种情形（书中图 3.2 的交互版）</h4>
+    <div>
+      <button class="act" data-case="A" id="btnA">Case A：AV &gt; EPV</button>
+      <button class="act ghost" data-case="B" id="btnB">Case B：AV ≈ EPV</button>
+      <button class="act ghost" data-case="C" id="btnC">Case C：EPV &gt; AV</button>
+    </div>
+    <figure class="fig" style="border:none;background:transparent;padding:6px 0">
+      <svg viewBox="0 0 560 210" style="width:100%;max-width:560px;display:block;margin:0 auto">
+        <line x1="40" y1="180" x2="540" y2="180" stroke="#5A4F3F" stroke-width="1.5"/>
+        <rect id="barAV" x="140" y="40" width="90" height="140" fill="#1E6E68" opacity="0.9"/>
+        <rect id="barEPV" x="330" y="90" width="90" height="90" fill="#B5541F" opacity="0.9"/>
+        <text x="185" y="200" text-anchor="middle" font-size="13" font-weight="700" fill="#14514C">资产价值 AV</text>
+        <text x="375" y="200" text-anchor="middle" font-size="13" font-weight="700" fill="#8F3E12">盈利能力价值 EPV</text>
+        <text id="lblAV" x="185" y="32" text-anchor="middle" font-size="12" class="mono" fill="#14514C">100</text>
+        <text id="lblEPV" x="375" y="82" text-anchor="middle" font-size="12" class="mono" fill="#8F3E12">50</text>
+        <line id="gapLine" x1="240" y1="40" x2="320" y2="90" stroke="#8A6D1F" stroke-width="1.2" stroke-dasharray="4 3"/>
+      </svg>
+    </figure>
+    <div id="abcText"></div>
+  </div>
+  <p>书中的数值推演值得完整保留。<em class="tag">Case A</em>（如资产 100 亿、盈利 5 亿、资本成本 10% → EPV 仅 50 亿）：资产回报 5% 不足以自愿吸引资本，若行业确属可存续，则要么盈利被暂时压低（重估 EP），要么<strong>资产落在劣等管理层手里</strong>——这就是经典的价值陷阱 <span class="enx">(value trap)</span>：资产在，但除非管理层被更换，投资者永远见不到它；坏管理层继续把留存收益投在低于资本成本的项目上，价值还会继续蒸发到 50 亿以下。<em class="tag">Case B</em>：无进入壁垒的市场里，套利力量从两侧夹逼——EPV 高于 AV 会诱发进入（20 亿盈利 / 10% = 200 亿 EPV，重置只需 100 亿 → 进入者蜂拥，直到缺口消失），EPV 低于 AV 会抑制再投资、诱发退出（虽然收缩慢于扩张）。所以竞争市场 + 称职管理层的均衡就是 AV ≈ EPV（书的操作口径：相差 25% 以内），此时两个来自<strong>完全不同数据源</strong>的估值可三角验证 <span class="enx">(triangulation)</span>：周期股以更稳的资产值为锚（矿业、重工），无形资产为主的稳定服务业以 EPV 为锚，另一个作为交叉检验。<em class="tag">Case C</em>：可口可乐 <span class="enx">(Coca-Cola)</span> 2015–16 年可持续盈利 40–50 亿、8% 资本成本 → EPV 500–600 亿，远超任何合理的资产重置成本（账面 300 亿，加上"复刻秘方"也够不着）——这份超额若无壁垒必被竞争吞噬，故其存在本身就是护城河的证明。EPV 超出 AV 的部分即<strong>特许经营价值</strong> <span class="enx">(franchise value)</span>。巴菲特箴言在此：坏名声的行业遇上好名声的管理层，留下来的几乎总是行业的名声。</p>
+  <p class="note">增长的预告（详见 06 节）：Case A 中增长是敌人（放大毁值）；Case B 中增长与估值无关（赚回的恰好付给新资本）；只有 Case C 中增长创造价值——而 NPV 模型连竞争市场里的增长都会"算出"增值，恰是其劣势的又一证据。</p>
+</section>
+
+<!-- ================= 04 资产价值 ================= -->
+<section id="s4">
+  <div class="sec-head"><span class="no">04</span><h2>资产价值：从账面价值到重置成本<span class="en">Valuing the Assets: From Book Value to Replacement Costs</span></h2></div>
+  <div class="sec-lede">先做战略裁定：行业不可存续 → 清算价值；可存续 → 重置成本 = "潜在竞争者要以本公司的规模进入此行，需要花多少钱"。逐行走完资产负债表，越往下可靠性越低：现金分毫不差，无形资产要靠行业专门知识从第一性原理重建。格雷厄姆的"净净营运资本" <span class="enx">(net-net)</span> 是这一方法最保守的祖型——今天机会近绝，但方法的骨架完整保留。</div>
+
+  <h3>清算价值：In the Red 公司算例（书表 4.2）</h3>
+  <div class="tbl-wrap"><table>
+    <caption>2018 年资产负债表 → 清算回收（单位：千美元）</caption>
+    <thead><tr><th>资产项</th><th class="num">账面值</th><th class="num">回收率</th><th class="num">清算值</th><th>依据</th></tr></thead>
+    <tbody>
+      <tr><td>现金 <span class="enx">(cash)</span></td><td class="num">150</td><td class="num">100%</td><td class="num">150</td><td>无折价</td></tr>
+      <tr><td>有价证券 <span class="enx">(marketable securities)</span></td><td class="num">25</td><td class="num">100%</td><td class="num">25</td><td>已按市价计量</td></tr>
+      <tr><td>应收账款 <span class="enx">(accounts receivable)</span></td><td class="num">1,667</td><td class="num">85%</td><td class="num">1,417</td><td>贸易债权有专业催收市场</td></tr>
+      <tr><td>存货 <span class="enx">(inventories)</span></td><td class="num">2,328</td><td class="num">50%</td><td class="num">1,164</td><td>越大宗越保值：贬的是过季时装，不是棉纱；高度专用则趋零</td></tr>
+      <tr><td>不动产厂房设备净额 <span class="enx">(PP&amp;E, net)</span></td><td class="num">7,500</td><td class="num">45%</td><td class="num">3,375</td><td>通用（写字楼）远高于专用（化工厂）；关键时请评估师</td></tr>
+      <tr><td>商誉 <span class="enx">(goodwill)</span></td><td class="num">2,250</td><td class="num">0%</td><td class="num">0</td><td>濒死行业的专用无形资产清算近零</td></tr>
+      <tr><td>递延税资产 <span class="enx">(deferred taxes)</span></td><td class="num">150</td><td class="num">—</td><td class="num">对冲</td><td>与递延税负债轧差</td></tr>
+    </tbody>
+    <tfoot><tr><td>合计</td><td class="num">14,070</td><td></td><td class="num">≈ 6,131</td><td>流动 2,756 + PP&amp;E 3,375</td></tr></tfoot>
+  </table></div>
+  <p>此例的投资含义：普通股与优先股一无所得，但应付款与应计费用仅 2,575，即便其全额优先受偿，仍有约 3,556 归 12,220 账面债务的持有人——<strong>对困境债 <span class="enx">(distressed debt)</span> 专家，折价够深就有利可图</strong>。介于速死与永续之间的是"雪茄烟蒂" <span class="enx">(cigar butt)</span>：还剩几口烟的公司宜做 3–5 年<strong>有序清算</strong> <span class="enx">(orderly liquidation)</span>——不再新投资、回收应收与存货、变卖通用资产，因期限短且现金流可辨，此处 NPV 反而适用；唯一戒律是管理层不得恋战续命。</p>
+
+  <h3>重置成本：逐行调整规则</h3>
+  <ol class="steps">
+    <li><strong>现金/有价证券：</strong>照收；证券按市价。</li>
+    <li><strong>应收账款：</strong>账面已扣坏账准备，而新进入者被赖账的概率更高——<strong>加回坏账准备</strong>（或用同业均值），重置成本略高于账面。</li>
+    <li><strong>存货：</strong>盯存货周转异动（COGS 天数从 100 天涨到 150 天即警报）；后进先出 <span class="enx">(LIFO)</span> 需加回 LIFO 储备。</li>
+    <li><strong>土地：</strong>不折旧且常升值——1985 年每英亩 2,000 美元买的 500 英亩，若邻地现价 10,000 美元，账面与现实的缺口自己会跳出来。</li>
+    <li><strong>厂房设备：</strong>三重修正——新设施运营成本更低（扣其节约的现值）、寿命更长（扣残值差的现值）、且<strong>最有效的重置路径可能根本不是新建</strong>：美国数十年未建新炼油厂，产能全靠"棕地"扩建 <span class="enx">(brownfield)</span>，每桶约 2,000 美元 vs 绿地 <span class="enx">(greenfield)</span> 6,000 美元——60,000 桶/日的重置成本是 1.2 亿而非 6 亿。快捷估算：设备/家具装置按"半程寿命 × 价格趋势修正"（8 年寿命 → 平均 4 年 → 若设备价格年降 4%，重置 ≈ 原值 × ½ × 85%）。</li>
+    <li><strong>商誉与账面"无形资产"：</strong><strong>一律清零，从第一性原理重建</strong>——账面商誉只是历史收购溢价的摊余残影，可能全是前任的错误，新进入者无需复制错误。</li>
+  </ol>
+  <h4>无形资产的四类重建法（第二版最看重的技艺）</h4>
+  <div class="grid2">
+    <div class="card"><h5><span class="cnum">①</span>产品组合 <span class="enx">(product portfolio)</span></h5><p>≈ 年研发支出 × 产品线所含研发年数（如 6 年 × 当期 R&amp;D）。周期性大项目（波音 787 开发费 100–200 亿美元）与制药管线（分治疗领域请专家估管线，存量药按有限期 NPV）需专门处理。参照系：Intel R&amp;D/收入约 19–21%，Facebook 18–19%，微软 13%，可口可乐未单列。</p></div>
+    <div class="card"><h5><span class="cnum">②</span>客户基础 / 营收簿 <span class="enx">(book of business)</span></h5><p>三条互验路径：<em class="tag">a.</em> 新品牌打造成本 ÷ 目标成熟销售额，再 <strong>× 2–3 倍成功率修正</strong>（仅 ⅓–½ 的新品牌成活；90 年代末成年女装品牌 ≈ 每元销售额 0.40–0.90 美元，均值约 0.65）；<em class="tag">b.</em> 外包获客——销售代理佣金（工业品 5–15% 首年销售额）；<em class="tag">c.</em> 私有市场交易价 <span class="enx">(private market value)</span>：同类品牌/业务整体买卖的每元销售额价格（同期女装约 0.60–0.70，与 a 吻合）。</p></div>
+    <div class="card"><h5><span class="cnum">③</span>熟练员工队伍 <span class="enx">(trained workforce)</span></h5><p>按招聘 + 培训的历史成本，或猎头/人力派遣机构的市场费率。</p></div>
+    <div class="card"><h5><span class="cnum">④</span>组织与基础职能 <span class="enx">(business infrastructure)</span></h5><p>HR、IT 等"不性感但必需"的运转体系 ≈ <strong>1–3 年的行政费用</strong>（视行业爬坡期而定）；若无法拆分，取总 SG&amp;A 的对应倍数作粗估。</p></div>
+  </div>
+  <p class="note">私有市场价交叉验证的两个陷阱：规模不同（每用户价 vs 每美元利润价可能讲不同的故事，选口径要靠行业知识）；交易价随景气摆动且掺入了盈利预期——在有壁垒的行业它其实是"含增长的 EPV"，在竞争行业须取跨周期均值。负债端：经营性负债与债务按账面（利率变动时微调），<strong>遗留负债</strong> <span class="enx">(legacy liabilities)</span>（欠缴养老金、退休医疗、环境与诉讼）须全额计入——净资产值的经济含义始终是"进入者与在位者平起平坐所需的净投资"。</p>
+  <div class="tbl-wrap"><table>
+    <caption>三种资产估值口径对照（书表 4.5）</caption>
+    <thead><tr><th></th><th>格雷厄姆净净值 (net-net)</th><th>账面价值 (book value)</th><th>重置成本 (reproduction cost)</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">当代机会</td><td>几乎绝迹</td><td>有限</td><td>最广</td></tr>
+      <tr><td class="hd">所需行业知识</td><td>无</td><td>无</td><td>大量</td></tr>
+      <tr><td class="hd">稳定/可靠性</td><td>高</td><td>低</td><td>中</td></tr>
+      <tr><td class="hd">商誉处理</td><td>0</td><td>照账面</td><td>清零重建</td></tr>
+      <tr><td class="hd">债务计量</td><td>账面（本就低杠杆）</td><td>账面</td><td>市场值</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 05 EPV ================= -->
+<section id="s5">
+  <div class="sec-head"><span class="no">05</span><h2>盈利能力价值：把"当下"资本化<span class="en">Earnings Power Value (EPV)</span></h2></div>
+  <div class="sec-lede">EPV 回答一个克制的问题：<strong>假如公司永远维持现状，它值多少钱？</strong>盈利能力 (earnings power) = 公司照原样运营时的平均可分配盈利；除以资本成本即得 EPV。它像倍数估值，但全部输入都是当期可核验信息，不掺任何增长猜测。全部技艺在两处：把会计利润修成经济利润的八项调整，与用定性区间法（而非 β）敲定资本成本。</div>
+
+  <h3>基础五步（书中原序）</h3>
+  <ol class="steps">
+    <li>取覆盖至少一个（最好两个）完整商业周期的<strong>平均营业利润率</strong>（7–15 年）。收入比利润率稳定得多，故以当期收入为基。利润率若有长期趋势：无经济解释 → 用算术平均；有明确结构性原因（技术冲击压利润率 / 经营杠杆抬利润率）→ 用近期值，其余留给"增长价值"处理。<strong>禁止趋势外推。</strong></li>
+    <li>平均利润率 × 当期（或可持续）收入 = 营业利润 EBIT 估计。</li>
+    <li>并入非并表子公司/合营损益（若账面值与其盈利能力明显背离，按盈利并入损益；否则留在资产负债表按债务法调整）。</li>
+    <li>× (1 − 平均税率)。税率取"当前税制下"的近年均值（税法刚大改则只用改后年份）；用<strong>应计税</strong>而非现金税——不增长假设下递延终须缴。</li>
+    <li>得到可持续<strong>税后净营业利润 NOPAT</strong>——再做非现金成本修正。</li>
+  </ol>
+  <h4>核心修正：真实折旧 = 维护性资本开支 <span class="enx">(maintenance CapEx)</span></h4>
+  <p>会计折旧摊的是历史成本，经济折旧问的是"年底把资产恢复到年初状态要花多少<strong>今天的钱</strong>"。两条估法：<em class="tag">法一</em>找公司或同业零增长年份，彼时总资本开支 ≈ 纯维护开支，与会计折旧之差即修正量；<em class="tag">法二</em>增长开支 = 收入增量 × 资本密度（固定资产/收入），总开支减去它即维护开支（例：每元销售需 0.30 元资本，收入增 8000 万 → 增长开支 2400 万）。通胀行业（铁路）会计折旧<strong>低估</strong>真实折旧，技术降价行业（IT 设备）则<strong>高估</strong>——Magna 案例中后者贡献了 +1.2 亿美元的盈利上修。</p>
+  <p><strong>EBITDA 之戒：</strong>用 EBITDA 当盈利能力等于假设有形与无形资本的重置成本皆为零——几乎永远错误。楼房终会老朽；产品组合、客户、员工队伍也在折耗，只是其"重置支出"往往已藏在营业费用里（此时摊销 <span class="enx">(amortization)</span> 加回反而正确，否则重复计费）。自由现金流 <span class="enx">(free cash flow)</span> 同样有两处失真：漏掉期权、递延税、退休负债等非现金真实成本；对成长公司把未来投资误记为当期成本。</p>
+
+  <h3>资本成本：定性区间法胜过 β</h3>
+  <p>把资本成本理解为"自愿吸引资金必须支付的工资"。定性法：以当期市场为界——低风险端 ≈ B 级公司债收益率 + 1%，高风险端 ≈ 风险投资 <span class="enx">(venture capital)</span> 要求回报（书中区间约 7%–14%）——按杠杆、盈利稳定性、特许强度把公司放进区间（低风险 8%、平均 10%、高风险 12–13% 一类的粗刻度足矣，误差 ±1% "对金融工作已够精确"）。对照 CAPM：β 估计误差本身就有 ±0.5，市场风险溢价文献值 3–7%，在无风险利率 1% 时算出的股权成本可从 2.5% 摆到 11.5%——"理论再优雅，量程宽到没法用"。</p>
+  <div class="tbl-wrap"><table>
+    <caption>加权平均资本成本 WACC 示例（书表 5.2）与 权益/企业口径对照（书表 5.3 要点）</caption>
+    <thead><tr><th>资金来源</th><th class="num">占比</th><th class="num">税后成本</th><th class="num">加权</th><th>权益法 vs 企业法</th></tr></thead>
+    <tbody>
+      <tr><td>债务</td><td class="num">20%</td><td class="num">3.0%</td><td class="num">0.6%</td><td rowspan="3">企业法：先算经营业务 EPV（不扣利息），再减净债务、遗留负债，加回超额现金与非经营资产得权益价值。首选企业法——账面净债务比预测未来利率可靠得多；运营所需现金约留 <strong>0.25–0.5% 的收入</strong>，其余视为超额</td></tr>
+      <tr><td>股权</td><td class="num">80%</td><td class="num">9.0%</td><td class="num">7.2%</td></tr>
+      <tr><td class="hd">WACC</td><td class="num"></td><td class="num"></td><td class="num"><strong>7.8% ≈ 8%</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="lab" id="lab-epv">
+    <h4>EPV 计算器（预填 Magna International 2009.3 口径，单位：百万美元）</h4>
+    <div class="grid2" style="margin-top:6px">
+      <div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>可持续收入</label><input type="number" id="epvRev" value="18000" step="100"></div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>平均营业利润率 %</label><input type="number" id="epvMgn" value="5.0" step="0.1"></div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>平均税率 %</label><input type="number" id="epvTax" value="11" step="1"></div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>折旧超提修正 (+)</label><input type="number" id="epvDep" value="120" step="10"></div>
+      </div>
+      <div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>资本成本 R %</label><input type="number" id="epvR" value="10" step="0.5"></div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>净现金(+)/净债务(−)</label><input type="number" id="epvCash" value="1742" step="10"></div>
+        <div class="ctrl" style="grid-template-columns:150px 1fr"><label>当前股权市值（对照）</label><input type="number" id="epvMkt" value="2240" step="10"></div>
+      </div>
+    </div>
+    <div class="readout">
+      <div class="ro"><span class="k">盈利能力 EP</span><span class="v" id="epvEP">—</span><span class="sub">收入×利润率×(1−税率)+修正</span></div>
+      <div class="ro"><span class="k">企业 EPV = EP/R</span><span class="v" id="epvEnt">—</span><span class="sub">经营业务价值</span></div>
+      <div class="ro"><span class="k">权益 EPV</span><span class="v" id="epvEq">—</span><span class="sub">+净现金 / −净债务</span></div>
+      <div class="ro"><span class="k">市价 / 权益 EPV</span><span class="v" id="epvRatio">—</span><span class="sub">&lt;⅔ 即达格雷厄姆边际</span></div>
+    </div>
+    <div class="verdict mid" id="epvVerdict">—</div>
+    <p class="note">书中 Magna 答案：EP = 8.0 亿（5% 利润率口径的可持续税后营业利润）+ 1.2 亿折旧修正 = <strong>9.2 亿</strong>；÷10% = 企业 EPV 92 亿；+净现金 17.4 亿 ≈ 权益 EPV <strong>109 亿</strong>；对照市值 22.4 亿 → 两折买入。默认参数即复现此结果（税率栏已按其低有效税率简化）。</p>
+  </div>
+</section>
+
+<!-- ================= 06 增长 ================= -->
+<section id="s6">
+  <div class="sec-head"><span class="no">06</span><h2>增长：何时创造价值，何时只是幻觉<span class="en">Growth</span></h2></div>
+  <div class="sec-lede">增长必须用投资来买。判据只有一条：<strong>增长投资的回报率对资本成本</strong>——低于毁值、等于无关、高于才创值。而"高于"能否持续，完全取决于进入壁垒。由此得三规则：Case A 里增长是敌人，Case B 里增长可忽略，只有 Case C（特许经营）里的增长值得付钱——且理想买价是零：按资产或盈利能力付全款，增长白送。</div>
+
+  <div class="lab" id="lab-growth">
+    <h4>增长创值判据（书表 6.2 的连续版：投资 1 亿美元）</h4>
+    <div class="ctrl"><label>投资回报率 ROIC</label><input type="range" id="gRoic" min="0" max="30" step="1" value="20"><output id="gRoicV">20%</output></div>
+    <div class="ctrl"><label>资本成本 R</label><input type="range" id="gR" min="4" max="16" step="1" value="10"><output id="gRV">10%</output></div>
+    <div class="readout">
+      <div class="ro"><span class="k">年增量盈利</span><span class="v" id="gEarn">$20M</span><span class="sub">ROIC × $100M</span></div>
+      <div class="ro"><span class="k">年资本费用</span><span class="v" id="gCost">$10M</span><span class="sub">R × $100M</span></div>
+      <div class="ro"><span class="k">归原股东净额</span><span class="v" id="gNet">+$10M</span><span class="sub">盈利 − 资本费用</span></div>
+      <div class="ro"><span class="k">净创造价值</span><span class="v" id="gVal">+$100M</span><span class="sub">净额 ÷ R（永续）</span></div>
+    </div>
+    <figure class="fig" style="border:none;background:transparent;padding:4px 0;margin:8px 0">
+      <svg viewBox="0 0 560 84" style="width:100%;max-width:560px;display:block;margin:0 auto">
+        <line x1="280" y1="10" x2="280" y2="74" stroke="#5A4F3F" stroke-width="1"/>
+        <text x="280" y="8" text-anchor="middle" font-size="10" fill="#5A4F3F">0</text>
+        <rect id="gBar" x="280" y="26" width="140" height="32" fill="#1E6E68"/>
+        <text id="gBarLbl" x="430" y="46" font-size="12" class="mono" fill="#14514C">+$100M</text>
+        <text x="30" y="46" font-size="11" fill="#8F3E12">毁值 ←</text>
+        <text x="500" y="46" font-size="11" fill="#14514C">→ 创值</text>
+      </svg>
+    </figure>
+    <div class="verdict good" id="gVerdict">ROIC 20% &gt; R 10%：每投 1 元创造 2 元价值——但这种回报若无壁垒保护，必被模仿者夷平。</div>
+    <p class="note">规模与费率皆不改变结论：判据对 1000 元和 10 亿元、对 4% 和 15% 的资本成本一律成立，且可数学推广到任意回报路径（非永续亦然）。以"低息债务"付账的把戏也被点破：债务的真实成本包含坏年景运营受损的期望成本，边际上债股同价；真便宜的债应把募得款分给股东，而不是喂给毁值项目。</p>
+  </div>
+
+  <h3>增长的五种具体形态（结论一致：全看壁垒）</h3>
+  <div class="grid2">
+    <div class="card"><h5><span class="cnum">①</span>有机增长 <span class="enx">(organic growth)</span></h5><p>最优形态——需求自己长，追加投资仅限净营运资本，增量回报最高。但无壁垒时高回报照样引来进入与扩产，直到回报回落至资本成本：长期只留下"更多公司、更多资本"，不留下价值。</p></div>
+    <div class="card"><h5><span class="cnum">②</span>降本增效等利好</h5><p>技术降本、渠道创新——无壁垒时红利全部让渡给消费者（个人电脑史即例证）。</p></div>
+    <div class="card"><h5><span class="cnum">③</span>增长期权 <span class="enx">(growth options)</span></h5><p>意外机会的"选择权价值"在竞争市场被复制者迅速抹平；且机会多的市场本就吸引更多进入者，净效应约为零。</p></div>
+    <div class="card"><h5><span class="cnum">④</span>市场收缩（反向不对称）</h5><p><strong>特许经营在收缩中伤得更重</strong>：竞争性企业收缩时回收的资本大致抵偿失去的平庸盈利；护城河企业损失的是超额盈利，回收的资本却相对小，且规模经济反噬（固定成本摊薄失效）——地方报纸之死远惨于街角餐馆。</p></div>
+    <div class="card" style="grid-column:1/-1"><h5><span class="cnum">⑤</span>进入新市场</h5><p>几乎总是错误：<strong>竞争优势不随行李托运</strong>。价值创造要求在新市场里建立优势，母国的优势无关甚至有害（制造过度自信和"留存收益是廉价资本"的幻觉）。IBM 与柯达 <span class="enx">(Eastman Kodak)</span> 携技术闯复印机市场，撞上施乐 <span class="enx">(Xerox)</span> 的壁垒铩羽；沃尔玛出北美即折戟。可行的只有两条：<em class="tag">a.</em> 在既有主导区域内加密、再向<strong>邻接</strong>市场推进（沃尔玛的地理扩散、西南航空 <span class="enx">(Southwest)</span> 从 Love Field 起步、微软绕操作系统加 Office）；<em class="tag">b.</em> 进入<strong>尚无</strong>"规模+粘性"主导者的处女市场并以纪律逐个吃下（早年的沃尔玛与微软本身）。若壁垒已立且他人在内——想想格劳乔·马克斯 <span class="enx">(Groucho Marx)</span> 的俱乐部：肯收你为会员的俱乐部，不值得加入。</p></div>
+  </div>
+  <p><strong>对"为增长付钱"的三重警告</strong>（行为金融的回声）：增长股天然是彩票股，作为一类被系统性高估；增速预测惯性外推，高增速尤其注定失望；增长价值对增速本身极度敏感。微软 1999 年算例：70 倍市盈率、25% 增速、10% 折现，即便立刻分掉一半利润，2000–2009 十年现金分配的现值也只值当期盈利的 10 倍——<strong>付出价格的约 85% 押在 2009 年以后的未知世界上</strong>。这是格雷厄姆定义下的投机 <span class="enx">(speculation)</span>；泡沫破后微软股价用了 16 年才回到 1999 年的高点。</p>
+</section>
+
+<!-- ================= 07 好生意 ================= -->
+<section id="s7">
+  <div class="sec-head"><span class="no">07</span><h2>好生意：护城河的完整解剖<span class="en">"Good" Businesses — Franchises, Moats, Barriers to Entry</span></h2></div>
+  <div class="sec-lede">四个词说的是同一件事：可持续的在位者竞争优势 = 进入壁垒 = 护城河 = 特许经营。真实的优势只有三类——<strong>供给侧</strong>（专有技术，通常短命）、<strong>需求侧</strong>（客户粘性：习惯、搜索成本、转换成本），以及唯一能跨代际存续的<strong>规模经济 × 客户粘性</strong>的组合。品牌与先发优势都不是护城河；波特五力太笨重。检验只需两问：市场份额稳不稳？高资本回报久不久？</div>
+
+  <h3>先拆两个流行迷信</h3>
+  <div class="grid2">
+    <div class="tbl-wrap" style="margin:0"><table style="min-width:auto">
+      <caption>品牌 ≠ 护城河（书表 7.1）</caption>
+      <thead><tr><th>高利润的"土"生意</th><th>光环加身却不赚钱的品牌</th></tr></thead>
+      <tbody>
+        <tr><td>可口可乐 Coca-Cola</td><td>劳斯莱斯 Rolls-Royce（破产过）</td></tr>
+        <tr><td>高露洁牙膏 Colgate</td><td>梅赛德斯–奔驰 Mercedes-Benz</td></tr>
+        <tr><td>普瑞纳狗粮 Purina</td><td>索尼 Sony、胡佛 Hoover</td></tr>
+        <tr><td>《布法罗晚报》(历史上)</td><td>《纽约时报》《华尔街日报》</td></tr>
+        <tr><td>Verizon</td><td>AT&amp;T（被自己的地方后代反向收购）</td></tr>
+        <tr><td>FNF 产权保险</td><td>露华浓 Revlon 等高广告化妆品业</td></tr>
+        <tr><td>沃尔玛 Walmart</td><td>布鲁明戴尔 / 梅西百货</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tbl-wrap" style="margin:0"><table style="min-width:auto">
+      <caption>先发 ≠ 护城河（书表 7.2）</caption>
+      <thead><tr><th>先行者</th><th>最终主导者</th></tr></thead>
+      <tbody>
+        <tr><td>CP/M（PC 操作系统）</td><td>微软 Microsoft</td></tr>
+        <tr><td>AltaVista / Yahoo / Inktomi</td><td>谷歌 Google</td></tr>
+        <tr><td>Atari / Apple（个人电脑）</td><td>无人（沦为竞争市场）</td></tr>
+        <tr><td>AOL / Earthlink（ISP）</td><td>地方有线公司</td></tr>
+        <tr><td>福特（汽车）、泛美/环球（航空）</td><td>无人</td></tr>
+        <tr><td>eBay（在线拍卖）</td><td>eBay（罕见的守成者）</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <p>品牌是资产而非优势：其价值等于重建成本，等价交换不产生超额。奔驰的教训收束此论——尽管是全球最受尊崇的品牌之一，母公司利润率被全球化竞争一路压到 6–7%，2009 年（合并后的克莱斯勒实体）走入破产：<strong>差异化本身挡不住进入，只要新人能以平等条件做同样的差异化，一切产品实质上都是大宗商品。</strong>波特五力 <span class="enx">(Porter's five forces)</span> 则被评为笨重、难落地、结论两可——其作者自己在给出"通用好战略"时也没再用五力。</p>
+
+  <h3>烤面包机寓言：超额盈利如何被吃光</h3>
+  <div class="lab" id="lab-toaster">
+    <h4>Top Toaster 侵蚀模拟（书中原例：EP 2000 万，R = 10%，AV = 8000 万）</h4>
+    <div>
+      <button class="act" id="tNext">放进一波新进入者 →</button>
+      <button class="act ghost" id="tReset">重置</button>
+    </div>
+    <figure class="fig" style="border:none;background:transparent;padding:6px 0">
+      <svg viewBox="0 0 640 190" style="width:100%;max-width:640px;display:block;margin:0 auto">
+        <line x1="50" y1="160" x2="610" y2="160" stroke="#5A4F3F" stroke-width="1.5"/>
+        <line x1="50" y1="48" x2="610" y2="48" stroke="#8A6D1F" stroke-width="1" stroke-dasharray="5 4"/>
+        <text x="608" y="42" text-anchor="end" font-size="10.5" fill="#8A6D1F">初始 EPV = $200M（25% 资产回报，"近乎离谱"）</text>
+        <line x1="50" y1="115" x2="610" y2="115" stroke="#1E6E68" stroke-width="1.2" stroke-dasharray="2 3"/>
+        <text x="608" y="110" text-anchor="end" font-size="10.5" fill="#14514C">资产重置成本 AV = $80M（侵蚀的终点）</text>
+        <g id="tBars"></g>
+      </svg>
+    </figure>
+    <div id="tMsg" class="verdict mid">当前 EPV $200M，AV $80M：缺口 $120M 是给全世界创业者的绿灯——只要有人能以 8000 万复制这门生意，就能白拿 1.2 亿。</div>
+  </div>
+  <p>寓言的机制论价值：驱动价格的是<strong>最强的潜在进入者</strong>，不是最弱的；终局价格上，只有最高效者存活。差异化（打广告、加功能、改设计）只能延时，不能改变终点——销量被分走 + 固定成本摊薄失效的双重打击照样把 EPV 压回 AV。<strong>AV = EPV 不是巧合，是无壁垒市场的基本经济均衡。</strong></p>
+
+  <h3>真实竞争优势的完整清单</h3>
+  <div class="grid3">
+    <div class="card"><h5><span class="cnum">供给侧</span>成本优势 <span class="enx">(supply/cost)</span></h5><p>专利、工艺诀窍/学习曲线。有效范围狭窄：高科技行业代际更替太快，优势随技术一同报废（能像 Intel 连守二十余代是例外不是规律）；低技术服务业创新又会扩散成全行业惯例——<strong>专有技术只在技术变化速率居中的行业里构成壁垒</strong>。"廉价资源"多为幻觉：深口袋对手同样深；2% 的旧债在市场利率 7% 时机会成本就是 7%（"愚蠢从来不是竞争优势"）；富矿、黄金铺位、天才艺人是<strong>资产</strong>而非壁垒——租约会重议，且除非它一家吃满整个市场，挡不住高成本进入者。</p></div>
+    <div class="card"><h5><span class="cnum">需求侧</span>客户粘性 <span class="enx">(demand/customer captivity)</span></h5><p>三条渠道：<em class="tag">习惯</em>（高频购买，可乐死忠；对照：进中餐馆敢点青岛啤酒、没人点本地可乐——百威的粘性弱于可口可乐）；<em class="tag">搜索成本</em>（家财险多维难比价 + 选错代价惨痛 → 无强烈不满不换）；<em class="tag">转换成本</em>（换 ERP/工资系统 = 重训全员 + 错误率上升，"任务关键"系统十倍如此；律师、银行、医生换供方要重学"这个客户"——Google 对每个用户的多年适配同理）。烤面包机与豪车三条全无：低频、搜索甚至愉悦（试驾）、换谁成本都一样——<strong>要的是品牌忠诚 (loyalty)，不是品牌形象 (image)。</strong></p></div>
+    <div class="card"><h5><span class="cnum">合成器</span>规模经济 × 粘性 <span class="enx">(economies of scale)</span></h5><p>技术会过时、客户会死去/长大——单靠前两类优势寿命有限。<strong>唯有规模优势作用于"获取下一代技术与下一代客户"的过程本身</strong>，故可跨代际。成本侧：固定成本占比高（软件复制近零成本）；需求侧：网络效应 <span class="enx">(network effects)</span>（Windows/Office 的学校–职场循环、eBay+PayPal 双边、社交网络——Facebook 还会买下 Instagram/WhatsApp 消灭萌芽）。三个限定：必须<strong>相对市场</strong>而非绝对体量（Intel 的优势在 PC 微处理器这个产品空间，进手机信号芯片就要重摊一整套 R&amp;D；沃尔玛的优势是区域<strong>密度</strong>——出北美即失灵，采购规模优势被证伪：越大越不密，利润率反降）；必须<strong>够大</strong>（2–3% 份额就能摊平的固定成本挡不住任何人）；必须<strong>有粘性护卫</strong>——若进入者能对半分走客户，规模优势与壁垒同归于尽。管理层第一要务：寸土不让地守份额，对手出什么招就跟什么招。</p></div>
+  </div>
+  <p><strong>Intel vs AMD 的算术</strong>（书中反复引用的机制标本）：Intel 收入约为 AMD 十倍，只要按相同的收入比例投研发，绝对额即八到十倍——AMD 偶尔靠运气领先一代，长跑必输；Intel 甚至可以只花五倍（研发/收入占比仅为 AMD 的 44–86%），省下的部分用来降价。叠加 Wintel 生态的网络效应（应用开发者优先适配主流平台），该体系在三十年、二十多代技术更替中保持主导。<strong>1998 与 2018 两次测算数字几乎未变</strong>——这正是"作用于代际更替过程"的优势的样子。</p>
+  <h4>怎么检验一条护城河</h4>
+  <ul class="plain">
+    <li><strong>定性先行</strong>（"清晰很少始于复杂计算"）：市场是否有主导者？有无失败的进入史（或根本无人敢试）？粘性与规模的具体机制说得出口吗？</li>
+    <li><strong>定量再证：</strong>资本回报（ROE、营业利润/净债务+权益、税后 ROIC）长期显著高于资本成本；<strong>市场份额高度稳定</strong>；护城河的既有存续年限。注意 07 章与 04 章的呼应：账面 ROE 25% 可能只是漏记了无形资产投入——完整的资产重建是唯一系统的纠偏法。分析必须<strong>逐个市场</strong>做：无主导者、玩家进出频繁的市场，几乎不会有可持续优势。</li>
+    <li><strong>共享特许经营 <span class="enx">(shared franchise)</span>：</strong>可口可乐/百事、空客/波音——主导地位可以两家分享，此时盈利与增长价值取决于双方的竞争性情：<strong>合作（避开反垄断红线）则总利润近似独占，睾酮式火并则退化为竞争市场。</strong></li>
+    <li>管理层是变量不是常量：好行业能扛住平庸管理层一阵子，反之不行——所以诊断对象始终是市场的"名声"，管理层问题留给研究环节（10 节）。</li>
+  </ul>
+</section>
+
+<!-- ================= 08 回报法 ================= -->
+<section id="s8">
+  <div class="sec-head"><span class="no">08</span><h2>特许经营股票的估值：回报法<span class="en">The Valuation of Franchise Stocks — the Return-Based Approach</span></h2></div>
+  <div class="sec-lede">增长型特许经营的内在价值算不准（03 节的 1/(R−g) 敏感性），于是第二版换轨：<strong>不算价值，算回报</strong>——按当前市价买入的期望回报 = 现金回报 + 有机增长回报 + 主动再投资回报，减去特许衰减 (fade)，与资本成本比较。全套的数学脊柱是一个恒等式：<strong>V/M = R/R*</strong>（价值/市价之比 = 回报/资本成本之比），它保证"基准回报超过资本成本"时真实安全边际只会更大——保守性有证明，不靠祈祷。</div>
+
+  <h3>三个组件 + 一个对照 + 一个扣减</h3>
+  <ol class="steps">
+    <li><strong>现金回报 <span class="enx">(cash return)</span>：</strong>可持续盈利 × 分配比例（分红 + 净回购）÷ 市价。企业口径：NOPAT 与"股权市值 + 债务 − 非经营资产"相除；分配包含付息与净偿债。</li>
+    <li><strong>有机增长回报 <span class="enx">(organic growth)</span>：</strong>既有版图内的需求增长（人口、收入、持续提价权）+ 规模经济带来的利润率爬升。估法三路互验：公司自身"同口径"历史增速（同店销售等）、GDP 分解（地域/客群/品类修正——富裕家庭收入长期快于平均 2–3%，服务支出快于商品；1970→2010 美国家庭食品支出中外食占比不变、买菜占比减半）、可比市场类推。所需投资通常只有净营运资本。</li>
+    <li><strong>主动再投资回报 <span class="enx">(active reinvestment)</span>：</strong>留存盈利扣除有机增长所需投资后的余额，交由管理层配置。每一元创造的价值 = <strong>价值创造系数</strong> <span class="enx">(value creation factor)</span> v；回报贡献 = 余额 × v ÷ 市价。v &gt; 1 仅见于两种投资：护城河内的<strong>运营效率</strong>（历史回收期 6 个月–2 年，税前年回报 50–200%，v ≥ 5 不稀奇）与优势可延伸的<strong>邻接扩张</strong>；护城河外的一切并购与新业务 v ≤ 1，历史上多在 1 之下深处。分配率 ≥ 75% 的公司，v 的精度无关紧要。</li>
+    <li><strong>对照回报 <span class="enx">(comparison return)</span>：</strong>两法互验——定性区间的资本成本（05 节），或市场总回报 = 现金收益率 + 盈利名义增速（书中当期算得约 7–7.5%：分红回购收益 2.5% + 利润增速 5%；或 1/17 市盈率 = 6% 盈利收益 + 1.5% 通胀）。</li>
+    <li><strong>特许衰减 <span class="enx">(franchise fade)</span>：</strong>没有永恒的护城河。以"半衰期"计年衰减率 ≈ <strong>72 ÷ 半衰期</strong>（80 年 → 0.9% 可忽略；25 年以下 → ≥3% 必须严肃对待）。从回报里直接减，或要求"未扣 fade 的安全边际 &gt; fade 率"。收缩中的特许经营反而不需要回报法——远期现金流权重骤降，传统估值即可（增速 −5%、R 10% 时倍数 = 1/15%，参数各错 1% 误差仅约 25%）。</li>
+  </ol>
+
+  <h3>数学脊柱（第八章附录的完整推导链）</h3>
+  <div class="formula">V <b>=</b> C·E <span class="fr">/ (R* − G)</span> <span style="margin:0 18px;color:#8A6D1F">⇒</span> R <b>=</b> D/M + G·<span class="fr">(V/M)</span> <span style="margin:0 18px;color:#8A6D1F">⇒</span> <b>R / R* = V / M</b><small>C=分配比例，E=盈利，G=增长率，R*=资本成本，M=市价，V=内在价值。中间步骤：由估值式得 (R*−G)=CE/V，代回回报式 R=(V/M)(CE/V+G)=(V/M)·R*。<strong>回报与资本成本之比恒等于价值与市价之比</strong>——这是整个方法的支点。</small></div>
+  <div class="formula">基准回报 R<sub>B</sub> <b>=</b> D/M + G（令 V/M = 1）<span style="margin:0 14px;color:#8A6D1F">⇒</span> (R − R*) <b>=</b> <span class="fr">[R*/(R*−G)]</span> × (R<sub>B</sub> − R*)<small>因增长型特许经营 G&gt;0，放大系数 R*/(R*−G) &gt; 1：<strong>只要可计算的基准安全边际为正，真实安全边际必更大</strong>（低估被低估）；基准为负则真实回报更糟。用基准回报做买入门槛是被证明了的保守策略。反向不可用：把 (14) 式当"真实回报计算器"会把 1/(R*−G) 的不精确又请回来——它的价值是定性的，不是定量的。</small></div>
+  <div class="formula">v <b>=</b> r / R*，&nbsp; v<sub>b</sub> <b>=</b> r<sub>b</sub> / R*&nbsp;&nbsp;（r<sub>b</sub> = C·e + G）&nbsp;&nbsp;;&nbsp;&nbsp; 二次再投资：V₂ <b>=</b> b·V₁ <span class="fr">/ (1 − (1−b)·V₁)</span><small>e=每元主动投资的增量盈利。同一恒等式适用于价值创造系数：r<sub>b</sub>&gt;R* ⇒ v&gt;v<sub>b</sub>&gt;1（基准低估创值），r<sub>b</sub>&lt;R* ⇒ 1&gt;v<sub>b</sub>&gt;v（基准还高估了毁值——此时保守做法：v 取 0.5 到 0，"两轮都乱配资本的管理层原则上回避"）。V₂ 式（b=分配比例）说明：若首轮创值，复投只会更好——按首轮口径估 v 仍是保守的。可再迭代精化：r<sub>b2</sub> = D/M + g·(r<sub>b</sub>/R*)，一轮之后收益递减。</small></div>
+
+  <h3>Consolidated General 全算例（书表 8.1 + 8.2 复刻）</h3>
+  <div class="tbl-wrap"><table>
+    <caption>假想公司 CG：市值 $4,000M，全权益，可持续收入 $3,000M、净利率 8%</caption>
+    <thead><tr><th>组件</th><th class="num">金额 (百万$)</th><th class="num">占市值回报</th><th>假设</th></tr></thead>
+    <tbody>
+      <tr><td>可持续盈利</td><td class="num">240</td><td class="num">6.0%</td><td>盈利收益率（1/16.7 倍）</td></tr>
+      <tr><td class="hd">① 现金回报</td><td class="num">144</td><td class="num pos">3.6%</td><td>分配率 60%（历史政策）</td></tr>
+      <tr><td>留存盈利</td><td class="num">96</td><td class="num">2.4%</td><td>240 − 144</td></tr>
+      <tr><td class="hd">② 有机增长回报</td><td class="num">—</td><td class="num pos">3.5%</td><td>收入 3%（同口径历史 = GDP 推算）+ 利润率 0.5%（经营杠杆，历史可见才计）</td></tr>
+      <tr><td>其中：有机增长所需投资</td><td class="num">4.5</td><td class="num">—</td><td>收入增量 $90M × 净营运资本率 5%（应收存货 15¢ − 应付 10¢）</td></tr>
+      <tr><td>可供主动投资</td><td class="num">91.5</td><td class="num">—</td><td>96 − 4.5</td></tr>
+      <tr><td class="hd">③ 主动再投资回报</td><td class="num">146.4</td><td class="num pos">3.7%</td><td>价值创造系数 v = 1.6（"好但非伟大"）；91.5 × 1.6 ÷ 4,000</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td>总回报（①+②+③）</td><td class="num"></td><td class="num">≈ 10.8%</td><td>报作 10.5–11%，拒绝伪精确</td></tr>
+      <tr><td>对照：CG 资本成本</td><td class="num"></td><td class="num">≈ 7%</td><td>无杠杆稳定特许 → 区间下半段（6–12% 区间；市场总回报法亦得 7–8%）</td></tr>
+      <tr><td>基准安全边际</td><td class="num"></td><td class="num">3–4%</td><td>须覆盖 fade：半衰期 50 年（1.5%）→ 通过；20 年（3.6%）→ 边际归零</td></tr>
+    </tfoot>
+  </table></div>
+
+  <div class="lab" id="lab-ret">
+    <h4>回报法工作台（预填 CG；改任一参数即时联动）</h4>
+    <div class="grid2" style="margin-top:6px">
+      <div>
+        <div class="ctrl" style="grid-template-columns:170px 1fr"><label>市值 M（百万$）</label><input type="number" id="rM" value="4000" step="100"></div>
+        <div class="ctrl" style="grid-template-columns:170px 1fr"><label>可持续盈利 E</label><input type="number" id="rE" value="240" step="10"></div>
+        <div class="ctrl" style="grid-template-columns:170px 1fr"><label>可持续收入</label><input type="number" id="rRev" value="3000" step="100"></div>
+        <div class="ctrl"><label>分配比例 C</label><input type="range" id="rC" min="0" max="100" step="5" value="60"><output id="rCv">60%</output></div>
+        <div class="ctrl"><label>有机收入增速</label><input type="range" id="rGo" min="0" max="8" step="0.5" value="3"><output id="rGoV">3.0%</output></div>
+        <div class="ctrl"><label>利润率爬升</label><input type="range" id="rGm" min="0" max="2" step="0.25" value="0.5"><output id="rGmV">0.5%</output></div>
+      </div>
+      <div>
+        <div class="ctrl"><label>净营运资本率</label><input type="range" id="rNWC" min="0" max="30" step="1" value="5"><output id="rNWCv">5%</output></div>
+        <div class="ctrl"><label>价值创造系数 v</label><input type="range" id="rVCF" min="0" max="5" step="0.1" value="1.6"><output id="rVCFv">1.6</output></div>
+        <div class="ctrl"><label>资本成本 R*</label><input type="range" id="rRstar" min="5" max="14" step="0.5" value="7"><output id="rRstarV">7.0%</output></div>
+        <div class="ctrl"><label>特许半衰期</label><input type="range" id="rHL" min="10" max="100" step="5" value="50"><output id="rHLv">50 年</output></div>
+      </div>
+    </div>
+    <div class="readout">
+      <div class="ro"><span class="k">① 现金回报</span><span class="v" id="oCash">—</span><span class="sub">C·E / M</span></div>
+      <div class="ro"><span class="k">② 有机增长回报</span><span class="v" id="oOrg">—</span><span class="sub">收入增速 + 利润率</span></div>
+      <div class="ro"><span class="k">③ 主动再投资回报</span><span class="v" id="oAct">—</span><span class="sub">(留存−有机投资)×v/M</span></div>
+      <div class="ro"><span class="k">基准总回报 r<sub>b</sub></span><span class="v" id="oTot">—</span><span class="sub">①+②+③</span></div>
+      <div class="ro"><span class="k">fade 年衰减</span><span class="v bad" id="oFade">—</span><span class="sub">72 ÷ 半衰期</span></div>
+      <div class="ro"><span class="k">扣减后回报</span><span class="v" id="oNet">—</span><span class="sub">r<sub>b</sub> − fade</span></div>
+      <div class="ro"><span class="k">安全边际</span><span class="v" id="oMoS">—</span><span class="sub">对 R*</span></div>
+      <div class="ro"><span class="k">隐含 V/M ≈ r<sub>b</sub>/R*</span><span class="v" id="oVM">—</span><span class="sub">恒等式推断</span></div>
+    </div>
+    <div class="verdict mid" id="oVerdict">—</div>
+    <p class="note">灵敏度的"线性红利"是回报法对 DCF 的决定性优势：盈利增速的预测每偏 1%，总回报恰好偏 1%——对任何盈利水平、任何资本成本、任何 fade 率都成立；资本成本偏 1%，边际恰好偏 1%。研究资源由此可精准配置到六个可独立调查的因子上（当期盈利能力、分配政策、有机增速、主动创值、fade、资本成本）。</p>
+  </div>
+
+  <h3>方法的两条边界（书中自我限定）</h3>
+  <p><em class="tag">卖出难题依旧无解：</em>回报法改进的是买入决策；基准回报对市价极不敏感（增长占大头时市价翻倍可能只压低回报约 10%），当不了卖出的标尺。实践者只能用规则兜底——巴菲特"计划永不卖出"，其他人常设"可持续盈利 25 倍以上不再持有"一类的硬上限。<em class="tag">不是所有增长特许都可测：</em>年增 15% 以上的公司迟早要降速到略高于经济整体，何时降无法预测；S 曲线拐点的预测记录一塌糊涂——这些机会按格雷厄姆的用语属于投机而非投资，归入"太难堆" <span class="enx">(too-tough-to-call pile)</span>。对非特许经营公司也别用回报法：那会白白放弃 AV/EPV 互验这一传统方法最大的优点。</p>
+</section>
+
+<!-- ================= 09 四案例 ================= -->
+<section id="s9">
+  <div class="sec-head"><span class="no">09</span><h2>四个案例：三种方法的完整算例<span class="en">Hudson General · Magna · WD-40 · Intel</span></h2></div>
+  <div class="sec-lede">四个案例各占一个方法论生态位：<strong>Hudson General</strong> 示范资产法与分部拆解（Case A + 催化剂），<strong>Magna</strong> 示范 EPV 与 AV 的三角验证（教科书级 Case B），<strong>WD-40</strong> 示范回报法在"小而稳的特许经营"上的三次体检，<strong>Intel</strong> 示范回报法如何处理"伟大得无法用传统方法估值"的公司——结论出人意料：在三个测算时点，Intel 都不是价值买入。</div>
+
+  <h3>案例一 · Hudson General（1998）：资产的三块拆解<span class="enx"> — 资产法 / Case A</span></h3>
+  <p>机场地面服务公司，市值 8500 万美元（约 48 美元/股）。价值藏在三块互不相干的资产里，必须分开估：</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>组成部分</th><th>估值方法</th><th class="num">估值 (百万$)</th><th>验证来源</th></tr></thead>
+    <tbody>
+      <tr><td>母公司净资产（出售航空业务 74% 权益后）</td><td>清算/账面</td><td class="num">≈ 40</td><td>大部分是现金与应收，几乎无折价</td></tr>
+      <tr><td>Hudson LLC 航空地面服务 51% 权益</td><td>EPV：EP $12.9M ÷ 10%（含私有市场验证）</td><td class="num">≈ 65<br>(127 × 51%)</td><td>汉莎航空 <span class="enx">(Lufthansa)</span> 1996 年以 $23M 购 26%（隐含整体 $88.5M）；后续增持条款隐含 $128.7M——<strong>产业买家的真金白银为 EPV 背书</strong></td></tr>
+      <tr><td>夏威夷 Kohala 土地合资（沉没约 $29M）</td><td>清算价值</td><td class="num">≈ 0–低值</td><td>开发失败的土地：按"雪茄烟蒂"处理，不指望</td></tr>
+    </tbody>
+    <tfoot><tr><td>合计 vs 市值 85</td><td></td><td class="num">≈ 105+</td><td>折价约 20–25%，且下行被现金垫底</td></tr></tfoot>
+  </table></div>
+  <p><strong>结局即催化剂教学：</strong>1998 年 11 月管理层出价约 1 亿美元私有化——这本身就把价值公之于众；董事会外聘顾问竞卖，1999 年 2 月汉莎子公司 GlobeGround 以 <strong>1.33 亿美元</strong>成交，较出价前市价溢价逾 50%。要点有三：分部拆解 <span class="enx">(sum-of-the-parts)</span> 是资产法在复合企业上的标准形态；私有市场交易是无形资产与 EPV 的最强外部验证；管理层收购要约常是"价值实现"的第一声枪响，而非最后一口价。</p>
+
+  <h3>案例二 · Magna International（2009 年 3 月）：AV 与 EPV 的三角验证<span class="enx"> — EPV 法 / Case B</span></h3>
+  <p>金融危机最深处的全球汽车零部件商。市场按"末日剧本"定价，而书的算法只用资产负债表与跨周期利润率：</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>口径</th><th class="num">权益 (百万$)</th><th class="num">企业 (百万$)</th><th>要点</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">资产价值 AV（重置成本）</td><td class="num">12,158</td><td class="num">10,416</td><td>逐行重建：应收加回坏账准备、存货加回 LIFO、PP&amp;E 与无形按 04 节规则</td></tr>
+      <tr><td class="hd">盈利能力价值 EPV</td><td class="num">10,942</td><td class="num">9,200</td><td>EP = 5% 跨周期利润率的税后营业利润 $800M <strong>+ $120M 折旧超提修正</strong>（IT 类资产降价 → 会计折旧高于经济折旧；维护开支 = 总开支 − 收入增量×16% 资本密度）；÷10%；权益口径加净现金 $1,742M</td></tr>
+      <tr><td class="hd">市场价格</td><td class="num">2,240</td><td class="num">≈ 500</td><td>权益 = 内在值的 <strong>20%</strong>；企业口径仅 <strong>5%</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p>AV 与 EPV 相差约 12%（&lt;25% 门槛）→ <strong>Case B 确认</strong>：竞争性行业 + 称职管理层，两个独立数据源互为对照；十年平均 ROE 10.4% ≈ 资本成本，再添一证。两大"市场恐惧"被逐一拆弹：<em class="tag">欺诈风险</em>——2004–08 累计报告利润 $2,650M，其中分红回购 $686M + 净现金增加 $512M 有<strong>不可伪造的纸面轨迹</strong>，剩余 $1,452M 支撑了 $8,359M 的销售增长，即每元新收入仅耗 0.17 元留存资本，对照 16% 的资本密度绰绰有余——利润若是编的，钱变不出来；<em class="tag">治理折价</em>——创始人 Stronach 的特权成本（MID 分拆、高尔夫球场）有清晰的<strong>递减轨迹</strong>，是可计量的年费而非无底洞。危机中的行业注定要活下去（北美汽车必须有人造零件），而 GM 式的破产恰恰反证了资产法：其权益账面（= 净重置价值）深度为负，极少有分析师算过这笔账。</p>
+
+  <h3>案例三 · WD-40（1998 / 2000 / 2018）：小特许经营的三次体检<span class="enx"> — 回报法 / Case C</span></h3>
+  <p>教科书式的"隐形特许经营"：一款蓝黄罐润滑剂，代工生产、167 名员工做出 1.44 亿美元收入，无专利（配方保密但可仿），营业利润率 25–30%、ROE 35–42%——护城河是<strong>习惯与无处不在</strong>（"五分之四的美国家庭有一罐"），品类小到大公司不屑进攻。收购史同时提供了 v 的直接读数：买 3-In-One（$16M）后将其利润率拉到约 48%（分销复用）为正例；偏离核心的 T.A.L.5 失败为反例。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>体检时点</th><th class="num">① 现金</th><th class="num">② 有机</th><th class="num">③ 主动</th><th class="num">总回报</th><th class="num">对照 R*</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">1998（$26.50）</td><td class="num">5.0%</td><td class="num">4.0%</td><td class="num">0.75%</td><td class="num pos">≈10%</td><td class="num">8%</td><td>边际约 2%，fade 极低（半衰期 50 年+）→ <strong>可买</strong></td></tr>
+      <tr><td class="hd">2000</td><td class="num">4.5%</td><td class="num">4.0%</td><td class="num">0.6%</td><td class="num">≈9%</td><td class="num">8%</td><td>边际 ≈ fade → 中性。<em>后验：</em>其后 5/10 年年化 ≈9%，15 年 &gt;13%（公司重聚焦，2012–15 收入年增 3.3%）——回报法的预测值即实际中枢</td></tr>
+      <tr><td class="hd">2018（企业价值 $2,429M）</td><td class="num">2.5%</td><td class="num">3.0%</td><td class="num">≈0</td><td class="num neg">≈5.5%</td><td class="num">8%</td><td>分配 $60M 摊在高市值上；fade 反而升高（品类承压，半衰期向 25–30 年滑落 → 2.5–3%）→ <strong>显著高估</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>案例四 · Intel（1999 / 2003 / 2018）：伟大公司 ≠ 价值买入<span class="enx"> — 回报法 / Case C</span></h3>
+  <p>历史上最强的护城河之一（规模 × 生态粘性，三十年二十余代技术更替），但回报法在三个时点给出同一个答案：</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>体检时点</th><th class="num">① 现金</th><th class="num">② 有机</th><th class="num">③ 主动</th><th class="num">总回报</th><th class="num">对照 R* + fade</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">1999（泡沫顶部）</td><td class="num">1.8%</td><td class="num">8.5%</td><td class="num">0.3%</td><td class="num">10.6%</td><td class="num">12%（当时科技股口径）</td><td class="neg">无边际；且当时特许可见存续期仅 10–12 年</td></tr>
+      <tr><td class="hd">2003（已跌 45%）</td><td class="num" colspan="3">—</td><td class="num">8.2%</td><td class="num">11% + fade 2.4%</td><td class="neg">仍不达标——"跌了很多"不等于"便宜"</td></tr>
+      <tr><td class="hd">2018（企业价值 $232B）</td><td class="num">4.2%</td><td class="num">4.0%</td><td class="num">0</td><td class="num">8.2%</td><td class="num">9–10%；乐观 fade 1.8%（半衰期 40 年）→ 扣后 6.4%</td><td class="neg">显著高估（此前 2014–18 年化 +22% 的大涨之后）</td></tr>
+    </tbody>
+  </table></div>
+  <p>2018 年测算的输入本身就是一堂课：可持续 NOPAT $12.3B（收入份额修正 77% × $16B、税率 23%）；分配率按 80%（三个五年段实际为 91%/92%/73%——<strong>资本密度从收入的 45% 爬到 65%</strong>，净现金 $14.4B 变成净债务 $3.9B，分配能力在被制程军备竞赛侵蚀）；主动创值记零，证据是三笔大收购的 v：McAfee $7.7B → 每元约 0.50；Altera $14.5B → 增量营业利润约 $600M，v ≈ 0.40；Mobileye $14.5B 对照其 EPV 约 $1B，v ≈ <strong>0.07</strong>——2011–17 年均 $6B 的收购开支配得这样的系数，记零已是宽待。fade 的实证同样残酷：移动芯片部门 2012 年收入 $1.8B/亏 $1.8B，2014 年收入 $0.2B/亏 $4.2B——<strong>护城河严格限于既有产品空间</strong>（07 节的"相对市场"原则），跨出即为普通竞争者。若再按恒等式以 V/M ≈ ⅔ 校准（市价高出价值的部分压低真实回报），扣 fade 前 6.9%、扣后 5.1%。全案的方法论结论：对这类"利润率、增长、资本回报全都突破传统估值量程"的公司，<strong>只有回报法能把'伟大'与'贵'透明地分开</strong>——1980–95 年 Intel 市净率长期仅 2–4 倍，说明市场曾经长期低估它；1999 年后则反向。</p>
+</section>
+
+<!-- ================= 10 研究策略 ================= -->
+<section id="s10">
+  <div class="sec-head"><span class="no">10</span><h2>研究策略：完整而高效地收集证据<span class="en">Research Strategy</span></h2></div>
+  <div class="sec-lede">研究 = 初步估值之后的主动调查。两条标准：<strong>完整</strong>（旁证一条不漏——谁在持有、内部人在干什么、市场共识是什么、你自己过去在同类局面里的战绩）与<strong>高效</strong>（火力集中在对估值影响最大的少数不确定处，由估值类型决定研究重心）。管理层评估四维中，运营效率排第一；催化剂的本质是"对坏管理层的保险"——好管理层不需要它。</div>
+
+  <h3>间接证据：五个免费的信息源</h3>
+  <ul class="plain">
+    <li><strong>持有人结构（13F 等披露）：</strong>跟名家要跟其<strong>专长域</strong>（巴菲特之于银行保险、Gabelli 之于媒体电信）；纪律性价值投资者在股价下跌中<strong>增持</strong>是强信号，减持则须复查假设。反例常备：2015 年 Valeant，一群声誉卓著者一起错。</li>
+    <li><strong>内部人买卖：</strong>买入信号强于卖出（卖出动机多元）。</li>
+    <li><strong>股权融资 = 稳健的负面信号：</strong>三重逻辑——看好未来的股东导向管理层会先借债、等股价高了再增发；理性管理层不在低估时卖股（那是送礼给外人）；强公司本可用更便宜的债。市场深谙此理，增发公告后的负回报可延续数年。<strong>低迷市里的增发尤其刺眼</strong>——那是墙角公司的自白。融资工具的选择还有细读价值：高息的长期宽松条款次级债，比低息的短期严约束高级债透露更深的虚弱。</li>
+    <li><strong>投资者网络：</strong>互补专长的同道定期互通，是单兵不可复制的优势。书中范本：深耕日本三十年以上的外籍小盘投资者按地域分工、定期聚会，靠<strong>公司文化变化的现场感</strong>预判股东回报的改善——不碰内幕，胜在贴近。</li>
+    <li><strong>共识与"分歧感知" <span class="enx">(variant perception)</span>：</strong>逆共识下注前必须先熟读共识——多数时候它包含你漏看的东西。纪律性价值投资者不该怕被共识"洗脑"，怕的应该是没检查。</li>
+    <li><strong>自我审计：</strong>买、过、卖、持全记录 + 理由，至少年检一次，找出重复性错误并<strong>整类回避</strong>——"别人的非理性创造机会，你自己的非理性创造亏损。"</li>
+  </ul>
+
+  <h3>直接研究：火力按估值类型分配</h3>
+  <div class="grid3">
+    <div class="card"><h5>困境高级债</h5><p>回报是确定的，<strong>时点</strong>不是——研究只围绕时间、清偿顺位、覆盖能力三问。书中算例：面值 90% 买入，立即清偿回报 22%、一年 28%、两年年化降至 15.5%。铺开全景情景分析是浪费。</p></div>
+    <div class="card"><h5>非特许经营（Case A/B）</h5><p><strong>AV 与 EPV 各占一半时间</strong>——二者对价值贡献均等。分析师通病是沉迷远期盈利模型而无人算重置净值：GM 破产前净重置价值（权益账面）深度为负，几乎无人做过这道减法。</p></div>
+    <div class="card"><h5>特许经营（Case C）</h5><p>先用一段行业史（跨一个以上周期）确证壁垒的范围与耐久，再把时间摊到回报法的六因子上：当期盈利能力、分配政策、有机增速、主动创值、fade、资本成本——其中<strong>主动创值最难</strong>，但分配率 ≥85% 时可忽略。行业级研究可复用，是专业化的又一红利。</p></div>
+  </div>
+
+  <h3>管理层评估四维（重要性排序）</h3>
+  <ol class="steps">
+    <li><strong>运营效率（遥遥领先的第一位）：</strong>Sloan 基金会等大量研究表明，行业内最高效企业的成本仅为行业均值的 <strong>½–⅓</strong>，且差距不靠资源（员工画像、资本强度、技术代际都相仿），全靠管理层的专注——平庸者几乎永远追不上。识别特征：<em class="tag">马拉松而非冲刺</em>（拒绝"电锯阿尔" <span class="enx">(Chainsaw Al)</span> 式的外科手术）；<em class="tag">简单聚焦的战略</em>（热衷并购、全球化、上电视的 CEO 很少做得到运营卓越）。</li>
+    <li><strong>增长与资本配置：</strong>只投护城河之内与邻接可延伸处；"因为全球化是大势"或"因为中国印度在增长"而扩张的管理层——回避。</li>
+    <li><strong>财务资源管理：</strong>没有超额回报去处的现金必须分掉（双重征税 + <strong>闲钱迟早变蠢钱</strong>的历史规律）；负债加到"不致引发实质经营干扰"的上限为止；股权融资见上文。</li>
+    <li><strong>人力资源：</strong>平稳的逆周期招聘（好人才在坏市场最好招）；有序的接班安排——没有它，任何管理层红利都短命。</li>
+  </ol>
+  <p class="note">评估的永远是<strong>变化</strong>：既有的好坏已在财务里定价。渐进改善看趋势；新管理层看焦点转移，除非有 3G/亨氏 <span class="enx">(Heinz)</span> 式的授权与资源，效果显现需时——通常来得及先观察再下注。</p>
+
+  <h3>行动主义与催化剂</h3>
+  <p>行动主义 <span class="enx">(activism)</span> 收益取决于两件事：目标公司的响应文化（亚洲 &lt; 欧洲家族企业 &lt; 北美；死硬拒绝型公司，除非控制权易手，学术研究显示股东无显著获益）与干预者的类型——<strong>行业专家型</strong>（吃透行业经济学、全面改进管理，Paul Hilal 为范式）显著优于只喊"把钱吐出来"的分红回购型。催化剂的定位由一道算术钉死：$50M 盈利、10% 资本成本的公司值 $500M；若坏管理层毁掉一半资产、留存盈利每元只造五角价值，年回报仅 7.5%，<strong>低于资本成本</strong>——安全边际在等待中被磨光。故：好管理层 + 折价 = 格雷厄姆的"称重机"迟早开秤，催化剂锦上添花；坏管理层 + 折价 = 没有近期换人前景就别买。<strong>"价值陷阱与坏管理层是同一枚硬币"</strong>——沉迷找催化剂的投资者，多半在为不敢做管理层判断付溢价。</p>
+
+  <h3>两条研究纪律</h3>
+  <p><em class="tag">反强迫症：</em>Lampert 收购 AutoZone 前据说走遍了数百家门店——抽样 10% 即可获得几乎全部信息，省下的时间该花在零售业的经济规律上（他后来在 Sears/Kmart 的困局是脚注）。格式化的"每年拜访管理层 N 次"同罪：公平披露 <span class="enx">(fair disclosure)</span> 时代，公开记录已含管理层能给的 90% 以上；见面应在吃透公开记录之后，且<strong>先问几个你已知答案的问题</strong>校准其可信度，再问竞争优势、资本配置与长期战略。<em class="tag">研究稳定性而非变化：</em>市场机会多源于"把临时坏消息当永久"的过度反应；预测衰退时点/时长/深度远难于识别稳定——严重衰退不足七年一遇、下行段通常 6–9 个月；15 倍市盈率的公司整整丢掉两年利润，价值也只损失约 15%（且常被复苏后的超额盈利补回）。多数分析师在挤"预测变化"的赛道，<strong>做三到五年的差异化稳定判断，是人少的那条路</strong>。</p>
+</section>
+
+<!-- ================= 11 风险管理 ================= -->
+<section id="s11">
+  <div class="sec-head"><span class="no">11</span><h2>风险管理与组合构建<span class="en">Risk Management and Building Portfolios</span></h2></div>
+  <div class="sec-lede">风险不是方差，是<strong>资本的永久性损伤</strong> <span class="enx">(permanent impairment of capital)</span>——方差既不区分涨跌（上行主导其读数），也答不出"哪一段时间的方差"（长期存在均值回归）。永久损伤只有三个来源：<strong>买贵了、杠杆过度、估值错误与意外事件</strong>。前两个靠纪律，第三个靠分散化几乎可以消灭。风险管理必须<strong>中央化、按财富主体定制</strong>；选股则应去中心化、专业化——两者是不同的器官。</div>
+
+  <h3>开场证据：90% 的交易在互相抵消</h3>
+  <p>1970 年代末，一家美国大公司审计养老金：百余位股票经理，任一周内约 <strong>90% 的买卖单互相轧平</strong>，净买入的 90% 以上又只是在复制大盘——<strong>99% 的交易活动是在为"被动指数"支付主动管理费</strong>。风险层面同理：一位经理花钱对冲的敞口，可能正是另一位刻意持有的——不看合并持仓，就谈不上管理风险。第一原理由此而来：<strong>风险由财富的最终所有者（或其受托者）在总账层面集中管理</strong>，且必须逐户定制（家族企业的行业敞口、机构的主业相关性都在"总持仓"里）。</p>
+
+  <h3>三个损伤来源与对策</h3>
+  <div class="grid3">
+    <div class="card terraed"><h5><span class="cnum">来源①</span>买贵了</h5><p><strong>买入那一刻是风险最大的一刻。</strong>泡沫的操作标尺：普通公司的价格/可持续盈利 &gt; 30、市净率 &gt; 8——一律进"太难堆"（1980 年代末日本、1990 年代末科网、2008 前的地产链）。常规防线即安全边际，其前提是拿得出准的估值——估不准的新兴成长股，同样进"太难堆"。</p></div>
+    <div class="card terraed"><h5><span class="cnum">来源②</span>杠杆过度</h5><p>公司层面测试：<strong>连续三个坏年头</strong>后仍无偿付疑虑、不惊动客户/供应商/员工/监管；组合层面：会在短期下跌中触发强平的保证金债务、会到期归零的期权多头，都把临时亏损转成永久亏损。书的原话式结论：<strong>"若不确定杠杆何时算过度，明智之举是完全不用。"</strong></p></div>
+    <div class="card tealed"><h5><span class="cnum">来源③</span>估错 + 意外</h5><p>对纪律投资者，这两类近乎随机、公司/行业特异 → <strong>可分散</strong>。油井算例：单井 20% 成功率 → 独押 80% 概率全损；1000 井各 0.1%，成功井回收 5.5 倍成本时，最坏情形约 <strong>5% 概率亏 17.5%</strong>——期望最大损失从 80% 降到 0.875%，降幅 98%+。跨 15 个行业再把"油价风险"压到 &lt;7%。实操标尺：<strong>约 30 只、跨行业跨地域</strong>即可拿走绝大部分特异风险，价值投资者无须为分散放弃集中于便宜货。</p></div>
+  </div>
+
+  <h3>宏观残余风险：四资产 × 通胀/通缩矩阵</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>资产类别</th><th>通胀环境</th><th>通缩/萧条环境</th><th>组合角色</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">固定名义回报（债券、保单）</td><td class="neg">受损（1950 年代末长期债持有机构之痛）</td><td class="pos">受益</td><td>便宜（高收益率+利率将降）才多配</td></tr>
+      <tr><td class="hd">实物资产（资源、地产、非特许企业）</td><td class="pos">受益（限于温和稳定通胀；恶性通胀伤经营 → 滞胀两头挨打）</td><td class="neg">受损</td><td>同上，自下而上选便宜的</td></tr>
+      <tr><td class="hd">特许经营（定价权，如可口可乐）</td><td class="pos">近乎免疫</td><td class="pos">近乎免疫（壁垒挡住通缩期的竞争恶化）</td><td>天然的宏观避风港</td></tr>
+      <tr><td class="hd">现金与等价物</td><td>利率大体随通胀</td><td class="pos">购买力上升</td><td>无机会时的默认仓位</td></tr>
+    </tbody>
+  </table></div>
+  <p>自下而上的便宜货筛选本身就自带宏观保护（钱流向更不脆弱的类别）；需要投保的只是<strong>轧差后的净敞口</strong>，且必须在中央层面投——给现金或稳定特许经营买保险、给债券与实物资产各买一份而不轧差，都是白花钱。三种保险工具：<em class="tag">现金与黄金</em>（机会荒时自然堆积；黄金与金融资产长期负相关）；<em class="tag">选择性做空</em>（三宿疾：税负按普通收入、持有成本 4–8%/年、<strong>错了仓位反而变大</strong>——于是被迫多头寸、浅研究，风险更高）；<em class="tag">期权</em>——综合最优，但有一条反直觉的纪律：<strong>期权在市场最自满、波动率最低时最便宜，而那恰是风险最高的时候——保险要在没人觉得需要保险时买</strong>，并须错开到期日滚动持有。</p>
+
+  <h3>行为风险：默认预案与再平衡</h3>
+  <p>机会荒年份的冲动交易是价值经理的职业病。解法是<strong>事先写好默认预案</strong>：无机会时按既定比例持有现金 + 一篮子统计便宜股（等权重历史上优于市值加权；若考核基准是 S&amp;P 500，"藏"在基准里是职业上最安全的选择）。巴菲特"没有三振出局的击球手"只说对一半——<strong>记分牌不等你挥棒也在走字</strong>（业绩相对基准计量），所以预案比意志力可靠。个人投资者的代价有量化：市场回报 7–11% 的年代，个人平均只拿 1–5%，<strong>差距约 600 个基点</strong>（Odean 的个体账户研究与 Dalbar 的基金资金加权回报皆然）——高买低卖的行为税，比顶尖经理 3–5% 的超额还大；这正是零和交易的另一侧。机械的<strong>定期再平衡</strong>（涨多的减、跌多的补）是对这套神经反射最简单的矫正，实证显著增益。组合结构的收尾：财富层集中管风险后，底层专业经理人的组合会走向 <strong>5–7 只重仓</strong>的高集中（特异风险在财富层被分散掉）；随之而来的合同难题——专业经理在自己领域无机会时应当坦白空仓，但"最近你为我做了什么"的追问会惩罚诚实——书承认这无易解。</p>
+</section>
+
+<!-- ================= 12 画像 ================= -->
+<section id="s12">
+  <div class="sec-head"><span class="no">12</span><h2>十一位实践者：同一配方的不同调味<span class="en">Investor Profiles</span></h2></div>
+  <div class="sec-lede">画像的功能不是立传，而是展示"主配方 + 五个自选环节"能长出多么不同的物种：从一间房、只读报表的 Schloss，到深改企业运营的 Hilal；从持六至十只的 Greenberg，到持数百只的 Price。第二版新增 Russo、Hilal、Hummel、Weiss 四人，并借序言给出价值投资近十年跑输的三点诊断：<strong>会计漏掉无形资产</strong>（费用化、折摊失真）；<strong>服务业本地化 + 软件规模经济让护城河更重要</strong>（增长估值不可回避）；<strong>同行变多、信息变平</strong>。</div>
+  <div class="pgrid">
+    <div class="pcard"><div class="pn">沃伦·巴菲特<span class="en">Warren Buffett · Berkshire Hathaway</span></div><span class="ptag">格雷厄姆 → 特许经营的进化本身</span><p>从"雪茄烟蒂"到"以合理价格买极好生意" <span class="enx">("far better to buy a wonderful company at a fair price than a fair company at a wonderful price")</span>；买股票 = 买整个企业的所有者心态；能力圈内下重注——保险、银行、媒体、消费品战绩显著好于圈外。投资即资本配置。</p></div>
+    <div class="pcard"><div class="pn">罗伯特·海尔布伦<span class="en">Robert H. Heilbrunn</span></div><span class="ptag">投资于投资者</span><p>1929 年继承家业与投资组合，以每月 25 美元聘格雷厄姆为顾问起步；后来的答案是"与其选股，不如选会选股的人"——哥大价值投资中心以其命名。</p></div>
+    <div class="pcard"><div class="pn">沃尔特 &amp; 埃德温·施洛斯<span class="en">Walter &amp; Edwin Schloss</span></div><span class="ptag">极简主义 · 只读报表</span><p>一间办公室（"Castle Schloss"）、不访公司、不见分析师、不上网，从 1934 年起只做一件事：资产负债表上净资产打折的便宜货，高度分散。刻意隔绝雄辩者，避免被说服去做不该做的事。</p></div>
+    <div class="pcard"><div class="pn">马里奥·加贝利<span class="en">Mario Gabelli · GAMCO</span></div><span class="ptag">私有市场价值 + 催化剂</span><p>哥大 1967 届（Roger Murray 门下）。首创 PMV <span class="enx">(Private Market Value)</span>：以"知情产业买家愿付的价格"锚定估值，自建整库交易数据（每美元 EBITDA、每有线用户价）；再找催化剂令市价向 PMV 收敛。分部加总，不做宏观。2019 年管理 365 亿美元。</p></div>
+    <div class="pcard"><div class="pn">格伦·格林伯格<span class="en">Glenn Greenberg · Brave Warrior</span></div><span class="ptag">高集中 · 穷尽式研究</span><p>耶鲁英文系出身、教过书当过校长，哥大 1973 届。在 J.P. Morgan 学会"如何不管理钱"，转而信奉十只以内、逐只吃透的组合——每一只都必须自己能讲清持有理由的好生意。</p></div>
+    <div class="pcard"><div class="pn">保罗·希拉尔<span class="en">Paul Hilal · Mantle Ridge</span></div><span class="ptag">行业专家型行动主义</span><p>Broadview 五年科技并购顾问出身；1999 年入主困境软件商 Worldtalk 任董事长兼代理 CEO，重组出售大获成功——从此定型。2005 年加入 Pershing Square，十年六案（含铁路 CP 等）皆以"吃透行业经济学 + 深度运营改造"取胜，是书中"最优行动主义者"的范式。</p></div>
+    <div class="pcard"><div class="pn">扬·胡梅尔<span class="en">Jan Hummel · Paradigm Capital</span></div><span class="ptag">欧洲小中盘 · 被机构忽略处</span><p>斯德哥尔摩经济学院 + 斯坦福 + HBS（格林沃尔德门生）。看穿私募股权竞价内卷后转公开市场，2001 年创 Paradigm，2007 年以 Gabelli 为锚投资人设基金——专注 2–50 亿欧元市值、欧洲大机构不屑覆盖的家族企业地带。</p></div>
+    <div class="pcard"><div class="pn">塞思·卡拉曼<span class="en">Seth Klarman · Baupost Group</span></div><span class="ptag">风险经理第一 · "我的优势是什么？"</span><p>Heine/Price 门下出身，1982 年 HBS 毕业即受托两教授及友人家族财富，1983 年以 2700 万美元起步，2019 年 280 亿。每笔投资先问 <span class="enx">"What is my edge?"</span>——对手盘在卖，凭什么你对？Baupost 统管客户全部财富，故风控与选股同体（书中风险管理章的活标本）；著有《安全边际》<span class="enx">(Margin of Safety)</span>。</p></div>
+    <div class="pcard"><div class="pn">迈克尔·普莱斯<span class="en">Michael Price · Mutual Series</span></div><span class="ptag">折衷主义 · 三分天下</span><p>1973 年入 Max Heine 门下，Mutual Shares 从 500 万美元做到 150 亿。组合约三分之二是折价 30–40% 的分散价值股，其余投破产重组（Heine 祖传专长）、并购套利与行动主义；目标：15% 回报 + 有限下行。</p></div>
+    <div class="pcard"><div class="pn">托马斯·鲁索<span class="en">Thomas Russo · Semper Vic</span></div><span class="ptag">五角美元 · 伟大品牌 · 承受痛苦的能力</span><p>斯坦福 JD/MBA（巴菲特客座那门课定了终身），Sequoia 出身。三原则：只买五折 <span class="enx">("fifty-cent dollars")</span>；只买有再投资跑道的伟大品牌；只买敢为长期牺牲当期报表的管理层 <span class="enx">("capacity to suffer")</span>——短期资金抛售制造的低价正是入口。</p></div>
+    <div class="pcard"><div class="pn">安德鲁·韦斯<span class="en">Andrew Weiss · Weiss Asset Management</span></div><span class="ptag">晦涩与复杂之处的错价</span><p>斯坦福经济学博士、波士顿大学教授、贝尔实验室研究员——学术声望等身的兼职传奇，2004 年全职。偏好"因晦涩复杂而非因公司差而便宜"的工具：60 年代末即买投资日本工业股的封闭式基金折价（内含五倍市盈率的日本，双重折上折），此后一生专猎此类结构。</p></div>
+  </div>
+</section>
+
+<!-- ================= 13 总判定树 ================= -->
+<section id="s13">
+  <div class="sec-head"><span class="no">13</span><h2>合流：现代格雷厄姆–多德的完整判定树<span class="en">The Modern Graham &amp; Dodd Decision Tree</span></h2></div>
+  <div class="sec-lede">全书的可执行形态是一棵三叉树：先问"能否做出足够可靠的估值"，答不上来的直接进"太难堆"——这不是失败，是纪律；答得上来的按有无护城河分流到两套完全不同的工具。任何一路的终点都是同一句话：<strong>价格与价值（或回报与资本成本）之间，必须留出足以覆盖你全部错误的边际。</strong></div>
+  <figure class="fig">
+    <svg viewBox="0 0 860 470" role="img" aria-label="判定树" style="width:100%;height:auto">
+      <g font-size="13">
+        <rect x="280" y="10" width="300" height="44" rx="3" fill="#14514C"/>
+        <text x="430" y="30" text-anchor="middle" fill="#F5EFDD" font-weight="700">候选标的（来自搜索策略）</text>
+        <text x="430" y="46" text-anchor="middle" fill="#BFD8CF" font-size="10.5">丑陋 · 冷门 · 失望 · 折价</text>
+        <line x1="430" y1="54" x2="430" y2="76" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="255" y="78" width="350" height="40" rx="3" fill="#F8F1DE" stroke="#8A6D1F"/>
+        <text x="430" y="103" text-anchor="middle" fill="#8A6D1F" font-weight="700">此生意在我的专业域内、且可被可靠估值吗？</text>
+        <line x1="605" y1="98" x2="740" y2="98" stroke="#B5541F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <rect x="742" y="70" width="108" height="56" rx="3" fill="#F0DCC9" stroke="#B5541F"/>
+        <text x="796" y="93" text-anchor="middle" fill="#8F3E12" font-weight="700" font-size="12">否 → 太难堆</text>
+        <text x="796" y="110" text-anchor="middle" font-size="10" fill="#5A4F3F">高增长新特许 / 泡沫价 / 圈外</text>
+        <line x1="430" y1="118" x2="430" y2="140" stroke="#1E6E68" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="255" y="142" width="350" height="40" rx="3" fill="#F8F1DE" stroke="#1E6E68"/>
+        <text x="430" y="167" text-anchor="middle" fill="#14514C" font-weight="700">有可证实的进入壁垒吗？（份额稳定 × 超额回报）</text>
+        <line x1="330" y1="182" x2="220" y2="212" stroke="#8A6D1F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <line x1="530" y1="182" x2="640" y2="212" stroke="#1E6E68" stroke-width="1.6" marker-end="url(#arr)"/>
+        <rect x="60" y="214" width="330" height="120" rx="3" fill="#EFE7CE" stroke="#8A6D1F"/>
+        <text x="225" y="236" text-anchor="middle" fill="#8A6D1F" font-weight="700">否 → 传统路径（Case A / B）</text>
+        <text x="225" y="258" text-anchor="middle" font-size="11.5">AV（重置成本）与 EPV 各花一半研究时间</text>
+        <text x="225" y="278" text-anchor="middle" font-size="11.5">AV ≈ EPV → 三角验证互为锚</text>
+        <text x="225" y="298" text-anchor="middle" font-size="11.5">AV ＞ EPV → 管理层问题：无催化剂不买</text>
+        <text x="225" y="318" text-anchor="middle" font-size="11.5">增长一律不付钱；折价 ⅓–½ 才买</text>
+        <rect x="470" y="214" width="330" height="120" rx="3" fill="#DCE8E2" stroke="#1E6E68"/>
+        <text x="635" y="236" text-anchor="middle" fill="#14514C" font-weight="700">是 → 特许经营路径（Case C）</text>
+        <text x="635" y="258" text-anchor="middle" font-size="11.5">回报法：现金 + 有机 + 主动再投资</text>
+        <text x="635" y="278" text-anchor="middle" font-size="11.5">对照资本成本；扣除 fade ≈ 72/半衰期</text>
+        <text x="635" y="298" text-anchor="middle" font-size="11.5">恒等式 V/M = R/R* 保证边际只增不减</text>
+        <text x="635" y="318" text-anchor="middle" font-size="11.5">增速 &gt;15% 者退回"太难堆"</text>
+        <line x1="225" y1="334" x2="380" y2="376" stroke="#5A4F3F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <line x1="635" y1="334" x2="480" y2="376" stroke="#5A4F3F" stroke-width="1.6" marker-end="url(#arr)"/>
+        <rect x="255" y="378" width="350" height="76" rx="3" fill="#14514C"/>
+        <text x="430" y="402" text-anchor="middle" fill="#F5EFDD" font-weight="700">组合与风控（对全体持仓）</text>
+        <text x="430" y="422" text-anchor="middle" fill="#DCE8E2" font-size="11.5">≈30 只跨行业跨地域 · 杠杆存疑即不用 · 中央化风控</text>
+        <text x="430" y="440" text-anchor="middle" fill="#DCE8E2" font-size="11.5">机会荒 → 默认预案（现金 + 等权便宜篮子）· 定期再平衡</text>
+      </g>
+    </svg>
+    <figcaption>图 13：全书合流为一棵可执行的判定树。"太难堆"是主动选择，不是能力欠费——巴菲特的击球区哲学。</figcaption>
+  </figure>
+
+  <h3>三套估值工具的对照总表</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th></th><th>资产价值 AV</th><th>盈利能力价值 EPV</th><th>回报法</th></tr></thead>
+    <tbody>
+      <tr><td class="hd">适用对象</td><td>Case A/B；周期与重资产行业；清算与困境</td><td>Case A/B/C 通用的第二锚；稳定服务业首选</td><td>仅 Case C（可靠护城河 + 增速 ≤15%）</td></tr>
+      <tr><td class="hd">核心输入</td><td>资产负债表逐行重置成本（含无形四类）</td><td>跨周期利润率 × 当期收入 → EP ÷ R</td><td>分配率、有机增速、v 系数、fade、R*</td></tr>
+      <tr><td class="hd">预测含量</td><td>零（当期可核验）</td><td>一条：当期水平可持续</td><td>多条，但灵敏度全部线性（错 1% 偏 1%）</td></tr>
+      <tr><td class="hd">安全边际形态</td><td>价格 ≤ ⅔ × 价值</td><td>价格 ≤ ⅔ × 价值；与 AV 互验</td><td>基准回报 − R* − fade &gt; 0（恒等式保证保守）</td></tr>
+      <tr><td class="hd">书中标本</td><td>Hudson General · GM 反例</td><td>Magna（与 AV 差 12% 互证）</td><td>WD-40（10% vs 8%）· Intel（三测皆贵）· CG 教学例</td></tr>
+      <tr><td class="hd">主要失效区</td><td>无形资产为主且高增长的生意</td><td>盈利远高于/低于可持续水平时的判断</td><td>卖出决策；超高速增长；非特许公司（浪费互验）</td></tr>
+    </tbody>
+  </table></div>
+  <p>第二版重写的逻辑至此闭环：经济体从制造转向服务与软件——无形资产逃出报表、本地市场与规模经济让<strong>护城河从例外变成常态</strong>——于是"增长的估值"从第一版的边缘章节升格为全书轴心；而增长恰恰是三来源中最估不准的那个，所以答案不是更精巧的 DCF，而是换一个问题：<strong>别问它值多少，问以今天的价格买入、明年能挣多少</strong>。这就是从格雷厄姆到巴菲特、再"及其后" <span class="enx">(and Beyond)</span> 的那一步。</p>
+</section>
+
+<footer>
+  <div>依据 <em>Value Investing: From Graham to Buffett and Beyond</em>, 2nd Edition（Greenwald · Kahn · Bellissimo · Cooper · Santos, Wiley 2021）原文逐章重建 · 所有数据、算例与论断均出自书内，未混入外部观点</div>
+  <div>单文件 · 零构建 · 零依赖（仅字体 CDN）· 可直接部署 GitHub Pages · 交互组件均为原生 JavaScript</div>
+</footer>
+
+</div><!-- /.wrap -->
+</main>
+</div><!-- /.layout -->
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id);};
+var pct=function(x,d){return (x).toFixed(d===undefined?1:d)+"%";};
+
+/* ---------- 03 DCF 终值敏感性 ---------- */
+function dcf(){
+  var R=parseFloat($("dcfR").value), g=parseFloat($("dcfG").value);
+  $("dcfRv").textContent=R.toFixed(1)+"%"; $("dcfGv").textContent=g.toFixed(1)+"%";
+  if(g>=R-0.4){
+    $("dcfM").textContent="∞"; $("dcfLo").textContent="—"; $("dcfHi").textContent="发散";
+    $("dcfBand").textContent="—";
+    $("dcfNote").textContent="g ≥ R：永续增长模型直接发散——数学在提醒你，这类公司的内在价值根本写不出来。";
+    return;
+  }
+  var m=1/((R-g)/100);
+  var lo=1/(((R+1)-(g-1))/100);
+  var hiDen=(R-1)-(g+1);
+  var hi=hiDen>0.4?1/(hiDen/100):Infinity;
+  $("dcfM").textContent=m.toFixed(1)+"×";
+  $("dcfLo").textContent=lo.toFixed(1)+"×";
+  $("dcfHi").textContent=isFinite(hi)?hi.toFixed(1)+"×":"发散";
+  $("dcfBand").textContent=isFinite(hi)?(hi/lo).toFixed(1)+"×":"∞";
+  $("dcfNote").textContent="R 与 g 各偏 1 个百分点，终值倍数在 "+lo.toFixed(1)+"× 与 "+(isFinite(hi)?hi.toFixed(1)+"×":"发散")+" 之间摆动。终值占 NPV 大头，故整个估值继承这个量程。";
+}
+["dcfR","dcfG"].forEach(function(id){$(id).addEventListener("input",dcf);});
+dcf();
+
+/* ---------- 03 Case A/B/C ---------- */
+var abcData={
+  A:{av:140,epv:70,lav:"100",lepv:"50",txt:"<p><strong>Case A（AV &gt; EPV）：资产在，回报不在。</strong>若行业确属可存续，两种解释：盈利被暂时压低（回到 EPV 的利润率工序重估），或——更常见——<em class='tag'>资产落在劣等管理层手里</em>。这就是价值陷阱：按资产折价买入后，坏管理层继续以低于资本成本的回报配置留存收益，价值持续蒸发。<strong>操作铁律：没有近期更换管理层的催化剂（收购、行动主义、破产重组），不买。</strong>标本：Hudson General 的夏威夷地产部分、破产前的 GM（其净重置价值已为负）。</p>"},
+  B:{av:105,epv:100,lav:"100",lepv:"≈100",txt:"<p><strong>Case B（AV ≈ EPV）：竞争市场的经济均衡。</strong>EPV 高出会诱发进入、低出会诱发退出，双向套利把两者夹在一起（书的操作口径：差距 25% 以内）。此时两个来自完全不同数据源的估值<em class='tag'>互为三角验证</em>：周期/重资产行业以更稳的 AV 为锚，稳定服务业以 EPV 为锚。<strong>增长在此不创造价值——新赚的恰好付给新投的。</strong>标本：Magna 2009（AV 与 EPV 差 12%，市价只有两成 → 买入理由与增长无关）。</p>"},
+  C:{av:60,epv:150,lav:"AV",lepv:"EPV≫",txt:"<p><strong>Case C（EPV &gt; AV）：特许经营。</strong>超额盈利若无壁垒必被烤面包机式的进入吞噬，故缺口的存续本身就是护城河存在的证明——缺口即<em class='tag'>特许经营价值</em>。只有在这里，增长才创造价值；也只有在这里，传统估值开始失灵（增长价值对参数过敏），需要切换到回报法（08 节）。标本：可口可乐（EPV 500–600 亿对资产重置 ~300 亿）、WD-40、Intel。</p>"}
+};
+function setCase(k){
+  var d=abcData[k];
+  var base=180, unit=0.75;
+  var hAV=d.av*unit, hEPV=d.epv*unit;
+  var bAV=$("barAV"), bEPV=$("barEPV");
+  bAV.setAttribute("y",base-hAV); bAV.setAttribute("height",hAV);
+  bEPV.setAttribute("y",base-hEPV); bEPV.setAttribute("height",hEPV);
+  $("lblAV").setAttribute("y",base-hAV-8); $("lblAV").textContent=d.lav;
+  $("lblEPV").setAttribute("y",base-hEPV-8); $("lblEPV").textContent=d.lepv;
+  var gl=$("gapLine");
+  gl.setAttribute("y1",base-hAV); gl.setAttribute("y2",base-hEPV);
+  $("abcText").innerHTML=d.txt;
+  ["A","B","C"].forEach(function(x){
+    $("btn"+x).className = (x===k)?"act":"act ghost";
+  });
+}
+["A","B","C"].forEach(function(k){
+  $("btn"+k).addEventListener("click",function(){setCase(k);});
+});
+setCase("A");
+
+/* ---------- 05 EPV 计算器 ---------- */
+function epv(){
+  var rev=parseFloat($("epvRev").value)||0,
+      mgn=(parseFloat($("epvMgn").value)||0)/100,
+      tax=(parseFloat($("epvTax").value)||0)/100,
+      dep=parseFloat($("epvDep").value)||0,
+      R=(parseFloat($("epvR").value)||10)/100,
+      cash=parseFloat($("epvCash").value)||0,
+      mkt=parseFloat($("epvMkt").value)||0;
+  var EP=rev*mgn*(1-tax)+dep;
+  var ent=R>0?EP/R:0;
+  var eq=ent+cash;
+  $("epvEP").textContent=EP.toFixed(0);
+  $("epvEnt").textContent=ent.toFixed(0);
+  $("epvEq").textContent=eq.toFixed(0);
+  var ratio=eq>0?mkt/eq:0;
+  $("epvRatio").textContent=(ratio*100).toFixed(0)+"%";
+  var v=$("epvVerdict");
+  if(eq<=0){v.className="verdict bad";v.textContent="权益 EPV 非正：检查输入。";return;}
+  if(ratio<=2/3){
+    v.className="verdict good";
+    v.textContent="市价为权益 EPV 的 "+(ratio*100).toFixed(0)+"%，达到格雷厄姆式安全边际（≤⅔）。下一步：与资产价值互验，确认 Case 归属。";
+  }else if(ratio<=1){
+    v.className="verdict mid";
+    v.textContent="市价为权益 EPV 的 "+(ratio*100).toFixed(0)+"%：有折价但不足⅓边际——留观察名单，等更好的价格。";
+  }else{
+    v.className="verdict bad";
+    v.textContent="市价高于权益 EPV（"+(ratio*100).toFixed(0)+"%）：市场已在为增长付费——除非确证护城河并转用回报法（08 节），否则放弃。";
+  }
+}
+["epvRev","epvMgn","epvTax","epvDep","epvR","epvCash","epvMkt"].forEach(function(id){$(id).addEventListener("input",epv);});
+epv();
+
+/* ---------- 06 增长判据 ---------- */
+function growth(){
+  var roic=parseFloat($("gRoic").value), R=parseFloat($("gR").value);
+  $("gRoicV").textContent=roic+"%"; $("gRV").textContent=R+"%";
+  var earn=roic, cost=R, net=roic-R;
+  var val=R>0?net/R*100:0;
+  $("gEarn").textContent="$"+earn.toFixed(0)+"M";
+  $("gCost").textContent="$"+cost.toFixed(0)+"M";
+  $("gNet").textContent=(net>=0?"+":"")+"$"+net.toFixed(0)+"M";
+  $("gVal").textContent=(val>=0?"+":"−")+"$"+Math.abs(val).toFixed(0)+"M";
+  $("gNet").className="v"+(net<0?" bad":"");
+  $("gVal").className="v"+(val<0?" bad":"");
+  var bar=$("gBar"), lbl=$("gBarLbl");
+  var w=Math.min(Math.abs(val)*1.4,255);
+  if(val>=0){bar.setAttribute("x",280);bar.setAttribute("fill","#1E6E68");lbl.setAttribute("x",286+w);lbl.setAttribute("text-anchor","start");lbl.setAttribute("fill","#14514C");}
+  else{bar.setAttribute("x",280-w);bar.setAttribute("fill","#B5541F");lbl.setAttribute("x",274-w);lbl.setAttribute("text-anchor","end");lbl.setAttribute("fill","#8F3E12");}
+  bar.setAttribute("width",Math.max(w,1));
+  lbl.textContent=(val>=0?"+":"−")+"$"+Math.abs(val).toFixed(0)+"M";
+  var vd=$("gVerdict");
+  if(net>0.5){vd.className="verdict good";vd.textContent="ROIC "+roic+"% > R "+R+"%：每投 1 元创造 "+(roic/R).toFixed(1)+" 元价值——但此回报若无壁垒保护，必被模仿者夷平（07 节）。";}
+  else if(net<-0.5){vd.className="verdict bad";vd.textContent="ROIC "+roic+"% < R "+R+"%：增长在毁灭价值——投得越多、长得越快，股东亏得越多。管理层若仍在扩张，即 Case A 的病理。";}
+  else{vd.className="verdict mid";vd.textContent="ROIC ≈ R：增长与价值无关——赚回的恰好付给新资本。竞争性市场的长期常态（Case B）。";}
+}
+["gRoic","gR"].forEach(function(id){$(id).addEventListener("input",growth);});
+growth();
+
+/* ---------- 07 烤面包机 ---------- */
+var tState;
+function tReset(){
+  tState={epv:200, wave:0, hist:[200]};
+  tDraw("初始状态：EP $20M ÷ 10% = EPV $200M，资产重置仅 $80M——25% 的资产回报是给全世界创业者的绿灯。点击按钮放进入者。");
+}
+function tDraw(msg){
+  var g=$("tBars"); while(g.firstChild)g.removeChild(g.firstChild);
+  var x0=70, bw=54, gap=14;
+  tState.hist.forEach(function(v,i){
+    var h=(v/200)*112;
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x",x0+i*(bw+gap)); r.setAttribute("y",160-h);
+    r.setAttribute("width",bw); r.setAttribute("height",h);
+    r.setAttribute("fill",i===0?"#8A6D1F":(v<=80.5?"#B5541F":"#1E6E68"));
+    r.setAttribute("opacity","0.9");
+    g.appendChild(r);
+    var t=document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",x0+i*(bw+gap)+bw/2); t.setAttribute("y",160-h-6);
+    t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","10.5");
+    t.setAttribute("class","mono"); t.setAttribute("fill","#2C2620");
+    t.textContent="$"+v.toFixed(0)+"M";
+    g.appendChild(t);
+    var lb=document.createElementNS("http://www.w3.org/2000/svg","text");
+    lb.setAttribute("x",x0+i*(bw+gap)+bw/2); lb.setAttribute("y",176);
+    lb.setAttribute("text-anchor","middle"); lb.setAttribute("font-size","9.5"); lb.setAttribute("fill","#5A4F3F");
+    lb.textContent=i===0?"起点":"第"+i+"波";
+    g.appendChild(lb);
+  });
+  var m=$("tMsg");
+  m.className="verdict "+(tState.epv<=80.5?"bad":"mid");
+  m.textContent=msg;
+}
+function tNext(){
+  if(tState.epv<=80.5){
+    tDraw("侵蚀已到终点：EPV = AV = $80M。没有壁垒的市场里，这不是巧合而是均衡——超额盈利存在过的唯一痕迹，是行业里多出来的产能。");
+    return;
+  }
+  tState.wave++;
+  var e=Math.max(tState.epv*0.8,80);
+  tState.epv=e; tState.hist.push(e);
+  if(tState.hist.length>7)tState.hist.splice(1,1);
+  if(e<=80.5){
+    tDraw("第 "+tState.wave+" 波进入者：价格战把盈利压到 $8M——恰好等于 $80M 资产 × 10% 资本成本。EPV 与 AV 会合，游戏结束；此后再降价就有人退出。");
+  }else{
+    tDraw("第 "+tState.wave+" 波进入者分走销量并压低价格：EP 降至 $"+(e/10).toFixed(1)+"M，EPV 降至 $"+e.toFixed(0)+"M。缺口仍在（对 AV $80M），下一波已在路上——差异化与广告只能延时，不能改向。");
+  }
+}
+$("tNext").addEventListener("click",tNext);
+$("tReset").addEventListener("click",tReset);
+tReset();
+
+/* ---------- 08 回报法工作台 ---------- */
+function ret(){
+  var M=parseFloat($("rM").value)||1,
+      E=parseFloat($("rE").value)||0,
+      rev=parseFloat($("rRev").value)||0,
+      C=parseFloat($("rC").value)/100,
+      go=parseFloat($("rGo").value),
+      gm=parseFloat($("rGm").value),
+      nwc=parseFloat($("rNWC").value)/100,
+      v=parseFloat($("rVCF").value),
+      Rs=parseFloat($("rRstar").value),
+      hl=parseFloat($("rHL").value);
+  $("rCv").textContent=(C*100).toFixed(0)+"%";
+  $("rGoV").textContent=go.toFixed(1)+"%";
+  $("rGmV").textContent=gm.toFixed(2)+"%";
+  $("rNWCv").textContent=(nwc*100).toFixed(0)+"%";
+  $("rVCFv").textContent=v.toFixed(1);
+  $("rRstarV").textContent=Rs.toFixed(1)+"%";
+  $("rHLv").textContent=hl.toFixed(0)+" 年";
+  var cash=C*E/M*100;
+  var org=go+gm;
+  var retained=(1-C)*E;
+  var orgInv=rev*(go/100)*nwc;
+  var active=Math.max(retained-orgInv,0)*v/M*100;
+  var tot=cash+org+active;
+  var fade=72/hl;
+  var net=tot-fade;
+  var mos=net-Rs;
+  var vm=tot/Rs;
+  $("oCash").textContent=pct(cash);
+  $("oOrg").textContent=pct(org);
+  $("oAct").textContent=pct(active);
+  $("oTot").textContent=pct(tot);
+  $("oFade").textContent="−"+pct(fade);
+  $("oNet").textContent=pct(net);
+  $("oNet").className="v"+(net<Rs?" bad":"");
+  $("oMoS").textContent=(mos>=0?"+":"")+pct(mos);
+  $("oMoS").className="v"+(mos<0?" bad":"");
+  $("oVM").textContent=vm.toFixed(2);
+  $("oVM").className="v"+(vm<1?" bad":"");
+  var vd=$("oVerdict");
+  if(mos>=1.5){
+    vd.className="verdict good";
+    vd.textContent="扣除 fade 后回报 "+net.toFixed(1)+"%，超出资本成本 "+mos.toFixed(1)+" 个百分点。恒等式提示 V/M ≈ "+vm.toFixed(2)+"（且真实边际只会更大——放大系数 R*/(R*−G) > 1）。属可买区间；报数时取整到半个百分点，拒绝伪精确。";
+  }else if(mos>=0){
+    vd.className="verdict mid";
+    vd.textContent="边际 "+mos.toFixed(1)+"% ——名义达标但覆盖不了参数误差。书的处理：进观察名单，或要求更长的特许半衰期证据（当前 fade 假设 "+fade.toFixed(1)+"%/年）。";
+  }else{
+    vd.className="verdict bad";
+    vd.textContent="扣 fade 后回报 "+net.toFixed(1)+"% 低于资本成本 "+Rs.toFixed(1)+"%：按当前市价买入是在给市场送安全边际（隐含 V/M "+vm.toFixed(2)+"）。WD-40 2018、Intel 三个时点均属此形。";
+  }
+}
+["rM","rE","rRev","rC","rGo","rGm","rNWC","rVCF","rRstar","rHL"].forEach(function(id){$(id).addEventListener("input",ret);});
+ret();
+
+/* ---------- 导航高亮 ---------- */
+var links=[].slice.call(document.querySelectorAll("nav.spine a"));
+var secs=links.map(function(a){return document.querySelector(a.getAttribute("href"));});
+if("IntersectionObserver" in window){
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        var id="#"+e.target.id;
+        links.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")===id);});
+      }
+    });
+  },{rootMargin:"-15% 0px -70% 0px"});
+  secs.forEach(function(s){if(s)io.observe(s);});
+}
+})();
+</script>
+</body>
+</html>
