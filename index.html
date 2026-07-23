@@ -235,7 +235,7 @@ body.in-tool .toolonly{display:inline-block}
   <div class="brand">
     <div class="eyebrow">CAVNO · INVESTING</div>
     <h1>投资研究<br>综合工作台</h1>
-    <div class="tagline">十三座仪器 · 三条谱系 · 零构建</div>
+    <div class="tagline">十四座仪器 · 三条谱系 · 零构建</div>
   </div>
   <nav id="racknav"></nav>
   <div class="rackfoot">
@@ -264,7 +264,7 @@ body.in-tool .toolonly{display:inline-block}
         <div class="eyebrow">CAVNO · INVESTING RESEARCH BENCH</div>
         <h2>投资研究 · 综合工作台</h2>
         <div class="rule"></div>
-        <p>十三座工作台聚合于一处：<b>Gamma 敞口</b>读做市商对冲的地形与动力学，<b>期权体系</b>从持仓地形、策略图谱到希腊字母的统一投影，<b>宏观与案例</b>落在信用扩张全景与监管案例拆解。本页仅作聚合与导航，<b>各台内容一字未改</b>；根页 Gamma Profile 的原地址保持不变。</p>
+        <p>十四座工作台聚合于一处：<b>Gamma 敞口</b>读做市商对冲的地形与动力学，<b>期权体系</b>从持仓地形、策略图谱到希腊字母的统一投影，<b>宏观与案例</b>落在信用扩张全景与监管案例拆解。本页仅作聚合与导航，<b>各台内容一字未改</b>；根页 Gamma Profile 的原地址保持不变。</p>
       </div>
       <div id="groups"></div>
       <section class="group dl" style="--ga:#7C8A4D;--gd:#5E6B39;--gw:#ECEEDF">
@@ -302,7 +302,7 @@ body.in-tool .toolonly{display:inline-block}
 <script>
 /* ════════ 数据（卡片文案取自各页面自身的标题与副标题，原文照录或按其自有字句拼合） ════════ */
 const TOOLS = [
- {slug:"gamma-profile", src:"./index.html", fn:"SPOTGAMMA 框架", name:"GOOGL · Gamma Profile",
+ {slug:"gamma-profile", src:"./gamma-profile/index.html", fn:"SPOTGAMMA 框架", name:"GOOGL · Gamma Profile",
   sub:"数据基于 2026/05/15 GOOGL Gamma 敞口截图的视觉重构估值，采用 SpotGamma 公开框架的术语与方法论：Call Wall / Put Wall · Gamma Flip (HVL) · Net Gamma Profile by Strike · Vanna / Charm Exposure · Regime。非 SpotGamma 官方产品。"},
  {slug:"dynamic-gex", src:"./动态Gamma敞口图/index.html", fn:"动态交互图", name:"GOOGL Gamma 敞口 · 动态视图",
   sub:"2026/05/15 截面：拖动模拟价位，观察做市商对冲行为在「压制波动」与「放大波动」两种模式之间的切换。"},
@@ -328,6 +328,8 @@ const TOOLS = [
   sub:"以 Natenberg《期权波动率与定价》第2版为底本的十四命题链逻辑重构：从无套利与期望收益、波动率这个唯一的未知数，到希腊字母、动态对冲、价差与合成套利、BSM 与二项式模型，再到波动率倾斜与「波动率成为资产」。"},
  {slug:"dynamic-hedging", src:"./动态对冲/index.html", fn:"TALEB 互动导读", name:"动态对冲 · 核心概念与内在逻辑",
   sub:"依 Taleb《动态对冲：管理普通期权与奇异期权》中译本文字稿整理的互动版：把对冲与风险管理从科学的神坛上降级成一门手艺——一条九环逻辑主线、四十余个互相勾连的概念、二十五条风险管理规则。中心命题：期权复制不是无风险头寸，离散对冲下损益是随机变量。"},
+ {slug:"value-investing", src:"./value_investing/index.html", fn:"GRAHAM → BUFFETT 2E", name:"价值投资 · 从格雷厄姆到巴菲特的头号投资法则",
+  sub:"《价值投资》第2版（Graham→Buffett & Beyond）的逻辑全图：从定义/前提/证据、三来源估值（资产价值·EPV·增长价值）、护城河与特许经营估值，到四个案例算例、研究策略、风险管理与组合构建、十一位投资者画像。"},
 ];
 const GROUPS = [
  {title:"Gamma 敞口", ga:"#3F7E6B", gd:"#2C5A4C", gw:"#E4EFEA",
@@ -335,7 +337,7 @@ const GROUPS = [
  {title:"期权体系", ga:"#A9853C", gd:"#856727", gw:"#F0E6C9",
   note:'持仓地形 · 65 式策略 · 张力系统 · 希腊字母统一 · 单腿损益解剖', idx:[4,5,6,7,8,11,12]},
  {title:"宏观与案例", ga:"#BC4B33", gd:"#9A3A26", gw:"#F3DED5",
-  note:'信用扩张的明斯基地形 × Jane Street 的 SEBI 案例拆解', idx:[9,10]}
+  note:'信用扩张的明斯基地形 × Jane Street 的 SEBI 案例拆解', idx:[9,10,13]}
 ];
 
 /* ════════ 渲染：仪器架 + 总览卡片 ════════ */
